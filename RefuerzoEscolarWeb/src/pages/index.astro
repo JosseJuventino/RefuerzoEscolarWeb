@@ -2,6 +2,7 @@
 import LoginForm from "../components/Login/LoginForm";
 import login_styles from "../css/login.module.css";
 import Layout from "../layouts/Layout.astro";
+import ImageSlider from "../components/Login/ImageSlider";
 ---
 
 <Layout title="Refuerzo Escolar - Login">
@@ -16,5 +17,12 @@ import Layout from "../layouts/Layout.astro";
 
       <LoginForm client:load />
     </section>
+
+    <div class={login_styles.image_section}>
+      <img
+        src="https://media.vaticannews.va/media/content/dam-archive/vaticannews/multimedia/2020/12/04/WhatsApp-Image-2020-12-02-at-08.03.09aem.jpg/_jcr_content/renditions/cq5dam.thumbnail.cropped.750.422.jpeg"
+        alt="Background Image"
+      />
+    </div>
   </main>
 </Layout>
