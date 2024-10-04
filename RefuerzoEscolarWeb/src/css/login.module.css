@@ -17,18 +17,39 @@
     gap: 20px;
 }
 
-.section img{
-    width: 120px;
+.logo_main{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo_main img{
+    width: 130px;
+    margin: 0 auto;
 }
 
 .section h1{
+    font-size: 1.5rem;
+    color: var(--text-white-subtitle);
+    font-weight: bold;
+    margin-left: 20px;
+}
+
+.section h2{
     font-size: 1.6rem;
     margin-top: 20px;
     color: var(--text-white-subtitle);
     font-weight: bold;
 }
 
-.section form{
+.login_form{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.login_form form{
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -36,26 +57,53 @@
     width: 100%;
 }
 
-.section form input{
+.login_form form input{
     padding: 8px;
     border-radius: 5px;
     border: none;
-    width: 80%;
+    width: 90%;
     background-color: var(--background-color);
     color: var(--bg-blue-principal);
     outline: none;
     font-weight: bold;
 }
 
-.section form button{
+.login_form form button{
     padding: 10px;
     border-radius: 5px;
     border: none;
     margin-top: 10px;
-    width: 80%;
+    width: 90%;
     background-color: var(--bg-yellow-terciary);
     color: var(--bg-white-secondary);
     font-weight: bold;
     cursor: pointer;
     outline: none;
 }
+
+.googleLogin {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+width: 90%;
+}
+
+.googleButton {
+  background-color: var(--bg-white-secondary);
+  color: var(--bg-blue-principal);
+  font-weight: bold;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.googleLogo {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+}
+

@@ -1,13 +1,20 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import LoginCard from '../components/Login/LoginCard.astro';
+import LoginForm from "../components/Login/LoginForm";
 import login_styles from "../css/login.module.css";
-
+import Layout from "../layouts/Layout.astro";
 ---
 
-<Layout title="Welcome to Astro.">
-	<main class={login_styles.main_section}>
-		<LoginCard />
-		
-	</main>
+<Layout title="Refuerzo Escolar - Login">
+  <main class={login_styles.main_section}>
+    <section class={login_styles.section}>
+      <div class={login_styles.logo_main}>
+        <img src="/Logo.svg" alt="Logo Refuerzo Escolar" />
+        <h1>Refuerzo Academico Ing. William Mendoza</h1>
+      </div>
+
+      <h2>Iniciar Sesión</h2>
+
+      <LoginForm client:load />
+    </section>
+  </main>
 </Layout>
