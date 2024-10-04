@@ -1,54 +1,80 @@
-# Astro Starter Kit: Basics
+## Project Information
+This repository hosts the source code for **William Mendoza - RefuerzoEscolarWeb**, an online platform designed to help students improve their academic performance through personalized lessons and interactive exercises in subjects like math, science, and language arts.
 
-```sh
-npm create astro@latest -- --template basics
+### Prerequisites
+Before starting the project, make sure you have the following installed on your development environment:
+- **Node.js** (version 14 or higher)
+- **NPM** (for dependency management)
+- **Git** (to clone the repository)
+
+### Instructions to Run the Project
+
+1. **Clone the repository**
+
+   First, clone the repository from GitHub or your preferred version control platform. Use the following command in your terminal:
+   ```bash
+   git clone https://github.com/username/WilliamMendoza-RefuerzoEscolarWeb.git
+   ```
+
+2. **Navigate to the project directory**
+
+   Change the directory to the folder of the project you just cloned:
+   ```bash
+   cd WilliamMendoza-RefuerzoEscolarWeb
+   ```
+
+3. **Install dependencies**
+   
+   Use `npm` to install the necessary dependencies for the project. Run the following command:
+   ```bash
+   npm install
+   ```
+
+4. **Start the development server**
+
+   Once all dependencies are installed, start the development server. This will compile the code and start a local instance of the platform:
+   ```bash
+   npm run dev
+   ```
+
+   The server will start at `http://localhost:4321`. You can open your browser and visit that address to see the project running.
+
+### Project Structure
+The current structure of the project is as follows:
+
+```
+- .astro/
+- .vscode/
+- node_modules/
+- public/
+    - favicon.svg
+    - Logo.svg
+- src/
+    - components/
+        - Login/
+            - LoginCard.astro
+    - css/
+        - globals.module.css
+        - login.module.css
+    - layouts/
+        - Layout.astro
+    - index.astro
+- scripts/
+- types/
+    - env.d.ts
+- .env
+- .gitignore
+- astro.config.mjs
+- package-lock.json
+- package.json
+- README.md
 ```
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/basics)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/basics)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/basics/devcontainer.json)
+- **src/components/Login**: Contains the components for the login page.
+- **src/css**: CSS files for global and login-specific styles.
+- **src/layouts**: Contains the general layouts for the project.
+- **public**: Static files like the logo and favicon.
+- **scripts**: Contains scripts used in the project.
+- **types**: Defines TypeScript types, such as `env.d.ts` for environment variables.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-![just-the-basics](https://github.com/withastro/astro/assets/2244813/a0a5533c-a856-4198-8470-2d67b1d7c554)
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src/
-│   ├── components/
-│   │   └── Card.astro
-│   ├── layouts/
-│   │   └── Layout.astro
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+This is the current structure and the basic setup for running the project locally. If you need more details or changes, feel free to reach out!
