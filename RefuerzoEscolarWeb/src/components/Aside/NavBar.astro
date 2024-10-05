@@ -1,0 +1,64 @@
+---
+import styles from "../../css/dashboard.module.css";
+---
+
+<nav class={styles.navbar}>
+  <div class={styles.navContainer}>
+    <div class={styles.navContent}>
+      <div class={styles.navStart}>
+        <button
+          id="logo-sidebar-toggle"
+          type="button"
+          class={styles.toggleButton}
+          aria-controls="logo-sidebar"
+        >
+          <span class="sr-only">Open sidebar</span>
+          <svg
+            class={styles.toggleIcon}
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              clip-rule="evenodd"
+              fill-rule="evenodd"
+              d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"
+            ></path>
+          </svg>
+        </button>
+        <a href="#" class={styles.logoLink}>
+          <img src="/public/Logo.svg" class={styles.logoImage} alt="Logo" />
+          <div class={styles.logoText}>
+            <span>Refuerzo Academico</span>
+            <span>Ing. William Mendoza</span>
+          </div>
+        </a>
+      </div>
+      <div class={styles.navEnd}>
+        <div class={styles.userMenuContainer}>
+          <button
+            type="button"
+            id="user-menu-toggle"
+            class={styles.userButton}
+            aria-expanded="false"
+          >
+            <span class="sr-only">Open user menu</span>
+            <img
+              class={styles.userImage}
+              src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
+              alt="user photo"
+            />
+          </button>
+          <div id="dropdown-user" class={`${styles.userDropdown}`}>
+            <div class={styles.userInfo}>
+              <p class={styles.userName}>Neil Sims</p>
+              <p class={styles.userEmail}>neil.sims@flowbite.com</p>
+              <button class={styles.signOutButton}>Sign out</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>

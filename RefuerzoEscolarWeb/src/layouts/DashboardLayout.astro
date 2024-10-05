@@ -1,0 +1,26 @@
+---
+import Navbar from "../components/Aside/NavBar.astro";
+import Sidebar from "../components/Aside/SideBar.astro";
+import styles from "../css/dashboard.module.css";
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mi Aplicación - Sidebar</title>
+  </head>
+  <body>
+
+    <Navbar />
+    <div class={styles.contentWrapper}>
+      <Sidebar />
+      <main class={styles.mainContent}>
+        <slot />
+      </main>
+    </div>
+
+    <script src="/src/scripts/Sidebar.js" type="module"></script>
+  </body>
+</html>
