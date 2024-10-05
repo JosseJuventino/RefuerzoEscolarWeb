@@ -1,20 +1,39 @@
 import { auth } from "../../scripts/firebaseConfig";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import login_styles from "../../css/login.module.css"
+import login_styles from "../../css/login.module.css";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import useUserStore from "../../stores/userStore";
 
 export default function LoginForm() {
 
+  const { setUser } = useUserStore(); 
+  const navigate = useNavigate(); 
+
   const handleGoogleLogin = async () => {
-    console.log("Botón de Google clickeado"); // Agrega este log para comprobar el clic
-    const provider = new GoogleAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      console.log("Usuario autenticado con Google:", user);
-    } catch (error) {
-      console.error("Error en el inicio con Google:", error);
-    }
+      const provider = new GoogleAuthProvider();
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        if (user) {
+          setUser(user); 
+          navigate("/home"); 
+        }
+      } catch (error) {
+        console.error("Error en el inicio con Google:", error);
+      }
   };
+
+   useEffect(() => {
+     const unsubscribe = auth.onAuthStateChanged((user) => {
+       if (user) {
+         setUser(user); 
+         navigate("/home");
+       }
+     });
+
+     return () => unsubscribe(); // Limpia el listener al desmontar el componente
+   }, [setUser, navigate]);
 
   return (
     <div className={login_styles.login_form}>
