@@ -25,11 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
       console.log("User menu toggle button clicked");
 
       if (userDropdown) {
-        userDropdown.classList.toggle(styles.hidden);
-        console.log(
-          "User dropdown toggled. Current classes:",
-          userDropdown.className
-        );
+        userDropdown.classList.toggle(styles.show);
       }
     });
   }
