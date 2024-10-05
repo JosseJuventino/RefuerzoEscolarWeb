@@ -25,11 +25,11 @@ export default function LoginForm() {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setUser(user);
-        window.location.href = "/home"; // Redirigir usando window.location
+        window.location.href = "/dashboard"; 
       }
     });
 
-    return () => unsubscribe(); // Limpia el listener al desmontar el componente
+    return () => unsubscribe();
   }, [setUser]);
 
   return (
