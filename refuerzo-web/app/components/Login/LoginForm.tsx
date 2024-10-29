@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ShowPasswordIcon, HidePasswordIcon } from "@/app/utils/Icons";
+import GoogleLogin from "./GoogleLogin";
 
 const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -61,6 +62,7 @@ const LoginForm: React.FC = () => {
 
         <div className="text-center text-sm text-gray-500">O continuar con</div>
 
+        <GoogleLogin />
         <div className="text-center text-sm">
           ¿No tienes una cuenta?{" "}
           <a href="#" className="text-blue_principal hover:underline">
