@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/scripts/useAuth";
-import useUserStore from "@/scripts/userStore";
+
 import {
     SearchIcon, LayoutDashboardIcon, UserIcon,
     LayersIcon, MoreHorizontalIcon,
