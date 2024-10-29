@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@/scripts/useAuth";
 import useUserStore from "@/scripts/userStore";
 import {
-    SearchIcon, LayoutDashboardIcon, UserIcon, UsersIcon,
+    SearchIcon, LayoutDashboardIcon, UserIcon,
     LayersIcon, MoreHorizontalIcon,
 } from "lucide-react";
 
@@ -27,7 +28,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, badge, badgeColor 
 );
 
 const Sidenav: React.FC = () => {
-    const user = useUserStore((state) => state.user);
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState("overview");
 
     return (

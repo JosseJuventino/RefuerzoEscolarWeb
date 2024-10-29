@@ -12,6 +12,7 @@
     "firebase": "^11.0.1",
     "lucide-react": "^0.454.0",
     "next": "15.0.1",
+    "next-auth": "^4.24.10",
     "primereact": "^10.8.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

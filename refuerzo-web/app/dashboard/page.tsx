@@ -1,14 +1,18 @@
-// pages/dashboard.tsx
-import React from "react";
+"use client"
+import { useAuth } from "@/scripts/useAuth";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
+export default function Dashboard() {
+    const { user, loading } = useAuth();
+    const router = useRouter();
 
-const DashboardPage = () => {
-    return (
-        <div>
-            <h2 className="text-2xl font-semibold">Dashboard</h2>
-            <p>Osea queee</p>
-        </div>
-    );
-};
+    useEffect(() => {
+        if (!loading && !user) {
+            router.push("/login"); // Redirige al login si no está autenticado
+        }
+    }, [user, loading, router]);
 
-export default DashboardPage;
+    if (loading) return <p>Cargando...</p>;
+    return user ? <p>Bienvenido, {user.displayName}</p> : null;
+}

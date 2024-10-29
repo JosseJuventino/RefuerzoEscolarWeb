@@ -6,7 +6,7 @@ interface SidenavProps {
     children: React.ReactNode;
 }
 
-const JobslyLayout: React.FC<SidenavProps> = ({ children }) => {
+const Layout: React.FC<SidenavProps> = ({ children }) => {
     return (
         <div className="flex h-screen">
             <Sidenav />
@@ -17,4 +17,4 @@ const JobslyLayout: React.FC<SidenavProps> = ({ children }) => {
     );
 };
 
-export default JobslyLayout;
+export default Layout;
