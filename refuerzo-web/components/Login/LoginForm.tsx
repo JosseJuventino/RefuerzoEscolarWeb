@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ShowPasswordIcon, HidePasswordIcon } from "@/app/utils/Icons";
+import { ShowPasswordIcon, HidePasswordIcon } from "@/utils/Icons";
 import GoogleLogin from "./GoogleLogin";
 
 const LoginForm: React.FC = () => {

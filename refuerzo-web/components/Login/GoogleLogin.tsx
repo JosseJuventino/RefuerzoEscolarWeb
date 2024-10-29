@@ -1,7 +1,7 @@
 "use client";
-import { auth } from "@/app/scripts/firebase";
+import { auth } from "@/scripts/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import useUserStore from "@/app/scripts/userStore";
+import useUserStore from "@/scripts/userStore";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -16,7 +16,7 @@ export default function GoogleLogin() {
             const user = result.user;
             if (user) {
                 setUser(user);
-                router.push("/home");  // Redirección usando router.push
+                router.push("/dashboard");
             }
         } catch (error) {
             console.error("Error en el inicio con Google:", error);
