@@ -6,7 +6,7 @@ const DashboardPage = () => {
     return (
         <div>
             <h2 className="text-2xl font-semibold">Dashboard</h2>
-            <p>Bienvenido al panel de Jobsly.</p>
+            <p>Osea queee</p>
         </div>
     );
 };
