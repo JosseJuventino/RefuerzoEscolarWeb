@@ -3,9 +3,11 @@ import { auth } from "@/app/scripts/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import useUserStore from "@/app/scripts/userStore";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function GoogleLogin() {
     const { setUser } = useUserStore();
+    const router = useRouter();
 
     const handleGoogleLogin = async () => {
         const provider = new GoogleAuthProvider();
@@ -14,7 +16,7 @@ export default function GoogleLogin() {
             const user = result.user;
             if (user) {
                 setUser(user);
-                window.location.href = "/home";
+                router.push("/home");  // Redirección usando router.push
             }
         } catch (error) {
             console.error("Error en el inicio con Google:", error);
@@ -25,12 +27,12 @@ export default function GoogleLogin() {
         const unsubscribe = auth.onAuthStateChanged((user) => {
             if (user) {
                 setUser(user);
-                window.location.href = "/dashboard";
+                router.push("/dashboard");  // Redirección usando router.push
             }
         });
 
         return () => unsubscribe();
-    }, [setUser]);
+    }, [setUser, router]);
 
     return (
         <div className="mt-8 flex justify-center">
