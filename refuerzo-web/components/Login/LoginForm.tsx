@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ShowPasswordIcon, HidePasswordIcon } from "@/app/utils/Icons";
+import { ShowPasswordIcon, HidePasswordIcon } from "@/utils/Icons";
 import GoogleLogin from "./GoogleLogin";
 
 const LoginForm: React.FC = () => {
@@ -63,6 +63,7 @@ const LoginForm: React.FC = () => {
         <div className="text-center text-sm text-gray-500">O continuar con</div>
 
         <GoogleLogin />
+        
         <div className="text-center text-sm">
           ¿No tienes una cuenta?{" "}
           <a href="#" className="text-blue_principal hover:underline">
