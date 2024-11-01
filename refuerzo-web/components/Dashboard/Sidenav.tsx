@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useAuth } from "@/scripts/useAuth";
+import Link from "next/link";
 
 import {
     SearchIcon, LayoutDashboardIcon, UserIcon,
-    LayersIcon, MoreHorizontalIcon,
+    LayersIcon, MoreHorizontalIcon, FileTextIcon
 } from "lucide-react";
 
 interface NavItemProps {
@@ -13,10 +14,11 @@ interface NavItemProps {
     label: string;
     badge?: string;
     badgeColor?: string;
+    link: string;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, badge, badgeColor = "bg-blue-500" }) => (
-    <button className="flex items-center w-full px-3 py-2 text-left rounded-md hover:bg-[#004e8f] transition-colors duration-200">
+const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, badge, badgeColor = "bg-blue-500", link }) => (
+    <Link href={link} className="flex items-center w-full px-3 py-2 cursor-pointer text-left rounded-md hover:bg-[#004e8f] transition-colors duration-200">
         <Icon className="w-5 h-5 mr-3" />
         <span className="hidden md:inline">{label}</span>
         {badge && (
@@ -24,7 +26,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon: Icon, label, badge, badgeColor 
                 {badge}
             </span>
         )}
-    </button>
+    </Link>
 );
 
 const Sidenav: React.FC = () => {
@@ -48,9 +50,10 @@ const Sidenav: React.FC = () => {
                         />
                     </div>
                     <nav className="space-y-1">
-                        <NavItem icon={LayoutDashboardIcon} label="Inicio" />
-                        <NavItem icon={UserIcon} label="Alumnos" />
-                        <NavItem icon={LayersIcon} label="Secciones" badge="8" badgeColor="bg-blue-500" />
+                        <NavItem link="/dashboard" icon={LayoutDashboardIcon} label="Inicio" />
+                        <NavItem link="dashboard/students" icon={UserIcon} label="Alumnos" />
+                        <NavItem link="dashboard/sections" icon={LayersIcon} label="Secciones" badge="8" badgeColor="bg-blue-500" />
+                        <NavItem link="dashboard/applicants" icon={FileTextIcon} label="Postulaciones" badge="28" badgeColor="bg-blue-500" />
                     </nav>
                 </div>
                 <div className="flex items-center space-x-2 mt-4">

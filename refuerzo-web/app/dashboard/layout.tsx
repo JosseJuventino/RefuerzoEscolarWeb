@@ -3,7 +3,6 @@
 import Sidenav from "@/components/Dashboard/Sidenav";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/scripts/useAuth";
-import { ProgressSpinner } from 'primereact/progressspinner';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -28,7 +27,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return (
         <div className="flex h-screen">
             <Sidenav />
-            <main className="flex-1 p-6 bg-gray-100 overflow-y-auto">
+            <main className="flex-1 px-10 py-5 bg-gray-100 overflow-y-auto">
                 {children}
             </main>
         </div>
