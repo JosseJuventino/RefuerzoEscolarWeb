@@ -8,18 +8,17 @@ export const createPostulante = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const { nombre, email, año, estado, fechaEnvio } = req.body;
 
     // Comprobar si ya existe un postulante con el mismo correo electrónico
     const existingPostulante = await Postulante.findOne({ email });
     if (existingPostulante) {
-      return res
-        .status(400)
-        .json({
-          error: "Ya existe un postulante con este correo electrónico.",
-        });
+      res.status(400).json({
+        error: "Ya existe un postulante con este correo electrónico.",
+      });
+      return;
     }
 
     // Crear un nuevo objeto Postulante
@@ -30,7 +29,7 @@ export const createPostulante = async (
       estado,
       fechaEnvio,
     });
-      
+
     const createdPostulante = await newPostulante.save();
 
     res.status(201).json(createdPostulante);
@@ -39,55 +38,68 @@ export const createPostulante = async (
   }
 };
 
+// Obtener un postulante por ID
 export const getPostulanteById = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const { id } = req.params;
     const postulante = await Postulante.findById(id);
-    if (!postulante) throw httpError(404, "Postulante no encontrado");
+    if (!postulante) {
+      next(httpError(404, "Postulante no encontrado"));
+      return;
+    }
     res.status(200).json({ data: postulante });
   } catch (err) {
     next(err);
   }
 };
 
+// Obtener un postulante por correo electrónico
 export const getPostulanteByEmail = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const { email } = req.params;
     const postulanteData = await Postulante.findOne({ email });
-    if (!postulanteData) throw httpError(404, "Postulante no encontrado");
+    if (!postulanteData) {
+      next(httpError(404, "Postulante no encontrado"));
+      return;
+    }
     res.status(200).json({ data: postulanteData });
   } catch (err) {
     next(err);
   }
 };
 
+// Obtener todos los postulantes
 export const getAllPostulantes = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const postulantes = await Postulante.find();
-    if (!postulantes) throw httpError(404, "Postulantes no encontrados");
+    if (!postulantes) {
+      next(httpError(404, "Postulantes no encontrados"));
+      return;
+    }
     res.status(200).json({ data: postulantes });
   } catch (err) {
     next(err);
   }
 };
 
+// Actualizar un postulante por ID
 export const updatePostulanteById = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const { id } = req.params;
     const { nombre, email, año, estado, fechaEnvio } = req.body;
@@ -99,7 +111,8 @@ export const updatePostulanteById = async (
     );
 
     if (!updatedPostulante) {
-      throw httpError(404, "Postulante no encontrado");
+      next(httpError(404, "Postulante no encontrado"));
+      return;
     }
 
     res.status(200).json({ data: updatedPostulante });
@@ -108,15 +121,19 @@ export const updatePostulanteById = async (
   }
 };
 
+// Eliminar un postulante por ID
 export const deletePostulanteById = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const { id } = req.params;
     const deletedPostulante = await Postulante.findByIdAndDelete(id);
-    if (!deletedPostulante) throw httpError(404, "Postulante no encontrado");
+    if (!deletedPostulante) {
+      next(httpError(404, "Postulante no encontrado"));
+      return;
+    }
     res.status(200).json({ data: deletedPostulante });
   } catch (err) {
     next(err);
