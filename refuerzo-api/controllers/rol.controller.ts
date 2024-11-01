@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import httpError from "http-errors";
 import Rol from "../models/rol.model";
+import { IRol } from "../models/rol.model";
 
-// Crear un nuevo rol
 export const createRol = async (
   req: Request,
   res: Response,
