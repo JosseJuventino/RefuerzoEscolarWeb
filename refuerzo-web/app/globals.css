@@ -2,3 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+
+.p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link {
+    background-color: transparent !important; /* Ajusta el color que prefieras */
+    color: #003C71; /* Cambia el color del texto */
+}
+
+.card, .p-tabmenu-nav{
+    background-color: transparent !important;
+}
+
