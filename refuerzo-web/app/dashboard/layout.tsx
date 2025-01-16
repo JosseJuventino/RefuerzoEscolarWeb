@@ -11,7 +11,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
     const { user, loading } = useAuth();
     const router = useRouter();
-   
+
     if (!loading && !user) {
         router.push("/");
         return null;
@@ -25,9 +25,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         );
     }
     return (
-        <div className="flex h-screen">
-            <Sidenav />
-            <main className="flex-1 px-10 py-5 bg-gray-100 overflow-y-auto">
+        <div className="flex h-screen flex-col md:flex-row md:overflow-hidden ">
+            <div className="w-full flex-none md:w-64 z-40">
+                <Sidenav />
+            </div>
+            <main className="flex-grow px-6 pt-10 md:overflow-y-auto z-40 pl-10 pr-10 bg-gray-50">
                 {children}
             </main>
         </div>

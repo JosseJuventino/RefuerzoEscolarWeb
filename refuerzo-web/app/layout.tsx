@@ -1,40 +1,28 @@
-import type { Metadata } from "next";
-import localFont from "next/font/local";
-import { NextUIProvider } from "@nextui-org/react";
-import "./globals.css";
+// app/layout.tsx (Server Component por defecto)
+import type { Metadata } from 'next';
+import { NextUIProvider } from '@nextui-org/react';
+import './globals.css';
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+import ClientProviders from './ClientProvider';
 
 export const metadata: Metadata = {
-  title: "Refuerzo Escolar Web",
-  description: "",
+  title: 'Refuerzo Escolar Web',
+  description: '',
 };
-
-
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
-  
+}) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-      <NextUIProvider>
-        {children}
-      </NextUIProvider>
+      <body>
+        <NextUIProvider>
+          <ClientProviders>
+            {children}
+          </ClientProviders>
+        </NextUIProvider>
       </body>
     </html>
   );
