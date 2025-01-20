@@ -1,5 +1,6 @@
 "use client";
 import { CircleUser } from "lucide-react";
+import Image from "next/image";
 import data from "@/data/personas.json"; 
 
 interface Person {
@@ -23,7 +24,7 @@ export default function Personas() {
             className="flex items-center bg-white shadow rounded-lg p-4 w-full"
           >
             {person.image ? (
-              <img
+              <Image
                 src={person.image}
                 alt={person.name}
                 className="w-16 h-16 rounded-full object-cover mr-4"

@@ -49,7 +49,7 @@ export default function Applicants() {
     }
 
     return (
-        <>
+        <div className="p-10">
             <PageHeader
                 title="Postulantes"
                 buttons={[
@@ -75,6 +75,6 @@ export default function Applicants() {
                     }}
                 />
             </div>
-        </>
+        </div>
     );
 }
