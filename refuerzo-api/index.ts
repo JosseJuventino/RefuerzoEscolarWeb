@@ -25,14 +25,14 @@ app.use("/", (req: Request, res: Response) => {
 
 app.use(errorHandler);
 
-const port = envconfig.PORT;
+const port = parseInt(envconfig.PORT || "3000", 10);
 
 const startServer = async () => {
   try {
     await database.connect();
     console.log("Conectado a la base de datos");
 
-    app.listen(port, () => {
+    app.listen(port, '0.0.0.0', () => {
       debug(`Server is running on port ${port}`);
       console.log(`Server is running on port ${port}`);
     });
