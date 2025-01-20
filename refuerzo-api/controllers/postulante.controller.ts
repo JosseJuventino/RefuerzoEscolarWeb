@@ -1,9 +1,10 @@
-// src/controllers/postulante.controller.ts
+
 import { Request, Response, NextFunction } from "express";
 import httpError from "http-errors";
 import Postulante from "../models/postulantes.model";
 
-// Crear un nuevo postulante
+const kItemsPerPage = 10;
+
 export const createPostulante = async (
   req: Request,
   res: Response,
@@ -21,7 +22,6 @@ export const createPostulante = async (
       return;
     }
 
-    // Crear un nuevo objeto Postulante
     const newPostulante = new Postulante({
       nombre,
       email,
@@ -76,19 +76,36 @@ export const getPostulanteByEmail = async (
   }
 };
 
-// Obtener todos los postulantes
 export const getAllPostulantes = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const postulantes = await Postulante.find();
-    if (!postulantes) {
-      next(httpError(404, "Postulantes no encontrados"));
+    const page = parseInt(req.query.page as string) || 1; 
+    const limit = parseInt(req.query.limit as string) || kItemsPerPage;
+    const timestamp = new Date(); 
+
+    const totalDocuments = await Postulante.countDocuments();
+    const totalPages = Math.ceil(totalDocuments / limit); 
+
+    if (page > totalPages && totalPages > 0) {
+      next(httpError(404, "Página fuera de rango"));
       return;
     }
-    res.status(200).json({ data: postulantes });
+
+    const skip = (page - 1) * limit; 
+
+    const postulantes = await Postulante.find().skip(skip).limit(limit);
+
+    res.status(200).json({
+      data: postulantes,
+      totalDocuments,
+      timestamp,
+      page,
+      limit,
+      totalPages,
+    });
   } catch (err) {
     next(err);
   }
