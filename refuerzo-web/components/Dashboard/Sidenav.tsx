@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import Image from "next/image";
 import { useAuth } from "@/scripts/useAuth";
 import { NavItem } from "./NavItem";
 import { usePathname } from "next/navigation";
@@ -13,7 +13,6 @@ import {
 const Sidenav: React.FC = () => {
     const { user } = useAuth();
     const pathName = usePathname();
-    const [activeTab, setActiveTab] = useState("overview");
   
     const userCourses = [
       { label: "Matemática 1", link: "/dashboard/courses/matematica1" },
@@ -26,7 +25,7 @@ const Sidenav: React.FC = () => {
         <div className="hidden md:flex flex-col justify-between h-screen w-64 p-3 bg-white shadow-xl rounded-tr-2xl rounded-br-2xl text-black">
           <div className="space-y-4">
             <div className="flex flex-row justify-center">
-              <img src="/LogoColorido.svg" alt="Logo" className="w-28" />
+              <Image src="/LogoColorido.svg" alt="Logo" className="w-28" />
             </div>
             <nav className="space-y-2">
               <NavItem link="/dashboard" icon={LayoutDashboardIcon} label="Inicio" isActive={pathName === "/dashboard"} />
@@ -38,13 +37,13 @@ const Sidenav: React.FC = () => {
           </div>
           <div className="flex items-center space-x-2 mt-4">
             {user?.photoURL ? (
-              <img
+              <Image
                 src={user.photoURL}
                 alt="User avatar"
                 className="w-8 h-8 rounded-full"
               />
             ) : (
-              <img
+              <Image
                 src="/placeholder.svg?height=32&width=32"
                 alt="Default avatar"
                 className="w-8 h-8 rounded-full"
