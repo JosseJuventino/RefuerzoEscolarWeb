@@ -7,6 +7,15 @@ export interface Postulante {
     fechaEnvio: string;
 }
 
+export interface GetPostulantesResponse {
+  data: Postulante[];
+  totalDocuments: number;
+  timestamp: string;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export interface ColumnWithKey<T> {
     header: string;
     accessor: keyof T;

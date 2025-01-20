@@ -1,9 +1,9 @@
 import apiClient from './apiClient';
 
-import { Postulante } from '@/types/types';
+import { GetPostulantesResponse, Postulante } from '@/types/types';
 
 export const getPostulants = async (): Promise<Postulante[]> => {
-  const response = await apiClient.get<Postulante[]>('/postulantes');
+  const response = await apiClient.get<GetPostulantesResponse>('/postulantes');
   return response.data.data;
 };
 
