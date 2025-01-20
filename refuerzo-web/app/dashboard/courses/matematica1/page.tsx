@@ -3,48 +3,10 @@
 import { FileText, ClipboardList, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { FaRegFilePdf } from "react-icons/fa6";
+import data from '@/data/tablondata.json';
 
 export default function Tablon() {
-  const course = {
-    name: 'Matemática I',
-    professor: 'Juan Pérez',
-    schedule: 'Lunes y Miércoles, 10:00 AM - 12:00 PM',
-  };
-
-  const novedades = [
-    {
-      id: 1,
-      professor: 'Juan Pérez',
-      message: 'publicó un nuevo anuncio',
-      description: 'Este es el detalle del anuncio con más información.',
-      files: ['documento1.pdf', 'guia-de-trabajo.pdf'],
-      date: '18 de enero de 2025',
-    },
-    {
-      id: 2,
-      professor: 'Juan Pérez',
-      message: 'subió una guía de estudio',
-      description: 'Se trata de una guía completa para el próximo examen.',
-      files: ['guia-estudio.pdf'],
-      date: '17 de enero de 2025',
-    },
-    {
-      id: 3,
-      professor: 'Juan Pérez',
-      message: 'publicó un nuevo anuncio',
-      description: 'Este anuncio contiene información importante.',
-      files: [],
-      date: '15 de enero de 2025',
-    },
-    {
-      id: 4,
-      professor: 'Juan Pérez',
-      message: 'subió una guía de estudio',
-      description: 'Guía adicional para profundizar en el tema.',
-      files: ['tema-adicional.pdf'],
-      date: '12 de enero de 2025',
-    },
-  ];
+  const { course, novedades } = data;
 
   const [openId, setOpenId] = useState<number | null>(null);
 
@@ -87,7 +49,7 @@ export default function Tablon() {
                 className="p-4 flex items-center space-x-4 cursor-pointer"
                 onClick={() => handleToggle(novedad.id)}
               >
-                <div className=' p-2 rounded-full'>{getIconByMessage(novedad.message)}</div>
+                <div className="p-2 rounded-full">{getIconByMessage(novedad.message)}</div>
 
                 <div className="flex-1">
                   <p className="text-gray-900 font-medium">
