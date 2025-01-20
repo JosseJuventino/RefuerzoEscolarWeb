@@ -13,6 +13,7 @@ const config: Config = {
     extend: {
       colors: {
         blue_principal: "#003C71",
+        beige_secondary: "#CC9E13",
       },
     },
   },
