@@ -1,0 +1,37 @@
+{
+    "professors": [
+      {
+        "id": 1,
+        "name": "Juan Pérez",
+        "image": null
+      },
+      {
+        "id": 2,
+        "name": "María Martínez",
+        "image": null
+      }
+    ],
+    "students": [
+      {
+        "id": 1,
+        "name": "María López",
+        "image": null
+      },
+      {
+        "id": 2,
+        "name": "Carlos García",
+        "image": null
+      },
+      {
+        "id": 3,
+        "name": "Ana Fernández",
+        "image": null
+      },
+      {
+        "id": 4,
+        "name": "Jorge Ramírez",
+        "image": null
+      }
+    ]
+  }
+  
