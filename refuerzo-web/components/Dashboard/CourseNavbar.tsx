@@ -14,11 +14,11 @@ type CourseNavbarProps = {
 
 const CourseNavbar: React.FC<CourseNavbarProps> = ({ tabs, currentTabId }) => {
   return (
-    <nav className="bg-white shadow fixed w-full z-10">
+    <nav className="bg-white shadow md:mt-0 mt-20 fixed w-full z-10">
       <div className="max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex">
-            <div className="hidden sm:-my-px sm:ml-6 sm:flex space-x-8">
+            <div className="sm:-my-px ml-6 sm:flex space-x-8">
               {tabs.map((tab) => (
                 <Link
                   key={tab.id}
