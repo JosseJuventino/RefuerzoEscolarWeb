@@ -53,7 +53,7 @@ export const NavItem: React.FC<NavItemProps> = ({
           <span className="absolute -left-2 top-0 h-full w-[3px] bg-[#004aad] rounded-full" />
         )}
         <Icon className="w-5 h-5 mr-3" />
-        <span className="hidden md:inline">{label}</span>
+        <span className="">{label}</span>
         {hasSubItems && (
           <span className="ml-auto">
             {isOpen ? (

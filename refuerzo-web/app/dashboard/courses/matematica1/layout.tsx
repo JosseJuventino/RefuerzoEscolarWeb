@@ -20,7 +20,7 @@ export default function Example1Layout({ children }: { children: React.ReactNode
       <CourseNavbar tabs={tabs} currentTabId={currentTabId} />
       
       <main className="py-6">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-16">{children}</div>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 md:mt-16 mt-36">{children}</div>
       </main>
     </div>
   );
