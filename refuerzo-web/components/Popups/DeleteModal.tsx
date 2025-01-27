@@ -9,9 +9,9 @@ interface DeleteModalProps<T extends { _id: string }> {
     onClose: () => void
     onConfirm: () => void
     description: (item: T) => React.ReactNode
-  }
+}
 
-export const DeleteModal = <T,>({
+export const DeleteModal = <T extends { _id: string }>({
   isOpen,
   item,
   title,
