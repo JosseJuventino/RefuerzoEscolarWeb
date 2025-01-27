@@ -2,9 +2,52 @@
 export interface Postulante {
   _id: string;
   nombre: string;
+  imagen: string;
+  direccion: string;
+  telefono: string;
   email: string;
   año: number;
   fechaEnvio: string;
+}
+
+export interface Rol{
+  _id: string;
+  nombre: string;
+}
+
+export interface Section{
+  _id: string;
+  nombre: string;
+  imagen: string;
+  aula: string;
+  grado: string;
+  alumnos: Alumno[]
+
+}
+export interface Alumno{
+  _id: string;
+  idUsuario: Usuario;
+  section: Section;
+}
+
+export interface Usuario{
+  _id: string;
+  nombres: string;
+  apellidos: string;
+  imagen: string;
+  rol: Rol;
+  email: string;
+  password: string;
+}
+
+export interface Recomendadores{
+  _id: string;
+  nombre: string;
+  contacto: {
+    email: string;
+    telefono: string;
+  };
+  imagen: string;  
 }
 
 export interface GetPostulantesResponse {

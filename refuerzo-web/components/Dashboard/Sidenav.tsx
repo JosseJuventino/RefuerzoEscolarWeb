@@ -15,6 +15,7 @@ import {
   BookOpen,
   MenuIcon,
   XIcon,
+  UsersRoundIcon
 } from "lucide-react";
 
 const Sidenav: React.FC = () => {
@@ -53,6 +54,7 @@ const Sidenav: React.FC = () => {
             <NavItem icon={BookOpen} label="Mis cursos" isActive={pathName.startsWith("/dashboard/courses")} subItems={userCourses} />
             <NavItem link="/dashboard/sections" icon={LayersIcon} label="Secciones" isActive={pathName === "/dashboard/sections"} />
             <NavItem link="/dashboard/applicants" icon={FileTextIcon} label="Postulaciones" isActive={pathName === "/dashboard/applicants"} />
+            <NavItem link="/dashboard/recomendators" icon={UsersRoundIcon} label="Recomendadores" isActive={pathName === "/dashboard/recomendators"} />
           </nav>
         </div>
         <div className="flex items-center space-x-2 mt-4">
@@ -98,6 +100,7 @@ const Sidenav: React.FC = () => {
                 <NavItem icon={BookOpen} label="Mis cursos" isActive={pathName.startsWith("/dashboard/courses")} subItems={userCourses} />
                 <NavItem link="/dashboard/sections" icon={LayersIcon} label="Secciones" isActive={pathName === "/dashboard/sections"} />
                 <NavItem link="/dashboard/applicants" icon={FileTextIcon} label="Postulaciones" isActive={pathName === "/dashboard/applicants"} />
+                <NavItem link="/dashboard/recomendators" icon={UsersRoundIcon} label="Recomendadores" isActive={pathName === "/dashboard/recomendators"} />
               </nav>
             </div>
             <div className="flex items-center space-x-2 mt-4">
