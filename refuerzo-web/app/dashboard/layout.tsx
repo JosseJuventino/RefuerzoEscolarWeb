@@ -26,7 +26,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
     return (
         <div className="flex h-screen flex-col md:flex-row md:overflow-hidden ">
-            <div className="w-full flex-none md:w-64 z-40">
+            <div className="w-full flex-none md:w-64">
                 <Sidenav />
             </div>
             <main className="flex-grow md:overflow-y-auto z-40 bg-gray-50">

@@ -9,7 +9,10 @@ const Illustration: React.FC = () => {
       <Image
         src="https://media.vaticannews.va/media/content/dam-archive/vaticannews/multimedia/2020/12/04/WhatsApp-Image-2020-12-02-at-08.12.31aem.jpg/_jcr_content/renditions/cq5dam.thumbnail.cropped.1000.563.jpeg"
         className="w-full h-full object-cover"
+        height={500}
+        unoptimized
         alt="Illustration"
+        width={500}
       />
     </div>
   );
