@@ -4,10 +4,16 @@ import { useQuery } from "@tanstack/react-query";
 import { getPostulants } from "@/services/applicants.service";
 import Table from "@/components/Tables/Table";
 import { Postulante, Column } from "@/types/types";
+import { useState } from "react";
 import PageHeader from "@/components/Dashboard/PageHeader";
-import { Plus } from "lucide-react";
+import { Share2 } from "lucide-react";
+import SharePopup from "@/components/Popups/SharePopup";
+
 
 export default function Applicants() {
+    const [isSharePopupOpen, setIsSharePopupOpen] = useState(false);
+    const formUrl = "https://your-form-url.com";
+
     const {
         data: postulants,
         error,
@@ -32,10 +38,6 @@ export default function Applicants() {
             accessor: "año",
         },
         {
-            header: "Estado",
-            accessor: "estado",
-        },
-        {
             header: "Fecha de Envío",
             accessor: (row: Postulante) =>
                 new Date(row.fechaEnvio).toLocaleDateString(),
@@ -47,20 +49,24 @@ export default function Applicants() {
     if (isError) {
         return <div>Error: {error?.message}</div>;
     }
+    function handleShareForm() {
+        setIsSharePopupOpen(true);
+    }
 
     return (
         <div className="p-10">
             <PageHeader
-                title="Postulantes"
+                title="Postulaciones"
                 buttons={[
                     {
-                        label: "Agregar",
-                        icon: <Plus />,
-                        onClick: () => console.log("Agregar"),
+                        label: "Compartir formulario",
+                        icon: <Share2 />,
+                        onClick: () => handleShareForm(),
                         className:
-                            "bg-blue_principal hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-lg shadow transition-transform transform hover:scale-105 focus:outline-none",
+                            "text-blue_principal bg-white font-medium px-4 py-2 rounded-lg shadow transition-transform transform hover:scale-105 focus:outline-none",
                     },
                 ]}
+
             />
             <div className="overflow-auto bg-white rounded-lg shadow-md">
                 <Table
@@ -75,6 +81,14 @@ export default function Applicants() {
                     }}
                 />
             </div>
+
+            {isSharePopupOpen && (
+                <SharePopup
+                    formUrl={formUrl}
+                    onClose={() => setIsSharePopupOpen(false)}
+                />
+            )}
+
         </div>
     );
 }
