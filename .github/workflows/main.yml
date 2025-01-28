@@ -15,8 +15,10 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            set -e
             cd /var/www/html/RefuerzoEscolarWeb/refuerzo-web/
             git pull origin main 
-            npm install
+            rm -rf .next
+            npm install --force
             npm run build
             pm2 restart refuerzo-web
