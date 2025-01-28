@@ -67,6 +67,7 @@ export class AuthService {
       role: user.role,
       name: user.nombres,
       lastName: user.apellidos,
+      image: user.image,
     };
     const token = await this.jwtService.sign(payload);
 
@@ -77,6 +78,14 @@ export class AuthService {
       token,
       hash: hashedToken,
     };
+
+    //cargar el nombre y apellido del usuario con su imagen desde el payload y guardar en userData
+    const userData = {
+      nombreCompleto: payload.name + ' ' + payload.lastName,
+      email: payload.email,
+      image: user.image,
+    };
+
     const newToken = this.tokensRepository.create(tokenData);
     await this.authcrudHelper.create(newToken);
 
@@ -113,7 +122,7 @@ export class AuthService {
         .setStatusCode(200)
         .setMessage('User logged in successfully')
         // Retorna el token encriptado y las páginas transformadas
-        .setData({ token: hashedToken, info: transformedPages })
+        .setData({ token: hashedToken, info: userData })
         .build()
     );
   }
