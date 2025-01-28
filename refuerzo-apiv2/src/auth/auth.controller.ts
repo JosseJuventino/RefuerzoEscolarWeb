@@ -25,10 +25,4 @@ export class AuthController {
   login(@Body() authDto: AuthDto) {
     return this.authService.login(authDto);
   }
-
-  @Post('pageverify')
-  @ApiBearerAuth()
-  pageVerify(@Request() req, @Body() pageverifyDto: PageverifyDto) {
-    return this.authService.pageVerify(req.user.role, pageverifyDto);
-  }
 }

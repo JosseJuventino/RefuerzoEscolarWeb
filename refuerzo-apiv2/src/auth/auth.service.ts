@@ -117,34 +117,4 @@ export class AuthService {
         .build()
     );
   }
-
-  async pageVerify(role: string, pageverifyDto: PageverifyDto) {
-    const roleData = await this.rolecrudHelper.findByNameOrId(
-      role,
-      false,
-      false,
-    );
-
-    if (!roleData) {
-      return new GeneralResponseBuilder<auth>()
-        .setStatusCode(401)
-        .setMessage('Invalid role')
-        .build();
-    }
-
-    if (!roleData.pages[pageverifyDto.page]) {
-      return new GeneralResponseBuilder<auth>()
-        .setStatusCode(401)
-        .setMessage('Page not found')
-        .build();
-    }
-    return new GeneralResponseBuilder<PermisionOptions>()
-      .setStatusCode(200)
-      .setMessage('Page verified')
-      .setData({
-        view: roleData.pages[pageverifyDto.page].view,
-        edit: roleData.pages[pageverifyDto.page].edit,
-      })
-      .build();
-  }
 }
