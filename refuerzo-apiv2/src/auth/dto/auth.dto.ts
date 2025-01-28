@@ -3,12 +3,12 @@ import { IsNotEmpty, IsString } from 'class-validator';
 
 export class AuthDto {
   @ApiProperty({
-    description: 'Username',
-    example: 'Administrador',
+    description: 'Email',
+    example: 'admin@example.com',
   })
   @IsNotEmpty()
   @IsString()
-  username: string;
+  email: string;
 
   @ApiProperty({
     description: 'Password',

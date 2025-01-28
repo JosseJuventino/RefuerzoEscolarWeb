@@ -13,9 +13,6 @@ export class User {
   _id: ObjectId;
 
   @Column()
-  username: string;
-
-  @Column()
   nombres: string;
 
   @Column()

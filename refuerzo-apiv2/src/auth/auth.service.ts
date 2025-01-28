@@ -37,9 +37,20 @@ export class AuthService {
   }
 
   async login(authDto: AuthDto): Promise<GeneralResponseDto<auth>> {
-    const user = await this.UsercrudHelper.findOne({
-      where: { username: authDto.username },
-    });
+    const user = await this.UsercrudHelper.findOne(
+      {
+        where: { email: authDto.email },
+      },
+      false,
+    );
+
+    if (!user) {
+      return new GeneralResponseBuilder<auth>()
+        .setStatusCode(401)
+        .setMessage('Invalid email or password')
+        .build();
+    }
+
     const isPasswordValid = await bcrypt.compare(
       authDto.password,
       user.password,
@@ -47,7 +58,7 @@ export class AuthService {
     if (!isPasswordValid) {
       return new GeneralResponseBuilder<auth>()
         .setStatusCode(401)
-        .setMessage('Invalid username or password')
+        .setMessage('Invalid email or password')
         .build();
     }
     const payload = {

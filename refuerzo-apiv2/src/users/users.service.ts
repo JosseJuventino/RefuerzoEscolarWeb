@@ -40,13 +40,13 @@ export class UsersService {
       throw new BadRequestException(`Role ${createUserDto.role} not found`);
     }
     const findUser = await this.crudHelper.findByNameOrId(
-      createUserDto.username,
+      createUserDto.email,
       false,
       false,
     );
     if (findUser) {
       throw new ConflictException(
-        `User with username ${createUserDto.username} already exists`,
+        `User with email ${createUserDto.email} already exists`,
       );
     }
     //Paso para encriptar la contraseña
@@ -67,13 +67,7 @@ export class UsersService {
   async findAll(
     paginationQuery: PaginationQueryDto,
   ): Promise<PaginationResponseDto<any>> {
-    const excludedUsernames = ['admin', 'administrador'];
-
-    // Crear el filtro inicial para excluir usuarios específicos
-    const filter: any = {
-      deletedAt: null,
-      username: { $nin: excludedUsernames },
-    };
+    const filter: FindManyOptions<User>['where'] = {};
 
     // Agregar filtros adicionales si existen
     if (paginationQuery.filterBy && paginationQuery.filterValue) {
