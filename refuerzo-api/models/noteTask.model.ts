@@ -7,6 +7,8 @@ interface INotaTarea extends Document {
   comentarios?: string;
 }
 
+//ESTE NO
+
 const notaTareaSchema = new Schema<INotaTarea>({
   tarea: {
     type: Schema.Types.ObjectId,
