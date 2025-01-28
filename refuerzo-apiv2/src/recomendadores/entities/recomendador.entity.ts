@@ -25,4 +25,7 @@ export class Recomendador {
 
   @Column()
   imagen: string;
+
+  @Column()
+  isActive: boolean;
 }

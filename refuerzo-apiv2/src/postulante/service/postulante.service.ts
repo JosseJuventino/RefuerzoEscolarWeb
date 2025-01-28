@@ -40,7 +40,7 @@ export class PostulanteService {
     );
     if (findPostulante) {
       throw new ConflictException(
-        `Postulante with username ${createPostulanteDto.nombre} already exists`,
+        `Postulante with name ${createPostulanteDto.nombre} already exists`,
       );
     }
 
