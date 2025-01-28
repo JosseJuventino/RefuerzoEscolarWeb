@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  isNotEmpty,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreatePostulanteDto {
   @ApiProperty({
@@ -49,4 +55,12 @@ export class CreatePostulanteDto {
   @IsString()
   @IsNotEmpty()
   readonly year: string;
+
+  @ApiProperty({
+    description: 'Es usuario',
+    example: true,
+  })
+  @IsBoolean()
+  @IsNotEmpty()
+  readonly isUser: boolean;
 }
