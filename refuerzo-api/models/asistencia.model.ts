@@ -8,6 +8,8 @@ interface IAsistencia extends Document {
   presente: boolean;
 }
 
+//ESTE NO
+
 const asistenciaSchema = new Schema<IAsistencia>({
   seccion: {
     type: Schema.Types.ObjectId,
