@@ -20,7 +20,7 @@ const initialRecommenders: Recomendadores[] = [
   },
   {
     _id: "2",
-    nombre: "María García",
+    nombre: "María la chiquita",
     contacto: {
       email: "maria@consultores.com",
       telefono: "+51 987 123 456"
