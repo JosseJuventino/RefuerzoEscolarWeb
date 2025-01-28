@@ -2,13 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsMongoId, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateUserDto {
-  @ApiProperty({
-    description: 'Username of the user',
-    example: 'admin',
-  })
-  @IsString()
-  @IsNotEmpty()
-  readonly username: string;
 
   @ApiProperty({
     description: 'First name of the user',
