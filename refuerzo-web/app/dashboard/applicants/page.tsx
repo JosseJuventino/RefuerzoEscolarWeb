@@ -8,6 +8,7 @@ import { useState } from "react";
 import PageHeader from "@/components/Dashboard/PageHeader";
 import { Share2 } from "lucide-react";
 import SharePopup from "@/components/Popups/SharePopup";
+import { formatDate } from "@/utils/utils";
 
 
 export default function Applicants() {
@@ -24,24 +25,42 @@ export default function Applicants() {
         queryFn: getPostulants,
     });
 
+    const ContactInfo = ({ email, telefono }: { email: string; telefono: string }) => (
+        <div className="flex flex-col">
+            <span>{email}</span>
+            <span className="text-gray-500">{telefono}</span>
+        </div>
+    );
+
     const columns: Column<Postulante>[] = [
+        {
+            header: "Imagen",
+            accessor: (row) => (
+                <img
+                    src={row.imagen}
+                    alt={`Avatar de ${row.nombre}`}
+                    className="w-10 h-10 rounded-full object-cover"
+                />
+            )
+        },
+       
         {
             header: "Nombre",
             accessor: "nombre",
         },
         {
-            header: "Email",
-            accessor: "email",
+            header: "Contacto",
+            accessor: (row) => <ContactInfo email={row.email} telefono={row.telefono} />
         },
         {
-            header: "Año",
-            accessor: "año",
+            header: "Fecha envio",
+            accessor: (row) => formatDate(row.createdAt),
         },
         {
-            header: "Fecha de Envío",
-            accessor: (row: Postulante) =>
-                new Date(row.fechaEnvio).toLocaleDateString(),
+            header: "Grado",
+            accessor: "year",
         },
+        
     ];
 
     if (isLoading) return <div>Loading...</div>;
