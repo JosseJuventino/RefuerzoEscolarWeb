@@ -6,10 +6,6 @@ export const AuthService = {
   async login(credentials: { email: string; password: string }) {
     const response = await api.post<AuthResponse>("auth/login", credentials);
 
-
-    console.log(response);
-    console.log("prueba")
-
     if (response.data.statusCode === 200) {
       const { token, info: user } = response.data.data;
       sessionStorage.setItem("authToken", token);
