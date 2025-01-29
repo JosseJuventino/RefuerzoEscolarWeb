@@ -96,3 +96,18 @@ export interface TableProps<T> {
   onEdit?: (item: T) => void;
   onDelete?: (itemId: string) => void;
 }
+
+export interface AuthResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    token: string;
+    info: UserInfo;
+  };
+}
+
+export interface UserInfo {
+  nombreCompleto: string;
+  email: string;
+  image: string;
+}
