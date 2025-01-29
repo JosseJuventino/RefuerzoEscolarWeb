@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState} from "react";
 import data from "@/data/asistencia.json";
 
 interface Asistencia {
@@ -11,15 +11,9 @@ interface Asistencia {
 }
 
 export default function Asistencia() {
-  const [alumnos, setAlumnos] = useState<string[]>(data.alumnos);
+  const [alumnos] = useState<string[]>(data.alumnos);
   const [asistencias, setAsistencias] = useState<Asistencia[]>(data.asistencias);
-  const [esSabado, setEsSabado] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fecha = new Date();
-    setEsSabado(fecha.getDay() === 6);
-  }, []);
 
   const registrarAsistencia = (nombre: string) => {
     const fechaActual = new Date();
