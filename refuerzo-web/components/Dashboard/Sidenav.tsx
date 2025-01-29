@@ -24,9 +24,10 @@ const Sidenav: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const userCourses = [
-    { label: "Matemática 1", link: "/dashboard/courses/matematica1" },
-    { label: "Matemática 2", link: "/dashboard/courses/matematica2" },
-    { label: "Matemática 3", link: "/dashboard/courses/matematica3" },
+    { name: "Matemática", path: '/dashboard/courses/matematica'},
+    { name: "Lenguaje", path: '/dashboard/courses/lenguaje'},
+    { name: "Sociales", path: '/dashboard/courses/sociales'},
+    { name: "Ciencias", path: '/dashboard/courses/ciencias'},
   ];
 
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
@@ -51,7 +52,7 @@ const Sidenav: React.FC = () => {
           <nav className="space-y-2">
             <NavItem link="/dashboard" icon={LayoutDashboardIcon} label="Inicio" isActive={pathName === "/dashboard"} />
             <NavItem link="/dashboard/students" icon={UserIcon} label="Alumnos" isActive={pathName === "/dashboard/students"} />
-            <NavItem icon={BookOpen} label="Mis cursos" isActive={pathName.startsWith("/dashboard/courses")} subItems={userCourses} />
+            <NavItem link="/dashboard/courses" icon={BookOpen} label="Mis cursos" isActive={pathName.startsWith("/dashboard/courses")} subItems={userCourses} />
             <NavItem link="/dashboard/sections" icon={LayersIcon} label="Secciones" isActive={pathName === "/dashboard/sections"} />
             <NavItem link="/dashboard/applicants" icon={FileTextIcon} label="Postulaciones" isActive={pathName === "/dashboard/applicants"} />
             <NavItem link="/dashboard/recomendators" icon={UsersRoundIcon} label="Recomendadores" isActive={pathName === "/dashboard/recomendators"} />
