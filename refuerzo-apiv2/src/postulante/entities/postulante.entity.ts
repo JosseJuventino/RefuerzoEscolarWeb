@@ -30,6 +30,9 @@ export class Postulante {
   @Column()
   year: string;
 
+  @Column()
+  isUser: boolean;
+
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 

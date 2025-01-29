@@ -44,14 +44,13 @@ export class RecomendadorService {
         `Recomendador with username ${createRecomendadorDto.nombre} already exists`,
       );
     }
-    console.log(createRecomendadorDto);
-    console.log(createRecomendadorDto.contacto);
 
     // Crear un nuevo recomendador asegurando que el contacto se guarde correctamente
     const newRecomendador = this.recomendadorRepository.create({
       nombre: createRecomendadorDto.nombre,
       imagen: createRecomendadorDto.imagen,
       contacto: createRecomendadorDto.contacto, // Asegúrate de que el contacto se incluya aquí
+      isActive: createRecomendadorDto.isActive,
     });
 
     await this.crudHelper.create(newRecomendador);

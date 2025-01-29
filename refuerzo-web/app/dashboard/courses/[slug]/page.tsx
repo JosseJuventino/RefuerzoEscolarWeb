@@ -1,12 +1,31 @@
-'use client';
-
+"use client"
 import { FileText, ClipboardList, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { FaRegFilePdf } from "react-icons/fa6";
 import data from '@/data/tablondata.json';
 
+interface Course {
+  name: string;
+  professor: string;
+  schedule: string;
+}
+
+interface Novedad {
+  id: number;
+  professor: string;
+  message: string;
+  date: string;
+  description?: string;
+  files: string[];
+}
+
+interface TablonData {
+  course: Course;
+  novedades: Novedad[];
+}
+
 export default function Tablon() {
-  const { course, novedades } = data;
+  const { course, novedades } = data as TablonData;
 
   const [openId, setOpenId] = useState<number | null>(null);
 

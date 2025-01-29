@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsObject } from 'class-validator';
+import { IsNotEmpty, IsString, IsObject, IsBoolean } from 'class-validator';
 
 class ContactoDto {
   @ApiProperty({
@@ -45,4 +45,12 @@ export class CreateRecomendadorDto {
   @IsString()
   @IsNotEmpty()
   readonly imagen: string;
+
+  @ApiProperty({
+    description: 'Activo',
+    example: true,
+  })
+  @IsBoolean()
+  @IsNotEmpty()
+  readonly isActive: boolean;
 }

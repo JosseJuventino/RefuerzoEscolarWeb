@@ -67,6 +67,7 @@ export class AuthService {
       role: user.role,
       name: user.nombres,
       lastName: user.apellidos,
+      image: user.image,
     };
     const token = await this.jwtService.sign(payload);
 
@@ -77,6 +78,14 @@ export class AuthService {
       token,
       hash: hashedToken,
     };
+
+    //cargar el nombre y apellido del usuario con su imagen desde el payload y guardar en userData
+    const userData = {
+      nombreCompleto: payload.name + ' ' + payload.lastName,
+      email: payload.email,
+      image: user.image,
+    };
+
     const newToken = this.tokensRepository.create(tokenData);
     await this.authcrudHelper.create(newToken);
 
@@ -113,38 +122,8 @@ export class AuthService {
         .setStatusCode(200)
         .setMessage('User logged in successfully')
         // Retorna el token encriptado y las páginas transformadas
-        .setData({ token: hashedToken, info: transformedPages })
+        .setData({ token: hashedToken, info: userData })
         .build()
     );
-  }
-
-  async pageVerify(role: string, pageverifyDto: PageverifyDto) {
-    const roleData = await this.rolecrudHelper.findByNameOrId(
-      role,
-      false,
-      false,
-    );
-
-    if (!roleData) {
-      return new GeneralResponseBuilder<auth>()
-        .setStatusCode(401)
-        .setMessage('Invalid role')
-        .build();
-    }
-
-    if (!roleData.pages[pageverifyDto.page]) {
-      return new GeneralResponseBuilder<auth>()
-        .setStatusCode(401)
-        .setMessage('Page not found')
-        .build();
-    }
-    return new GeneralResponseBuilder<PermisionOptions>()
-      .setStatusCode(200)
-      .setMessage('Page verified')
-      .setData({
-        view: roleData.pages[pageverifyDto.page].view,
-        edit: roleData.pages[pageverifyDto.page].edit,
-      })
-      .build();
   }
 }

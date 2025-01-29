@@ -46,9 +46,10 @@ const Sidenav: React.FC = () => {
 
   // Datos estáticos
   const userCourses = [
-    { label: "Matemática 1", link: "/dashboard/courses/matematica1" },
-    { label: "Matemática 2", link: "/dashboard/courses/matematica2" },
-    { label: "Matemática 3", link: "/dashboard/courses/matematica3" },
+    { name: "Matemática", path: '/dashboard/courses/matematica'},
+    { name: "Lenguaje", path: '/dashboard/courses/lenguaje'},
+    { name: "Sociales", path: '/dashboard/courses/sociales'},
+    { name: "Ciencias", path: '/dashboard/courses/ciencias'},
   ];
 
   // Handlers
