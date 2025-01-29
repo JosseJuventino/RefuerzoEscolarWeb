@@ -7,6 +7,8 @@ import { usePathname } from 'next/navigation';
 const tabs = [
   { id: 1, name: 'Tablón', href: '/dashboard/courses/matematica1' },
   { id: 3, name: 'Personas', href: '/dashboard/courses/matematica1/personas' },
+  { id: 4, name: 'Registrar asistencia', href: '/dashboard/courses/matematica1/asistencia' },
+  { id: 5, name: 'Historial de asistencia', href: '/dashboard/courses/matematica1/historial' },
 ];
 
 export default function Example1Layout({ children }: { children: React.ReactNode }) {

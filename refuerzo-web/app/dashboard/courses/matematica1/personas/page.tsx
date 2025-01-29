@@ -1,7 +1,8 @@
 "use client";
+import { useState } from "react";
 import { CircleUser } from "lucide-react";
 import Image from "next/image";
-import data from "@/data/personas.json"; 
+import data from "@/data/personas.json";
 
 interface Person {
   id: number;
@@ -11,6 +12,14 @@ interface Person {
 
 export default function Personas() {
   const { professors, students } = data;
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredProfessors = professors.filter((person) =>
+    person.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  const filteredStudents = students.filter((person) =>
+    person.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const renderList = (title: string, people: Person[], total?: number) => (
     <div className="mb-6">
@@ -27,6 +36,8 @@ export default function Personas() {
               <Image
                 src={person.image}
                 alt={person.name}
+                width={64}
+                height={64}
                 className="w-16 h-16 rounded-full object-cover mr-4"
               />
             ) : (
@@ -43,8 +54,15 @@ export default function Personas() {
 
   return (
     <div className="w-full">
-      {renderList("Profesores", professors)}
-      {renderList("Estudiantes", students, students.length)}
+      <input
+        type="text"
+        placeholder="Buscar personas..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="mb-6 p-2 border border-gray-300 rounded-lg w-full"
+      />
+      {renderList("Profesores", filteredProfessors)}
+      {renderList("Estudiantes", filteredStudents, filteredStudents.length)}
     </div>
   );
 }

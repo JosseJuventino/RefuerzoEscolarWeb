@@ -1,0 +1,87 @@
+{
+  "alumnos": [
+    "Juan Pérez",
+    "María González",
+    "Carlos López",
+    "Ana Martínez",
+    "Luis Rodríguez",
+    "Sofía Hernández",
+    "Miguel Díaz",
+    "Elena Ruiz",
+    "Jorge Sánchez",
+    "Lucía Gómez",
+    "Diego Morales"
+  ],
+  "asistencias": [
+    {
+      "id": 1,
+      "nombre": "Juan Pérez",
+      "fecha": "2025-01-04",
+      "hora": "08:15 AM",
+      "asistio": true
+    },
+    {
+      "id": 2,
+      "nombre": "María González",
+      "fecha": "2025-01-04",
+      "hora": "08:20 AM",
+      "asistio": true
+    },
+    {
+      "id": 3,
+      "nombre": "Carlos López",
+      "fecha": "2025-01-11",
+      "hora": "08:25 AM",
+      "asistio": true
+    },
+    {
+      "id": 4,
+      "nombre": "Ana Martínez",
+      "fecha": "2025-01-11",
+      "hora": "08:10 AM",
+      "asistio": true
+    },
+    {
+      "id": 5,
+      "nombre": "Luis Rodríguez",
+      "fecha": "2025-01-11",
+      "hora": "08:30 AM",
+      "asistio": true
+    },
+    {
+      "id": 6,
+      "nombre": "Sofía Hernández",
+      "fecha": "2025-01-18",
+      "hora": "08:05 AM",
+      "asistio": true
+    },
+    {
+      "id": 7,
+      "nombre": "Miguel Díaz",
+      "fecha": "2025-01-18",
+      "hora": "08:15 AM",
+      "asistio": true
+    },
+    {
+      "id": 8,
+      "nombre": "Elena Ruiz",
+      "fecha": "2025-01-25",
+      "hora": "08:20 AM",
+      "asistio": true
+    },
+    {
+      "id": 9,
+      "nombre": "Jorge Sánchez",
+      "fecha": "2025-01-25",
+      "hora": "08:25 AM",
+      "asistio": true
+    },
+    {
+      "id": 10,
+      "nombre": "Juan Pérez",
+      "fecha": "2025-01-25",
+      "hora": "08:10 AM",
+      "asistio": true
+    }
+  ]
+}
