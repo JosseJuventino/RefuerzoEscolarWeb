@@ -6,8 +6,8 @@ export interface Postulante {
   direccion: string;
   telefono: string;
   email: string;
-  año: number;
-  fechaEnvio: string;
+  year: number;
+  createdAt: string;
 }
 
 export interface Rol{
@@ -47,7 +47,8 @@ export interface Recomendadores{
     email: string;
     telefono: string;
   };
-  imagen: string;  
+  imagen: string;
+
 }
 
 export interface GetPostulantesResponse {
