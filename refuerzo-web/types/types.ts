@@ -48,7 +48,7 @@ export interface Recomendadores{
     telefono: string;
   };
   imagen: string;
-  createdAt: string;
+
 }
 
 export interface GetPostulantesResponse {
