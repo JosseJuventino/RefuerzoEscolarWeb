@@ -18,12 +18,12 @@ const CourseNavbar: React.FC<CourseNavbarProps> = ({ tabs, currentTabId }) => {
       <div className="max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex">
-            <div className="sm:-my-px ml-6 sm:flex space-x-8">
+            <div className="sm:-my-px ml-6 sm:flex">
               {tabs.map((tab) => (
                 <Link
                   key={tab.id}
                   href={tab.href}
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium mr-5 ${
                     tab.id === currentTabId
                       ? 'border-indigo-500 text-gray-900'
                       : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
