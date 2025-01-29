@@ -8,6 +8,7 @@ export const AuthService = {
 
 
     console.log(response);
+    console.log("prueba")
 
     if (response.data.statusCode === 200) {
       const { token, info: user } = response.data.data;
