@@ -12,7 +12,7 @@ interface NavItemProps {
   isActive: boolean;
   badge?: string;
   badgeColor?: string;
-  subItems?: { label: string; link: string }[];
+  subItems?: { path: string; name: string }[];
 }
 
 export const NavItem: React.FC<NavItemProps> = ({
@@ -69,21 +69,21 @@ export const NavItem: React.FC<NavItemProps> = ({
         <div className="pl-5 mt-2 space-y-1">
           {subItems.map((subItem) => (
             <div
-              key={subItem.link}
+              key={subItem.path}
               className={`py-2 px-5 rounded-md cursor-pointer transition-colors duration-200 ${
-                activeSubItem === subItem.link ? COLOR_BG_ACTIVE : "hover:bg-[#f0f4ff]"
+                activeSubItem === subItem.path ? COLOR_BG_ACTIVE : "hover:bg-[#f0f4ff]"
               }`}
-              onClick={() => handleSubItemClick(subItem.link)}
+              onClick={() => handleSubItemClick(subItem.path)}
             >
               <Link
-                href={subItem.link}
+                href={subItem.path}
                 className={`block text-sm ${
-                  activeSubItem === subItem.link
+                  activeSubItem === subItem.path
                     ? `${COLOR_TEXT_ACTIVE}`
                     : "text-gray-500 hover:text-[#004aad]"
                 }`}
               >
-                {subItem.label}
+                {subItem.name}
               </Link>
             </div>
           ))}
