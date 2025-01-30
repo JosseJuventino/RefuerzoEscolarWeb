@@ -28,7 +28,7 @@ export const FormModal = ({
     }), []);
 
     const [formData, setFormData] = useState<Partial<Recomendadores>>(emptyForm);
-
+   
 
 
     useEffect(() => {
@@ -53,8 +53,8 @@ export const FormModal = ({
     };
 
     const handleCancel = () => {
-        setFormData(emptyForm); // Limpia los campos
-        onClose(); // Cierra el modal
+        setFormData(emptyForm); 
+        onClose();
     };
 
     const handleSubmit = (e: React.FormEvent) => {
