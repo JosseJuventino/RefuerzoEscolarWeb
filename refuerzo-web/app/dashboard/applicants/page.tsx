@@ -58,7 +58,7 @@ export default function Applicants() {
         },
         {
             header: "Grado",
-            accessor: "year",
+            accessor: "grado",
         },
         
     ];

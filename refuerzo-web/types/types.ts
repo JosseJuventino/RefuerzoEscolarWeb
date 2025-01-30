@@ -6,7 +6,7 @@ export interface Postulante {
   direccion: string;
   telefono: string;
   email: string;
-  year: number;
+  grado: number;
   createdAt: string;
 }
 
