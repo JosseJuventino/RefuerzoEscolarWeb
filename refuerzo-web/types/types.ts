@@ -48,7 +48,17 @@ export interface Recomendadores{
     telefono: string;
   };
   imagen: string;
+  isActive: boolean;
+}
 
+export interface GetRecomendadoresResponse{
+  statusCode: number;
+  message: string;
+  data: Recomendadores[];
+  size: number;
+  totalPages: number;
+  page: number;
+  limit: number;
 }
 
 export interface GetPostulantesResponse {

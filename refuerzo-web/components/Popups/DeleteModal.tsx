@@ -3,12 +3,12 @@
 import { Modal } from "./Modal";
 
 interface DeleteModalProps<T extends { _id: string }> {
-    isOpen: boolean
-    title: string
-    item: T
-    onClose: () => void
-    onConfirm: () => void
-    description: (item: T) => React.ReactNode
+  isOpen: boolean;
+  title: string;
+  item: T;
+  onClose: () => void;
+  onConfirm: () => void;
+  description: (item: T) => React.ReactNode;
 }
 
 export const DeleteModal = <T extends { _id: string }>({
@@ -17,7 +17,7 @@ export const DeleteModal = <T extends { _id: string }>({
   title,
   onClose,
   onConfirm,
-  description
+  description,
 }: DeleteModalProps<T>) => {
   return (
     <Modal
