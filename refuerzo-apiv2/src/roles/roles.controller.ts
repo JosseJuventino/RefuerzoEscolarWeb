@@ -17,9 +17,9 @@ import { Permission } from 'src/common/decorators/permission.decorators';
 import { Resources, Scopes } from 'nest_autorization';
 
 @ApiBasicAuth()
-@Permission('role')
+@Permission('roles')
 @Controller('roles')
-@Resources('role')
+@Resources('roles')
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
