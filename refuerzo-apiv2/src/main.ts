@@ -10,8 +10,12 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   app.enableCors({
-    // Configuración de CORS para permitir de localhost:3000
-    origin: ['http://localhost:3000', 'http://66.70.189.110'],
+    // Configuración de CORS para permitir de las siguientes URL
+    origin: [
+      'http://localhost:3000',
+      'http://66.70.189.110',
+      'https://refuerzo-mendoza.me/',
+    ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     preflightContinue: false,
   });

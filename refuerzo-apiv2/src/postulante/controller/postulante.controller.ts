@@ -7,19 +7,26 @@ import {
   Param,
   Delete,
   Query,
+  Request,
 } from '@nestjs/common';
 import { PostulanteService } from '../service/postulante.service';
 import { CreatePostulanteDto } from '../dto/create-postulante.dto';
 import { UpdatePostulanteDto } from '../dto/update-postulante.dto';
-import { ApiBasicAuth, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBasicAuth,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { Permission } from 'src/common/decorators/permission.decorators';
 import { Public } from 'src/common/decorators/public.decorators';
 import { Resources, Scopes } from 'nest_autorization';
 
-@ApiBasicAuth()
+@ApiTags('Postulantes')
 @Permission('postulantes')
 @Resources('postulantes')
+@ApiBearerAuth()
 @Controller('postulantes')
 export class PostulanteController {
   constructor(private readonly postulanteService: PostulanteService) {}
@@ -30,9 +37,8 @@ export class PostulanteController {
     summary: 'Create a postulante',
     description: 'Create a new postulante',
   })
-  @Public()
-  create(@Body() createUserDto: CreatePostulanteDto) {
-    return this.postulanteService.create(createUserDto);
+  create(@Request() req, @Body() createUserDto: CreatePostulanteDto) {
+    return this.postulanteService.create(req.user.id, createUserDto);
   }
 
   @Scopes('view')
