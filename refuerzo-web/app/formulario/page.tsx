@@ -71,7 +71,7 @@ export default function Formulario() {
                         </div>
 
                         <div className="flex flex-col space-y-2">
-                            <label className="text-sm font-semibold text-[#003C71]">Programa Deseado</label>
+                            <label className="text-sm font-semibold text-[#003C71]">Grado</label>
                             <select
                                 id="desiredProgram"
                                 name="desiredProgram"
@@ -79,11 +79,13 @@ export default function Formulario() {
                                 required
                                 defaultValue={"default"}
                             >
-                                <option value="default" disabled >Seleccione un programa</option>
-                                <option value="science">Ciencias</option>
-                                <option value="math">Matemáticas</option>
-                                <option value="literature">Literatura</option>
-                                <option value="arts">Artes</option>
+                                <option value="default" disabled >Seleccione un grado</option>
+                                <option value="1">7º grado</option>
+                                <option value="2">8º grado</option>
+                                <option value="3">9º grado</option>
+                                <option value="4">Primer año bachillerato</option>
+                                <option value="5">Segundo año bachillerato</option>
+                                <option value="6">Tercer año bachillerato</option>
                             </select>
                         </div>
 
