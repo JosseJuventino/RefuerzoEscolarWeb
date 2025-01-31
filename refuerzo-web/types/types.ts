@@ -34,8 +34,8 @@ export interface Alumno{
 export interface Usuario{
   _id: string;
   nombres: string;
-  apellidos: string;
   imagen: string;
+  telefono: string;
   rol: Rol;
   email: string;
   password: string;
@@ -44,11 +44,9 @@ export interface Usuario{
 export interface Recomendadores{
   _id: string;
   nombre: string;
-  contacto: {
-    email: string;
-    telefono: string;
-  };
-  imagen: string;
+  email: string;
+  telefono: string;
+  image: string;
   isActive: boolean;
   password: string;
 }
@@ -126,4 +124,5 @@ export interface UserInfo {
   nombreCompleto: string;
   email: string;
   image: string;
+  isActive: boolean;
 }
