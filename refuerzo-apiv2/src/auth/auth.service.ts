@@ -65,8 +65,7 @@ export class AuthService {
       id: user._id,
       email: user.email,
       role: user.role,
-      name: user.nombres,
-      lastName: user.apellidos,
+      name: user.nombre,
       image: user.image,
     };
     const token = await this.jwtService.sign(payload);
@@ -81,7 +80,7 @@ export class AuthService {
 
     //cargar el nombre y apellido del usuario con su imagen desde el payload y guardar en userData
     const userData = {
-      nombreCompleto: payload.name + ' ' + payload.lastName,
+      nombreCompleto: payload.name,
       email: payload.email,
       image: user.image,
     };

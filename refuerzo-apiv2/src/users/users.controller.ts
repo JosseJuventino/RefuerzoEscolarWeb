@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  Scope,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -16,6 +17,7 @@ import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { Permission } from 'src/common/decorators/permission.decorators';
 import { Public } from 'src/common/decorators/public.decorators';
 import { Resources, Scopes } from 'nest_autorization';
+import { CreateNewRecomendadorDto } from './dto/create-recomendador.dto';
 
 @ApiBasicAuth()
 @Permission('usuarios')
@@ -23,6 +25,19 @@ import { Resources, Scopes } from 'nest_autorization';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Scopes('view', 'edit')
+  @Post('recomendador')
+  @ApiOperation({
+    summary: 'Create a recomendador',
+    description: 'Create a new recomendador',
+  })
+  @ApiBearerAuth()
+  createRecomendador(
+    @Body() createNewRecomendadorDto: CreateNewRecomendadorDto,
+  ) {
+    return this.usersService.createRecomendador(createNewRecomendadorDto);
+  }
 
   @Scopes('edit')
   @Post()
@@ -33,6 +48,17 @@ export class UsersController {
   @Public()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
+  }
+
+  @Scopes('view')
+  @Get('recomendador')
+  @ApiOperation({
+    summary: 'Get all recomendadores',
+    description: 'Get all recomendadores',
+  })
+  @ApiBearerAuth()
+  findAllRecomendadores(@Query() paginationQuery: PaginationQueryDto) {
+    return this.usersService.findAllRecomendadores(paginationQuery);
   }
 
   @Scopes('view')

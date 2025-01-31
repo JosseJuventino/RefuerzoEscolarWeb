@@ -112,7 +112,7 @@ export class CrudHelper<T extends BaseEntity> {
   ): Promise<T> {
     const query = isValidObjectId(code) // Valida si code es un ObjectId válido
       ? { _id: new ObjectId(code) }
-      : { username: code };
+      : { name: code };
     const entity = await this.repository.findOne({
       where: query as FindOptionsWhere<T>,
       // Nota: `withDeleted` no es una opción válida en TypeORM para MongoDB. Si usas soft deletes, necesitarás manejarlo de otra manera.
