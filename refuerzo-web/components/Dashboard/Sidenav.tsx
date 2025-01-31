@@ -94,7 +94,7 @@ const Sidenav: React.FC = () => {
         <div className={`absolute bottom-full mb-2 right-0 w-48 bg-white rounded-lg shadow-xl border z-50 ${mobile ? 'origin-bottom-right' : 'origin-bottom'
           }`}>
           <Link
-            href="/profile"
+            href="/dashboard/profile"
             className="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors text-sm text-gray-700"
             onClick={() => setShowUserMenu(false)}
           >
