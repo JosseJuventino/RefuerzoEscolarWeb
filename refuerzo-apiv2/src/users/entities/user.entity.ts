@@ -13,13 +13,13 @@ export class User {
   _id: ObjectId;
 
   @Column()
-  nombres: string;
-
-  @Column()
-  apellidos: string;
+  nombre: string;
 
   @Column()
   email: string;
+
+  @Column()
+  telefono: string;
 
   @Column()
   password: string;
@@ -29,6 +29,9 @@ export class User {
 
   @Column()
   role: string;
+
+  @Column()
+  idDependingRole: ObjectId;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

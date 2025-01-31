@@ -14,7 +14,7 @@ async function bootstrap() {
     origin: [
       'http://localhost:3000',
       'http://66.70.189.110',
-      'https://refuerzo-mendoza.me/',
+      'https://refuerzo-mendoza.me',
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     preflightContinue: false,

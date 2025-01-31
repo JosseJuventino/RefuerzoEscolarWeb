@@ -145,7 +145,7 @@ export class PostulanteService {
           grado: postulante.grado,
           isUser: postulante.isUser,
           recomendador: {
-            nombreCompleto: recomendador.nombres + ' ' + recomendador.apellidos,
+            nombreCompleto: recomendador.nombre,
             email: recomendador.email,
             image: recomendador.image,
           },
@@ -195,7 +195,7 @@ export class PostulanteService {
       isUser: findPostulante.isUser,
       recomendador: recomendador
         ? {
-            nombreCompleto: recomendador.nombres + ' ' + recomendador.apellidos,
+            nombreCompleto: recomendador.nombre,
             email: recomendador.email,
             image: recomendador.image,
           }
