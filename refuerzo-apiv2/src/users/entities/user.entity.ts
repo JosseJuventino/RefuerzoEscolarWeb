@@ -31,6 +31,9 @@ export class User {
   role: string;
 
   @Column()
+  isActive: boolean;
+
+  @Column()
   idDependingRole: ObjectId;
 
   @CreateDateColumn({ type: 'timestamp' })
@@ -38,4 +41,6 @@ export class User {
 
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
+
+
 }

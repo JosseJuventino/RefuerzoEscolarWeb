@@ -6,6 +6,7 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { ObjectId } from 'mongodb';
 import { CreateNewRecomendadorDto } from './dto/create-recomendador.dto';
+import { SendEmailDto } from 'src/email/dto/send-email.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CrudHelper } from '../common/helper/crud.helper';
 import { User } from './entities/user.entity';
@@ -18,8 +19,11 @@ import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { buildPaginationAndFilterOptions } from 'src/common/helper/pagination.helper';
 import { PaginationResponseBuilder } from 'src/common/helper/paginated-response.helper';
 import { PaginationResponseDto } from 'src/common/dto/pagination-response.dto';
+import { EmailService } from 'src/email/service/email.service';
 import { Role } from 'src/roles/entities/role.entity';
 import * as crypto from 'crypto';
+
+import { recomendadorAccountCreatedTemplate } from 'src/email/templates/createRecomendatorTemplate';
 
 @Injectable()
 export class UsersService {
@@ -30,6 +34,8 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+
+    private readonly emailService: EmailService,
   ) {
     this.crudHelper = new CrudHelper<User>(this.userRepository, 'Users');
     this.roleCrudHelper = new CrudHelper<Role>(this.roleRepository, 'Roles');
@@ -90,7 +96,6 @@ export class UsersService {
     }
 
     const temporaryPassword = crypto.randomBytes(8).toString('hex'); // Generar una contraseña temporal
-    //Paso para encriptar la contraseña
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(temporaryPassword, salt);
 
@@ -99,11 +104,30 @@ export class UsersService {
       email: createNewRecomendadorDto.email,
       telefono: createNewRecomendadorDto.telefono,
       image: createNewRecomendadorDto.image,
+      isActive: false,
       role: role._id.toString(),
       password: hashedPassword,
     });
 
     await this.crudHelper.create(newUser);
+
+    const sendEmailDto: SendEmailDto = {
+      to: [createNewRecomendadorDto.email],
+      replyTo: ["soporte@refuerzo-mendoza.me"],
+      subject: 'Cuenta de Recomendador Creada',
+      from: 'soporte@refuerzo-mendoza.me',
+      text: `Hola ${createNewRecomendadorDto.nombre},\n\nTu contraseña temporal es: ${temporaryPassword}\nPor favor inicia sesión y cambia tu contraseña.`,
+      html: recomendadorAccountCreatedTemplate(
+        createNewRecomendadorDto.nombre,
+        temporaryPassword,
+      ),
+    };
+
+    try {
+      await this.emailService.sendEmail(sendEmailDto);
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
 
     return new GeneralResponseBuilder<User>()
       .setStatusCode(201)
@@ -224,18 +248,15 @@ export class UsersService {
       throw new BadRequestException(`Role 'recomendador' not found`);
     }
 
-    // Filtrar por el rol "recomendador"
     const filter: any = { role: role._id.toString() };
 
-    // Agregar filtros adicionales si existen
     if (paginationQuery.filterBy && paginationQuery.filterValue) {
       filter[paginationQuery.filterBy] = {
         $regex: paginationQuery.filterValue,
-        $options: 'i', // Insensible a mayúsculas
+        $options: 'i',
       };
     }
 
-    // Determinar si se aplica paginación
     const applyPagination =
       paginationQuery.page !== undefined && paginationQuery.limit !== undefined;
 
@@ -258,18 +279,15 @@ export class UsersService {
         withDeleted: paginationQuery.includeDeleted,
       };
 
-      // Obtener los resultados con paginación
       [results, total] = await this.userRepository.findAndCount(queryOptions);
       totalPages = Math.ceil(total / paginationQuery.limit);
 
-      // Validar si la página solicitada existe
       if (paginationQuery.page > totalPages && totalPages > 0) {
         throw new BadRequestException(
           `Page ${paginationQuery.page} does not exist. Total pages: ${totalPages}`,
         );
       }
     } else {
-      // Si no hay paginación, obtener todos los registros
       results = await this.userRepository.find({
         where: filter,
         order:
@@ -286,19 +304,19 @@ export class UsersService {
       totalPages = 1;
     }
 
-    // Enriquecer los usuarios con roles y permisos
     const recomendadores = await Promise.all(
       results.map(async (user) => {
         return {
+          _id: user._id,
           nombre: user.nombre,
           email: user.email,
           telefono: user.telefono,
           image: user.image,
+          isActive: user.isActive,
         };
       }),
     );
 
-    // Construir la respuesta paginada
     return new PaginationResponseBuilder()
       .setMessage(
         `Recomendadores retrieved successfully. Total pages: ${totalPages}`,
