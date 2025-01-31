@@ -5,11 +5,16 @@ import { CommonModule } from 'src/common/common.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Postulante } from './entities/postulante.entity';
 import { User } from 'src/users/entities/user.entity';
+import { UsersModule } from 'src/users/users.module'; // Importar UsersModule
 
 @Module({
   controllers: [PostulanteController],
   providers: [PostulanteService],
-  imports: [CommonModule, TypeOrmModule.forFeature([Postulante, User])],
+  imports: [
+    CommonModule,
+    TypeOrmModule.forFeature([Postulante, User]),
+    UsersModule, // Importar UsersModule
+  ],
   exports: [TypeOrmModule],
 })
 export class PostulanteModule {}
