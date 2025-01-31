@@ -10,7 +10,6 @@ const nextConfig: NextConfig = {
     optimisticClientCache: true,
   },
   swcMinify: true,
-  cacheHandler: require.resolve("./cache-handler.js"),
   cacheMaxMemorySize: 50,
 
   images: {
