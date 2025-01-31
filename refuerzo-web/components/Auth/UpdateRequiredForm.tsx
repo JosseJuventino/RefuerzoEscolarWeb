@@ -1,16 +1,15 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Usuario } from "@/types/types";
 import { UploadCloud, X, Lock, Check, Eye, EyeOff, Camera } from "lucide-react";
 
 interface UpdateRequiredFormProps {
-    user: Usuario;
+    username: string;
 }
 
-const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ user }) => {
+const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => {
     const [step, setStep] = useState(1);
-    const [preview, setPreview] = useState<string | null>(user.imagen || null);
+    const [preview, setPreview] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState(0);
     const [rememberPassword, setRememberPassword] = useState(false);
@@ -18,8 +17,8 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ user }) => {
     const [isMobile, setIsMobile] = useState(false);
     
     const formData = useRef({
-        imagen: user.imagen || "",
-        telefono: user.telefono || "",
+        imagen:"",
+        telefono: "",
         password: "",
     });
 
@@ -202,7 +201,7 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ user }) => {
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
             <div className="w-full max-w-lg space-y-8">
                 <div className="text-center">
-                    <h1 className="text-4xl font-bold text-gray-800 mb-2">Completa tu perfil</h1>
+                    <h1 className="text-4xl font-bold text-gray-800 mb-2">Completa tu perfil, {username}</h1>
                     <div className="flex justify-center items-center space-x-4">
                         <div className={`h-2 w-16 rounded-full ${step >= 1 ? 'bg-blue-500' : 'bg-gray-200'}`} />
                         <div className={`h-2 w-16 rounded-full ${step >= 2 ? 'bg-blue-500' : 'bg-gray-200'}`} />
