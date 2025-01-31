@@ -78,11 +78,11 @@ export class AuthService {
       hash: hashedToken,
     };
 
-    //cargar el nombre y apellido del usuario con su imagen desde el payload y guardar en userData
     const userData = {
       nombreCompleto: payload.name,
       email: payload.email,
       image: user.image,
+      isActive: user.isActive,
     };
 
     const newToken = this.tokensRepository.create(tokenData);
