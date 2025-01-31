@@ -34,7 +34,7 @@ export class User {
   isActive: boolean;
 
   @Column()
-  idDependingRole: ObjectId;
+  idDependingRole: string;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

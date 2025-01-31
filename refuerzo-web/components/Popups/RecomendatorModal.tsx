@@ -13,7 +13,6 @@ interface FormModalProps {
     title: string;
 }
 
-
 export const FormModal = ({
     isOpen,
     initialData,
@@ -23,13 +22,14 @@ export const FormModal = ({
 }: FormModalProps) => {
     const emptyForm = useMemo<Partial<Recomendadores>>(() => ({
         nombre: "",
-        contacto: { email: "", telefono: "" },
+        email: "",
+        telefono: "",
         imagen: "",
+        isActive: true,
+        password: ""
     }), []);
 
     const [formData, setFormData] = useState<Partial<Recomendadores>>(emptyForm);
-   
-
 
     useEffect(() => {
         setFormData(initialData || emptyForm);
@@ -39,37 +39,22 @@ export const FormModal = ({
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleContactoChange = (
-        field: keyof Recomendadores['contacto'],
-        value: string
-    ) => {
-        setFormData(prev => ({
-            ...prev,
-            contacto: {
-                ...(prev.contacto || { email: "", telefono: "" }),
-                [field]: value
-            }
-        }));
-    };
-
     const handleCancel = () => {
-        setFormData(emptyForm); 
+        setFormData(emptyForm);
         onClose();
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         onSubmit(formData as Recomendadores);
-        onClose();
         handleCancel();
     };
-
 
     return (
         <Modal
             isOpen={isOpen}
             title={title}
-            onClose={handleCancel} 
+            onClose={handleCancel}
             buttons={
                 <div className="flex gap-2">
                     <button
@@ -100,8 +85,8 @@ export const FormModal = ({
                 <InputField
                     label="Email"
                     type="email"
-                    value={formData.contacto?.email || ""}
-                    onChange={(v) => handleContactoChange('email', v)}
+                    value={formData.email || ""}
+                    onChange={(v) => handleFieldChange('email', v)}
                     placeholder="Email del recomendador"
                     isRequired={true}
                 />
@@ -109,8 +94,8 @@ export const FormModal = ({
                 <InputField
                     label="Teléfono"
                     type="tel"
-                    value={formData.contacto?.telefono || ""}
-                    onChange={(v) => handleContactoChange('telefono', v)}
+                    value={formData.telefono || ""}
+                    onChange={(v) => handleFieldChange('telefono', v)}
                     placeholder="Teléfono del recomendador"
                     isRequired={false}
                 />

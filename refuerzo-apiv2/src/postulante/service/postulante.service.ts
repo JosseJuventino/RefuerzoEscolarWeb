@@ -9,7 +9,6 @@ import { UpdatePostulanteDto } from '../dto/update-postulante.dto';
 import { CrudHelper } from '../../common/helper/crud.helper';
 import { Postulante } from '../entities/postulante.entity';
 import { Repository, FindManyOptions } from 'typeorm';
-import * as bcrypt from 'bcryptjs';
 import { GeneralResponseDto } from 'src/common/dto/general-response.dto';
 import { GeneralResponseBuilder } from 'src/common/helper/general-response.helper';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -19,6 +18,8 @@ import { PaginationResponseBuilder } from 'src/common/helper/paginated-response.
 import { PaginationResponseDto } from 'src/common/dto/pagination-response.dto';
 import { User } from 'src/users/entities/user.entity';
 import { PostulanteResponseDto } from '../dto/postulante-response.dto';
+import { UsersService } from 'src/users/users.service';
+import { CreateNewAlumnoDto } from 'src/users/dto/create-alumno.dto';
 
 @Injectable()
 export class PostulanteService {
@@ -29,6 +30,7 @@ export class PostulanteService {
     private readonly postulanteRepository: Repository<Postulante>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly usersService: UsersService, // Inyectar UsersService
   ) {
     this.crudHelper = new CrudHelper<Postulante>(
       this.postulanteRepository,
@@ -55,7 +57,21 @@ export class PostulanteService {
       ...createPostulanteDto,
       recomendador: recomendadorId,
     });
-    await this.crudHelper.create(newPostulante);
+
+    const savedPostulante = await this.postulanteRepository.save(newPostulante);
+
+    // Crear un DTO para el usuario
+    const createNewAlumnoDto: CreateNewAlumnoDto = {
+      nombre: createPostulanteDto.nombre,
+      email: createPostulanteDto.email, // Asumiendo que el contacto tiene un campo email
+      image: createPostulanteDto.imagen,
+      telefono: createPostulanteDto.telefono, // Asumiendo que el contacto tiene un campo telefono
+      idDependingRole: savedPostulante._id.toString(), // Usar el _id generado
+    };
+
+    // Crear el usuario usando UsersService
+    await this.usersService.createAlumno(createNewAlumnoDto);
+
     return new GeneralResponseBuilder<Postulante>()
       .setStatusCode(201)
       .setMessage('Postulante created successfully')

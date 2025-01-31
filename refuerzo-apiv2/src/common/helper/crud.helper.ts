@@ -126,6 +126,27 @@ export class CrudHelper<T extends BaseEntity> {
     return entity;
   }
 
+  async findByEmailOrId(
+    code: string,
+    includeDeleted = false,
+    throwIfNotFound = true,
+  ): Promise<T> {
+    const query = isValidObjectId(code) // Valida si code es un ObjectId válido
+      ? { _id: new ObjectId(code) }
+      : { email: code };
+    const entity = await this.repository.findOne({
+      where: query as FindOptionsWhere<T>,
+      // Nota: `withDeleted` no es una opción válida en TypeORM para MongoDB. Si usas soft deletes, necesitarás manejarlo de otra manera.
+    });
+
+    if (!entity && throwIfNotFound) {
+      const entityName = this.getEntityName();
+      throw new NotFoundException(`${entityName} not found.`);
+    }
+
+    return entity;
+  }
+
   async update(entity: T, updateData: DeepPartial<T>): Promise<void> {
     try {
       this.repository.merge(entity, updateData);

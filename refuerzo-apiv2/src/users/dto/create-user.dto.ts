@@ -55,6 +55,5 @@ export class CreateUserDto {
     example: '60d5f484f1d2b45c6c8f1d4b',
   })
   @IsOptional()
-  @IsMongoId()
   readonly idDependingRole: string;
 }
