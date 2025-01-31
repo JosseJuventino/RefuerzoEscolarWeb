@@ -17,20 +17,27 @@ import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { buildPaginationAndFilterOptions } from 'src/common/helper/pagination.helper';
 import { PaginationResponseBuilder } from 'src/common/helper/paginated-response.helper';
 import { PaginationResponseDto } from 'src/common/dto/pagination-response.dto';
+import { User } from 'src/users/entities/user.entity';
+import { PostulanteResponseDto } from '../dto/postulante-response.dto';
 
 @Injectable()
 export class PostulanteService {
   private readonly crudHelper: CrudHelper<Postulante>;
+  private readonly userCrudHelper: CrudHelper<User>;
   constructor(
     @InjectRepository(Postulante)
     private readonly postulanteRepository: Repository<Postulante>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {
     this.crudHelper = new CrudHelper<Postulante>(
       this.postulanteRepository,
       'Postulantes',
     );
+    this.userCrudHelper = new CrudHelper<User>(this.userRepository, 'Users');
   }
   async create(
+    recomendadorId: ObjectId,
     createPostulanteDto: CreatePostulanteDto,
   ): Promise<GeneralResponseDto<Postulante>> {
     const findPostulante = await this.crudHelper.findByNameOrId(
@@ -46,6 +53,7 @@ export class PostulanteService {
 
     const newPostulante = this.postulanteRepository.create({
       ...createPostulanteDto,
+      recomendador: recomendadorId,
     });
     await this.crudHelper.create(newPostulante);
     return new GeneralResponseBuilder<Postulante>()
@@ -119,12 +127,41 @@ export class PostulanteService {
       totalPages = 1;
     }
 
+    //Enriqueces los postulantes con la informacion del recomendador
+    const postulantesWithRecomendador = await Promise.all(
+      results.map(async (postulante) => {
+        const recomendador = await this.userCrudHelper.findByNameOrId(
+          postulante.recomendador.toString(),
+          false,
+          false,
+        );
+        return {
+          _id: postulante._id,
+          nombre: postulante.nombre,
+          imagen: postulante.imagen,
+          direccion: postulante.direccion,
+          telefono: postulante.telefono,
+          email: postulante.email,
+          grado: postulante.grado,
+          isUser: postulante.isUser,
+          recomendador: {
+            nombreCompleto: recomendador.nombres + ' ' + recomendador.apellidos,
+            email: recomendador.email,
+            image: recomendador.image,
+          },
+
+          createdAt: postulante.createdAt,
+          updatedAt: postulante.updatedAt,
+        };
+      }),
+    );
+
     // Construir la respuesta paginada
     return new PaginationResponseBuilder()
       .setMessage(
         `Postulantes retrieved successfully. Total pages: ${totalPages}`,
       )
-      .setData(results)
+      .setData(postulantesWithRecomendador)
       .setSize(total)
       .setTotalPages(totalPages)
       .setPage(applyPagination ? paginationQuery.page : 1)
@@ -132,14 +169,48 @@ export class PostulanteService {
       .build();
   }
 
-  async findOne(id: string): Promise<GeneralResponseDto<Postulante>> {
+  async findOne(
+    id: string,
+  ): Promise<GeneralResponseDto<PostulanteResponseDto>> {
     const findPostulante = await this.crudHelper.findByNameOrId(id);
     if (!findPostulante) {
       throw new BadRequestException(`Postulante with id ${id} not found`);
     }
-    return new GeneralResponseBuilder<Postulante>()
+
+    //Enriqueces el postulante con la informacion del recomendador
+    const recomendador = await this.userCrudHelper.findByNameOrId(
+      findPostulante.recomendador.toString(),
+      false,
+      false,
+    );
+
+    const postulanteWithRecomendador: PostulanteResponseDto = {
+      _id: findPostulante._id,
+      nombre: findPostulante.nombre,
+      imagen: findPostulante.imagen,
+      direccion: findPostulante.direccion,
+      telefono: findPostulante.telefono,
+      email: findPostulante.email,
+      grado: findPostulante.grado,
+      isUser: findPostulante.isUser,
+      recomendador: recomendador
+        ? {
+            nombreCompleto: recomendador.nombres + ' ' + recomendador.apellidos,
+            email: recomendador.email,
+            image: recomendador.image,
+          }
+        : {
+            nombreCompleto: 'No recomendador',
+            email: 'No recomendador',
+            image: 'No recomendador',
+          },
+      createdAt: findPostulante.createdAt,
+      updatedAt: findPostulante.updatedAt,
+    };
+
+    return new GeneralResponseBuilder<PostulanteResponseDto>()
       .setMessage('Postulante retrieved successfully')
-      .setData(findPostulante)
+      .setData(postulanteWithRecomendador)
       .build();
   }
 

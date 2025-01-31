@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Modal } from "./Modal";
 import { Recomendadores } from "@/types/types";
 import { InputField } from "../Fields/InputField";
@@ -21,17 +21,19 @@ export const FormModal = ({
     onSubmit,
     title,
 }: FormModalProps) => {
-    const emptyForm: Partial<Recomendadores> = {
+    const emptyForm = useMemo<Partial<Recomendadores>>(() => ({
         nombre: "",
         contacto: { email: "", telefono: "" },
         imagen: "",
-    };
+    }), []);
 
     const [formData, setFormData] = useState<Partial<Recomendadores>>(emptyForm);
+   
+
 
     useEffect(() => {
         setFormData(initialData || emptyForm);
-    }, [initialData]);
+    }, [initialData, emptyForm]);
 
     const handleFieldChange = (field: keyof Recomendadores, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -51,8 +53,8 @@ export const FormModal = ({
     };
 
     const handleCancel = () => {
-        setFormData(emptyForm); // Limpia los campos
-        onClose(); // Cierra el modal
+        setFormData(emptyForm); 
+        onClose();
     };
 
     const handleSubmit = (e: React.FormEvent) => {

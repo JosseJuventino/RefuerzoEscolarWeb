@@ -28,10 +28,13 @@ export class Postulante {
   email: string;
 
   @Column()
-  year: string;
+  grado: string;
 
   @Column()
   isUser: boolean;
+
+  @Column()
+  recomendador: ObjectId;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

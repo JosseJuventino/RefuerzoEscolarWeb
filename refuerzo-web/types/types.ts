@@ -6,8 +6,8 @@ export interface Postulante {
   direccion: string;
   telefono: string;
   email: string;
-  año: number;
-  fechaEnvio: string;
+  grado: number;
+  createdAt: string;
 }
 
 export interface Rol{
@@ -47,7 +47,18 @@ export interface Recomendadores{
     email: string;
     telefono: string;
   };
-  imagen: string;  
+  imagen: string;
+  isActive: boolean;
+}
+
+export interface GetRecomendadoresResponse{
+  statusCode: number;
+  message: string;
+  data: Recomendadores[];
+  size: number;
+  totalPages: number;
+  page: number;
+  limit: number;
 }
 
 export interface GetPostulantesResponse {
@@ -95,4 +106,19 @@ export interface TableProps<T> {
   columns: Column<T>[];
   onEdit?: (item: T) => void;
   onDelete?: (itemId: string) => void;
+}
+
+export interface AuthResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    token: string;
+    info: UserInfo;
+  };
+}
+
+export interface UserInfo {
+  nombreCompleto: string;
+  email: string;
+  image: string;
 }

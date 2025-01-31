@@ -7,36 +7,9 @@ import PageHeader from "@/components/Dashboard/PageHeader";
 import { Plus } from "lucide-react";
 import { FormModal } from "@/components/Popups/RecomendatorModal";
 import { DeleteModal } from "@/components/Popups/DeleteModal";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getRecomendadores, addRecomendador, updateRecomendador, deleteRecomendador } from "@/services/recomenders.service";
 
-const initialRecommenders: Recomendadores[] = [
-  {
-    _id: "1",
-    nombre: "Juan Pérez",
-    contacto: {
-      email: "juan@empresa.com",
-      telefono: "+51 987 654 321"
-    },
-    imagen: "https://i.pinimg.com/736x/5d/b1/2d/5db12d1989c62cc1e63e16b2ff7dc2ca.jpg"
-  },
-  {
-    _id: "2",
-    nombre: "Maria",
-    contacto: {
-      email: "maria@api.com",
-      telefono: "+51 987 123 456"
-    },
-    imagen: "https://i.pinimg.com/736x/0e/a5/49/0ea549c29cff11577b7652e186d4a1ba.jpg"
-  },
-  {
-    _id: "3",
-    nombre: "Carlos López",
-    contacto: {
-      email: "carlos@innovaciones.com",
-      telefono: "+51 987 789 123"
-    },
-    imagen: "https://i.pinimg.com/736x/64/86/59/6486596e25b4e609a0ec35bf621c71ab.jpg"
-  }
-];
 
 const ContactInfo = ({ email, telefono }: { email: string; telefono: string }) => (
   <div className="flex flex-col">
@@ -50,8 +23,18 @@ export default function RecomendadoresPage() {
     type: 'add' | 'edit' | 'delete' | null;
     selected: Recomendadores | null;
   }>({ type: null, selected: null });
-  
-  const [recommenders, setRecommenders] = useState<Recomendadores[]>(initialRecommenders);
+
+  const queryClient = useQueryClient();
+
+  const {
+    data: recomendadores,
+    error,
+    isLoading,
+    isError,
+  } = useQuery<Recomendadores[], Error>({
+    queryKey: ["recomendadores"],
+    queryFn: getRecomendadores,
+  });
 
   const columns: Column<Recomendadores>[] = [
     {
@@ -70,29 +53,54 @@ export default function RecomendadoresPage() {
       accessor: (row) => <ContactInfo email={row.contacto.email} telefono={row.contacto.telefono} />
     },
   ];
-    
-  const handleAdd = (newRecommender: Recomendadores) => {
-    setRecommenders(prev => [...prev, {
-      ...newRecommender,
-      _id: Date.now().toString()
-    }]);
+
+  const addRecomendadorMutation = useMutation({
+    mutationFn: addRecomendador,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recomendadores'] });
+    },
+  });
+
+  const updateRecomendadorMutation = useMutation({
+    mutationFn: updateRecomendador,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recomendadores'] });
+    },
+  });
+
+  const deleteRecomendadorMutation = useMutation({
+    mutationFn: deleteRecomendador,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recomendadores'] });
+    },
+  });
+
+  const handleAdd = async (newRecommender: Recomendadores) => {
+    newRecommender.imagen = "http://66.70.189.110/api/uploads/users/default.webp";
+    newRecommender.isActive = false;
+
+    await addRecomendadorMutation.mutateAsync(newRecommender);
     closeModal();
   };
 
-  const handleEdit = (updated: Recomendadores) => {
-    setRecommenders(prev => prev.map(r => 
-      r._id === updated._id ? updated : r
-    ));
+  const handleEdit = async (updated: Recomendadores) => {
+    await updateRecomendadorMutation.mutateAsync(updated);
     closeModal();
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!modalState.selected) return;
-    setRecommenders(prev => prev.filter(r => r._id !== modalState.selected?._id));
+    await deleteRecomendadorMutation.mutateAsync(modalState.selected._id);
     closeModal();
   };
 
   const closeModal = () => setModalState({ type: null, selected: null, });
+
+  if (isLoading) return <div>Loading...</div>;
+
+  if (isError) {
+    return <div>Error: {error?.message}</div>;
+  }
 
   return (
     <div className="p-10">
@@ -110,13 +118,15 @@ export default function RecomendadoresPage() {
 
       <div className="mt-4 bg-white rounded-lg shadow-md overflow-auto">
         <Table
-          data={recommenders}
+          data={recomendadores ?? []}
           columns={columns}
           loading={false}
           onEdit={(row) => setModalState({ type: 'edit', selected: row })}
           onDelete={(id) => {
-            const selected = recommenders.find(r => r._id === id);
-            if (selected) setModalState({ type: 'delete', selected });
+            const selected = recomendadores?.find(r => r._id === id); 
+            if (selected) {
+              setModalState({ type: 'delete', selected });
+            }
           }}
         />
       </div>
