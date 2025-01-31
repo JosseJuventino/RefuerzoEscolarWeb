@@ -25,6 +25,7 @@ export default function Dashboard() {
 
   return (
     <div className="px-4 md:px-20 py-3 md:mt-0 mt-16">
+
       <h1 className="text-2xl font-bold text-center text-blue_principal">
         Refuerzo escolar Ing. William Mendoza
       </h1>
