@@ -62,6 +62,17 @@ export class UsersController {
   }
 
   @Scopes('view')
+  @Get('alumno')
+  @ApiOperation({
+    summary: 'Get all alumnos',
+    description: 'Get all alumnos',
+  })
+  @ApiBearerAuth()
+  findAllAlumnos(@Query() paginationQuery: PaginationQueryDto) {
+    return this.usersService.findAllAlumnos(paginationQuery);
+  }
+
+  @Scopes('view')
   @Get()
   @ApiOperation({
     summary: 'Get all users',
