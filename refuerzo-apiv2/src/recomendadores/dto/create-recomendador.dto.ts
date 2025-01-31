@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsObject, IsBoolean } from 'class-validator';
+import { IsNotEmpty, IsString, IsObject, IsBoolean, IsMongoId, IsOptional } from 'class-validator';
+import { ObjectId } from 'typeorm';
 
 class ContactoDto {
   @ApiProperty({

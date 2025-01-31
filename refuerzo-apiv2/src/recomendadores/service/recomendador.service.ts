@@ -18,19 +18,27 @@ import { buildPaginationAndFilterOptions } from 'src/common/helper/pagination.he
 import { PaginationResponseBuilder } from 'src/common/helper/paginated-response.helper';
 import { PaginationResponseDto } from 'src/common/dto/pagination-response.dto';
 import { CONFIGURABLE_MODULE_ID } from '@nestjs/common/module-utils/constants';
+import { User } from 'src/users/entities/user.entity';
+import * as crypto from 'crypto';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class RecomendadorService {
   private readonly crudHelper: CrudHelper<Recomendador>;
+  private readonly userCrudHelper: CrudHelper<User>;
+
   constructor(
     @InjectRepository(Recomendador)
     private readonly recomendadorRepository: Repository<Recomendador>,
+    private readonly usersService: UsersService, // Inyectar UsersService
   ) {
     this.crudHelper = new CrudHelper<Recomendador>(
       this.recomendadorRepository,
       'Recomendadores',
     );
   }
+
   async create(
     createRecomendadorDto: CreateRecomendadorDto,
   ): Promise<GeneralResponseDto<Recomendador>> {
@@ -45,18 +53,38 @@ export class RecomendadorService {
       );
     }
 
-    // Crear un nuevo recomendador asegurando que el contacto se guarde correctamente
+    // Crear un nuevo recomendador
     const newRecomendador = this.recomendadorRepository.create({
       nombre: createRecomendadorDto.nombre,
       imagen: createRecomendadorDto.imagen,
-      contacto: createRecomendadorDto.contacto, // Asegúrate de que el contacto se incluya aquí
+      contacto: createRecomendadorDto.contacto,
       isActive: createRecomendadorDto.isActive,
     });
 
-    await this.crudHelper.create(newRecomendador);
+    // Guardar el recomendador en la base de datos para obtener su _id
+    const savedRecomendador =
+      await this.recomendadorRepository.save(newRecomendador);
+
+    // Crear un DTO para el usuario
+    const createUserDto: CreateUserDto = {
+      nombre: createRecomendadorDto.nombre,
+      email: createRecomendadorDto.contacto.email, // Asumiendo que el contacto tiene un campo email
+      image: createRecomendadorDto.imagen,
+      telefono: createRecomendadorDto.contacto.telefono, // Asumiendo que el contacto tiene un campo telefono
+      password: crypto.randomBytes(8).toString('hex'), // Generar una contraseña temporal
+      role: '679ab4a57103ebe1c0899465', // Asignar el rol de "recomendador"
+      idDependingRole: savedRecomendador._id.toString(), // Usar el _id generado
+    };
+
+    // Crear el usuario usando UsersService
+    await this.usersService.create(createUserDto);
+
+    
+
     return new GeneralResponseBuilder<Recomendador>()
       .setStatusCode(201)
       .setMessage('Recomendador created successfully')
+      .setData(savedRecomendador)
       .build();
   }
 

@@ -7,10 +7,7 @@ import { CommonModule } from 'src/common/common.module';
 @Module({
   controllers: [EmailController],
   providers: [EmailService],
-  imports: [
-    ConfigModule.forRoot(),
-    CommonModule, 
-  ],
+  imports: [ConfigModule.forRoot(), CommonModule],
   exports: [EmailService],
 })
 export class EmailModule {}

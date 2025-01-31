@@ -57,6 +57,8 @@ export class AuthGuard extends AutenticationGuard {
       );
     }
 
+
+
     // Verificar y obtener el payload del token
     const jwtToken = await this.authcrudHelper.findOne({
       where: { hash: token },
