@@ -1,4 +1,5 @@
 /** Interfaces principales */
+
 export interface Postulante {
   _id: string;
   nombre: string;
@@ -49,6 +50,7 @@ export interface Recomendadores{
   };
   imagen: string;
   isActive: boolean;
+  password: string;
 }
 
 export interface GetRecomendadoresResponse{
@@ -106,7 +108,10 @@ export interface TableProps<T> {
   columns: Column<T>[];
   onEdit?: (item: T) => void;
   onDelete?: (itemId: string) => void;
+  handleShare?: (item: T) => void;
+  hasShare?: boolean;
 }
+
 
 export interface AuthResponse {
   statusCode: number;

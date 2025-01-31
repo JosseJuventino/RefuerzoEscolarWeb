@@ -13,7 +13,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { PostulanteModule } from './postulante/postulante.module';
 import { RecomendadorModule } from './recomendadores/recomendador.module';
-
+import { EmailModule } from './email/email.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -33,6 +33,7 @@ import { RecomendadorModule } from './recomendadores/recomendador.module';
     ImagesModule,
     PostulanteModule,
     RecomendadorModule,
+    EmailModule
   ],
   controllers: [AppController],
   providers: [AppService],
