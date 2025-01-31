@@ -1,5 +1,5 @@
 import React from "react";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, Share2 } from "lucide-react";
 import { TableProps } from "@/types/types";
 
 const Table = <T extends { _id: string }>({
@@ -8,6 +8,8 @@ const Table = <T extends { _id: string }>({
   columns,
   onEdit,
   onDelete,
+  handleShare = () => { },
+  hasShare = false,
 }: TableProps<T>) => {
   if (loading) {
     return (
@@ -67,6 +69,17 @@ const Table = <T extends { _id: string }>({
                           <Trash2 size={20} />
                         </button>
                       )}
+
+                      {
+                        hasShare &&
+                        <button
+                          className="flex items-center justify-center w-8 h-8 text-blue-500 hover:text-blue-700 focus:outline-none"
+                          onClick={() => handleShare(row)}
+                          aria-label="Compartir"
+                        >
+                          <Share2 size={20} />
+                        </button>
+                      }
                     </div>
                   </td>
                 )}

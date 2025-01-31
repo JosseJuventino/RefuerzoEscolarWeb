@@ -3,9 +3,12 @@ import {
   IsBoolean,
   isNotEmpty,
   IsNotEmpty,
+  IsNotEmptyObject,
   IsOptional,
   IsString,
 } from 'class-validator';
+import { ObjectId } from 'mongodb';
+import { isValidObjectId } from 'src/common/helper/mongodb.helper';
 
 export class CreatePostulanteDto {
   @ApiProperty({
@@ -49,12 +52,12 @@ export class CreatePostulanteDto {
   readonly email: string;
 
   @ApiProperty({
-    description: 'Año del postulante',
-    example: '2021',
+    description: 'Grado del postulante',
+    example: '8 grado',
   })
   @IsString()
   @IsNotEmpty()
-  readonly year: string;
+  readonly grado: string;
 
   @ApiProperty({
     description: 'Es usuario',
@@ -63,4 +66,6 @@ export class CreatePostulanteDto {
   @IsBoolean()
   @IsNotEmpty()
   readonly isUser: boolean;
+
+  readonly recomendador: ObjectId;
 }
