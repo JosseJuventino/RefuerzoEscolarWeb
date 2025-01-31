@@ -28,7 +28,6 @@ export class EmailController {
   })
   @ApiBearerAuth()
   async sendEmail(@Request() req, @Body() sendEmailDto: SendEmailDto) {
-    // Si necesitas registrar quién envía el correo
     const userId = req.user?.id;
     return this.emailService.sendEmail(sendEmailDto, userId);
   }
