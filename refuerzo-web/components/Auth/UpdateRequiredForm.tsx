@@ -1,8 +1,11 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Lock, Check, Eye, EyeOff } from "lucide-react";
+import { PasswordField } from "../Fields/PasswordField";
 import { ImagePreview } from "./ImagePreview";
 import { CameraPreview } from "./CameraPreview";
+import IndicatorStepFinish from "./IndicatorStep";
 import { UploadButton } from "../Fields/UploadButton";
+
+import { PhoneField } from "../Fields/PhoneField";
 
 interface UpdateRequiredFormProps {
     username: string;
@@ -13,7 +16,6 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
     const [preview, setPreview] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState(0);
-    const [rememberPassword, setRememberPassword] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [cameraActive, setCameraActive] = useState(false);
     const [telefono, setTelefono] = useState("");
@@ -147,7 +149,9 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
         setPasswordStrength(validatePassword(value));
     }
 
-
+    const handleFinish = () => {
+        console.log("Datos actualizados:", { ...formData.current });
+    }
 
 
 
@@ -156,7 +160,7 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
             <div className="w-full max-w-lg space-y-8">
                 <div className="text-center">
                     <h1 className="text-4xl font-bold text-gray-800 mb-2">Completa tu perfil, <span className="text-blue_principal">{username}</span></h1>
-                    <div className="flex justify-center items-center space-x-4">
+                    <div className="flex justify-center items-center mt-4 gap-5">
                         <div className={`h-2 w-16 rounded-full ${step >= 1 ? 'bg-blue-500' : 'bg-gray-200'}`} />
                         <div className={`h-2 w-16 rounded-full ${step >= 2 ? 'bg-blue-500' : 'bg-gray-200'}`} />
                     </div>
@@ -192,108 +196,17 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
                     <div className="bg-white/90 backdrop-blur-sm rounded-xl p-8 shadow-sm border border-gray-100">
                         <h2 className="text-2xl text-blue_principal font-semibold text-center mb-6">Datos de seguridad</h2>
                         <div className="space-y-6">
-                            <div>
-                                <label className="text-sm font-medium text-gray-600 mb-2 flex items-center gap-1">
-                                    <Lock className="w-4 h-4" />
-                                    Teléfono de contacto
-                                </label>
-                                <div className="flex items-center">
-                                    <span className="px-4 py-3 bg-gray-100 rounded-l-lg border-0 ring-1 ring-gray-200">+503</span>
-                                    <input
-                                        type="tel"
-                                        value={telefono}
-                                        onChange={handleTelefonoChange}
-                                        placeholder="1234 5678"
-                                        className="w-full px-4 py-3 rounded-r-lg border-0 ring-1 ring-gray-200 focus:ring-2 focus:ring-blue-500 transition-all"
-                                        maxLength={8}
-                                    />
-                                </div>
-                            </div>
+                            <PhoneField telefono={telefono} handleTelefonoChange={handleTelefonoChange} />
+                            
+                            <PasswordField
+                                password={password}
+                                handlePasswordChange={handlePasswordChange}
+                                passwordStrength={passwordStrength}
+                                showPassword={showPassword}
+                                setShowPassword={setShowPassword}
+                            />
 
-                            <div>
-                                <label className="text-sm font-medium text-gray-600 mb-2 flex items-center gap-1">
-                                    <Lock className="w-4 h-4" />
-                                    Contraseña
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type={showPassword ? "text" : "password"}
-                                        onChange={handlePasswordChange}
-                                        placeholder="Ingresa tu contraseña"
-                                        className="w-full px-4 py-3 rounded-lg border-0 ring-1 ring-gray-200 focus:ring-2 focus:ring-blue-500 transition-all pr-12"
-                                        autoComplete={rememberPassword ? "current-password" : "off"}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-3.5 text-gray-400 hover:text-blue-500 transition-colors"
-                                    >
-                                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                    </button>
-                                </div>
-
-                                <div className="mt-3 flex items-center gap-2">
-                                    <div className="flex-1 flex gap-1">
-                                        {[...Array(3)].map((_, i) => (
-                                            <div
-                                                key={i}
-                                                className={`h-2 flex-1 rounded-full transition-all ${password.length === 0
-                                                    ? "bg-gray-200" // Sin contraseña: todas grises
-                                                    : passwordStrength === 0
-                                                        ? i === 0
-                                                            ? "bg-red-500" // Débil: primera barra roja
-                                                            : "bg-gray-200" // Las otras grises
-                                                        : passwordStrength === 1
-                                                            ? i < 2
-                                                                ? "bg-yellow-500" // Medio: primeras dos amarillas
-                                                                : "bg-gray-200" // La tercera gris
-                                                            : "bg-green-500" // Fuerte: todas verdes
-                                                    }`}
-                                            />
-                                        ))}
-                                    </div>
-                                    <span className="text-sm font-medium">
-                                        {password.length === 0
-                                            ? ""
-                                            : passwordStrength === 0
-                                                ? "Débil"
-                                                : passwordStrength === 1
-                                                    ? "Medio"
-                                                    : "Fuerte"}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                                <div className="relative">
-                                    <input
-                                        type="checkbox"
-                                        checked={rememberPassword}
-                                        onChange={(e) => setRememberPassword(e.target.checked)}
-                                        className="sr-only"
-                                    />
-                                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all
-                                        ${rememberPassword ? 'bg-blue-500 border-blue-500' : 'bg-white border-gray-300'}`}>
-                                        {rememberPassword && <Check className="w-4 h-4 text-white" />}
-                                    </div>
-                                </div>
-                                Recordar contraseña
-                            </label>
-
-                            <div className="flex gap-4">
-                                <button
-                                    onClick={handlePrevious}
-                                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 px-6 rounded-lg font-medium transition-all"
-                                >
-                                    Volver
-                                </button>
-                                <button
-                                    onClick={() => console.log("Datos actualizados:", { ...formData.current, rememberPassword })}
-                                    className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 px-6 rounded-lg font-medium transition-all"
-                                >
-                                    Finalizar
-                                </button>
-                            </div>
+                            <IndicatorStepFinish handlePrevious={handlePrevious} handleFinish={handleFinish} />
                         </div>
                     </div>
                 )}
