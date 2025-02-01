@@ -1,5 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { UploadCloud, X, Lock, Check, Eye, EyeOff, Camera } from "lucide-react";
+import { Lock, Check, Eye, EyeOff } from "lucide-react";
+import { ImagePreview } from "./ImagePreview";
+import { CameraPreview } from "./CameraPreview";
+import { UploadButton } from "../Fields/UploadButton";
 
 interface UpdateRequiredFormProps {
     username: string;
@@ -144,101 +147,9 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
         setPasswordStrength(validatePassword(value));
     }
 
-    const UploadButton = () => (
-        <div className="space-y-4">
-            <label className="group flex flex-col items-center cursor-pointer">
-                <div className="w-32 h-32 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center group-hover:border-blue-500 group-hover:bg-blue-50 transition-colors">
-                    <UploadCloud className="w-8 h-8 text-gray-400 group-hover:text-blue-500 transition-colors" />
-                </div>
-                <span className="mt-4 text-sm text-gray-500 group-hover:text-blue-500 transition-colors">
-                    {isMobile ? "Tomar o subir foto" : "Subir imagen"}
-                </span>
-                <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    ref={fileInputRef}
-                    capture={isMobile ? "environment" : undefined}
-                />
-            </label>
 
-            <button
-                onClick={startCamera}
-                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium transition-all flex items-center justify-center gap-2"
-            >
-                <Camera className="w-5 h-5" />
-                Activar Cámara
-            </button>
-        </div>
-    );
 
-    const CameraPreview = () => (
-        <div className="relative w-full max-w-md mx-auto mb-4">
-            <video
-                ref={videoRef}
-                className="w-full h-64 rounded-xl object-cover border-4 border-white shadow-lg bg-gray-100"
-                muted
-                playsInline
-                autoPlay
-                style={{ transform: isMobile ? 'none' : 'scaleX(-1)' }}
-            />
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-4">
-                <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    ref={fileInputRef}
-                    capture={isMobile ? "environment" : undefined}
-                />
-                <button
-                    onClick={() => {
-                        stopCamera();
-                        setTimeout(() => {
-                            fileInputRef.current?.click();
-                        }, 100);
-                    }}
-                    className="p-3 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
-                >
-                    <UploadCloud className="w-6 h-6 text-gray-700" />
-                </button>
-                <button
-                    onClick={handleTakePhoto}
-                    className="p-3 bg-blue-500 rounded-full shadow-lg hover:bg-blue-600 transition-colors"
-                >
-                    <Camera className="w-6 h-6 text-white" />
-                </button>
-            </div>
-        </div>
-    );
 
-    const ImagePreview = () => (
-        <div className="relative w-32 h-32 mx-auto">
-            <img
-                src={preview!}
-                alt="Preview"
-                className="w-full h-full rounded-full object-cover border-4 border-white shadow-lg"
-            />
-            <div className="absolute -top-1 -right-1 flex gap-1">
-                <button
-                    onClick={handleRetakePhoto}
-                    className="p-1 bg-blue-500 rounded-full hover:bg-blue-600 transition-colors shadow-sm"
-                >
-                    <Camera className="w-4 h-4 text-white" />
-                </button>
-                <button
-                    onClick={() => {
-                        setPreview(null);
-                        formData.current.imagen = "";
-                    }}
-                    className="p-1 bg-red-500 rounded-full hover:bg-red-600 transition-colors shadow-sm"
-                >
-                    <X className="w-4 h-4 text-white" />
-                </button>
-            </div>
-        </div>
-    );
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
@@ -257,11 +168,11 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
                         <div className="space-y-6">
                             <div className="flex justify-center">
                                 {preview ? (
-                                    <ImagePreview />
+                                    <ImagePreview preview={preview} setPreview={setPreview} formData={formData} handleRetakePhoto={handleRetakePhoto} />
                                 ) : cameraActive ? (
-                                    <CameraPreview />
+                                    <CameraPreview videoRef={videoRef} fileInputRef={fileInputRef} isMobile={isMobile} handleFileChange={handleFileChange} handleTakePhoto={handleTakePhoto} stopCamera={stopCamera} />
                                 ) : (
-                                    <UploadButton />
+                                    <UploadButton fileInputRef={fileInputRef} startCamera={startCamera} isMobile={isMobile} handleFileChange={handleFileChange} />
                                 )}
                             </div>
 
@@ -327,16 +238,16 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
                                             <div
                                                 key={i}
                                                 className={`h-2 flex-1 rounded-full transition-all ${password.length === 0
-                                                        ? "bg-gray-200" // Sin contraseña: todas grises
-                                                        : passwordStrength === 0
-                                                            ? i === 0
-                                                                ? "bg-red-500" // Débil: primera barra roja
-                                                                : "bg-gray-200" // Las otras grises
-                                                            : passwordStrength === 1
-                                                                ? i < 2
-                                                                    ? "bg-yellow-500" // Medio: primeras dos amarillas
-                                                                    : "bg-gray-200" // La tercera gris
-                                                                : "bg-green-500" // Fuerte: todas verdes
+                                                    ? "bg-gray-200" // Sin contraseña: todas grises
+                                                    : passwordStrength === 0
+                                                        ? i === 0
+                                                            ? "bg-red-500" // Débil: primera barra roja
+                                                            : "bg-gray-200" // Las otras grises
+                                                        : passwordStrength === 1
+                                                            ? i < 2
+                                                                ? "bg-yellow-500" // Medio: primeras dos amarillas
+                                                                : "bg-gray-200" // La tercera gris
+                                                            : "bg-green-500" // Fuerte: todas verdes
                                                     }`}
                                             />
                                         ))}
