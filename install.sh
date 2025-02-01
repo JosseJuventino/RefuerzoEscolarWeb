@@ -7,7 +7,11 @@ deploy_api() {
     cd /var/www/html/RefuerzoEscolarWeb/refuerzo-apiv2/
     git pull origin main
     yarn install --frozen-lockfile
-    yarn run build
+    if [ "$CI" = "true" ]; then
+        NODE_OPTIONS="--max-old-space-size=4096" yarn run build
+    else
+        yarn run build
+    fi
     pm2 restart apiv2
     echo "✅ API desplegada correctamente"
 }
