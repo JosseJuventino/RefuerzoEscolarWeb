@@ -8,6 +8,16 @@ jobs:
   deploy-web:
     runs-on: ubuntu-latest
     steps:
+      - name: Cache Bun dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.bun
+            node_modules
+          key: bun-deps-${{ runner.os }}-${{ hashFiles('**/bun.lockb') }}
+          restore-keys: |
+            bun-deps-${{ runner.os }}-
+
       - name: Deploy Web
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -16,7 +26,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /var/www/html/RefuerzoEscolarWeb/refuerzo-web/
-            git pull origin main 
+            git pull origin main
             bun install
             bun run build
             pm2 restart refuerzo-web
@@ -24,6 +34,16 @@ jobs:
   deploy-api:
     runs-on: ubuntu-latest
     steps:
+      - name: Cache Bun dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.bun
+            node_modules
+          key: bun-deps-${{ runner.os }}-${{ hashFiles('**/bun.lockb') }}
+          restore-keys: |
+            bun-deps-${{ runner.os }}-
+
       - name: Deploy API
         uses: appleboy/ssh-action@v0.1.10
         with:
