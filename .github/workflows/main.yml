@@ -5,44 +5,16 @@ on:
     branches: [main]
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18  # Usa la versión de Node.js que necesites
-
-      - name: Install Bun
-        run: |
-          curl -fsSL https://bun.sh/install | bash
-          echo 'export PATH="$HOME/.bun/bin:$PATH"' >> ~/.bashrc
-          source ~/.bashrc
-
-      - name: Install dependencies
-        run: bun install
-
-      - name: Build project
-        run: bun run build
-
-      - name: Deploy to server
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.VPS_IP }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: "build"  # Cambia esto según la carpeta de salida de tu build
-          target: "/var/www/html/RefuerzoEscolarWeb/refuerzo-web/"
-
-      - name: Restart application
+      - name: Ejecutar script de despliegue
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.VPS_IP }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /var/www/html/RefuerzoEscolarWeb/refuerzo-web/
-            pm2 restart refuerzo-web
+            cd /var/www/html/RefuerzoEscolarWeb/
+            chmod +x install.sh
+            ./install.sh
