@@ -17,9 +17,8 @@ jobs:
           script: |
             cd /var/www/html/RefuerzoEscolarWeb/refuerzo-web/
             git pull origin main 
-            rm -rf .next
-            npm install --force
-            npm run build
+            bun install
+            bun run build
             pm2 restart refuerzo-web
 
   deploy-api:
@@ -34,6 +33,6 @@ jobs:
           script: |
             cd /var/www/html/RefuerzoEscolarWeb/refuerzo-apiv2/
             git pull origin main
-            yarn install
-            yarn run build
+            bun install
+            bun run build
             pm2 restart apiv2
