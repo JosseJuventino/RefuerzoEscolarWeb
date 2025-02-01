@@ -1,3 +1,9 @@
+name: Deploy Full Stack
+
+on:
+  push:
+    branches: [main]
+
 jobs:
   deploy-web:
     runs-on: ubuntu-latest
@@ -13,7 +19,7 @@ jobs:
             git fetch --prune
             git reset --hard origin/main
             bun install
-            bun run build
+            bun run --max-old-space-size=512 build
             pm2 restart refuerzo-web
 
   deploy-api:
@@ -31,5 +37,5 @@ jobs:
             git fetch --prune
             git reset --hard origin/main
             bun install
-            bun run build
+            bun run --max-old-space-size=512 build
             pm2 restart apiv2
