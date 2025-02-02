@@ -8,8 +8,11 @@ import {
   Delete,
   Query,
   Scope,
+  Request,
 } from '@nestjs/common';
+import { UnauthorizedException } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { UpdateProfileDto } from './dto/updateProfile.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiBasicAuth, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
@@ -105,6 +108,24 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
+  @Scopes('view', 'edit')
+  @Patch('me/profile')
+  @ApiOperation({
+    summary: 'Actualizar perfil del usuario actual',
+    description: 'Actualiza imagen, teléfono y/o contraseña del usuario autenticado'
+  })
+  @ApiBearerAuth()
+  async updateProfile(
+    @Request() req,
+    @Body() updateProfileDto: UpdateProfileDto
+  ) {
+    if (!req.user?.id) {
+      throw new UnauthorizedException('Usuario no autenticado');
+    }
+    return this.usersService.updateProfile(req.user.id, updateProfileDto);
+  }  
+    
+    
   @Scopes('view', 'edit')
   @ApiOperation({
     summary: 'Delete a user by id',
