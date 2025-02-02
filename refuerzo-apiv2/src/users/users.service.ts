@@ -532,6 +532,8 @@ export class UsersService {
       updates.image = updateProfileDto.image;
     }
 
+    updates.image = updateProfileDto.image;
+
     if (updateProfileDto.telefono) {
       updates.telefono = updateProfileDto.telefono;
     }
@@ -542,7 +544,6 @@ export class UsersService {
     }
 
     updates.isActive = true;
-
     await this.crudHelper.update(user, updates);
 
     return new GeneralResponseBuilder<User>()
