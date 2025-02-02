@@ -528,9 +528,12 @@ export class UsersService {
 
     const updates: Partial<User> = {};
 
+    console.log(updateProfileDto.image);
     if (updateProfileDto.image) {
       updates.image = updateProfileDto.image;
     }
+
+    updates.image = updateProfileDto.image;
 
     if (updateProfileDto.telefono) {
       updates.telefono = updateProfileDto.telefono;
@@ -542,7 +545,7 @@ export class UsersService {
     }
 
     updates.isActive = true;
-
+    console.log('updates', updates);
     await this.crudHelper.update(user, updates);
 
     return new GeneralResponseBuilder<User>()
