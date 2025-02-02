@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { AuthService } from "@/services/auth.service";
 import { useAuth } from "@/hooks/useAuth";
 import UpdateRequiredForm from "@/components/Auth/UpdateRequiredForm";
+import { Loading } from "@/components/Loading";
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -30,10 +31,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }, [router]);
 
     if (isChecking) {
-        return <div>Cargando...</div>;
+        return <Loading />;
     }  
     
-    console.log(user);
 
     if (user && !user.isActive) {
         return <UpdateRequiredForm username={user.nombreCompleto} />
