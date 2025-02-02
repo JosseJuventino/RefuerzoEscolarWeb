@@ -33,7 +33,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
 
     if (user && !user.isActive) {
-        return <UpdateRequiredForm username={user.nombreCompleto} />;
+        return <UpdateRequiredForm username={user.nombreCompleto} />
     }
 
     return (

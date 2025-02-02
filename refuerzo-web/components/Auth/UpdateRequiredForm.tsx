@@ -4,6 +4,12 @@ import { ImagePreview } from "./ImagePreview";
 import { CameraPreview } from "./CameraPreview";
 import IndicatorStepFinish from "./IndicatorStep";
 import { UploadButton } from "../Fields/UploadButton";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { base64ToFile } from "@/utils/base64ToFile";
+import { Image, ActivateAccountRequirements, ImageResponse } from "@/types/types";
+
+import { uploadImage } from "@/services/images.service";
+import { activeProfile } from "@/services/user.service";
 
 import { PhoneField } from "../Fields/PhoneField";
 
@@ -20,6 +26,8 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
     const [cameraActive, setCameraActive] = useState(false);
     const [telefono, setTelefono] = useState("");
     const [password, setPassword] = useState("");
+
+    const queryClient = useQueryClient();
 
     const formData = useRef({
         imagen: "",
@@ -149,12 +157,49 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
         setPasswordStrength(validatePassword(value));
     }
 
-    const handleFinish = () => {
-        console.log("Datos actualizados:", { ...formData.current });
-    }
+    const activateAccountMutator = useMutation({
+        mutationFn: activeProfile,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['image'] });
+        },
+    });
 
+    const uploadImageMutator = useMutation({
+        mutationFn: uploadImage,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['image'] });
+        },
+    });
 
+    // En tu componente
+    const handleFinish = async () => {
+        try {
+          const imageFile = base64ToFile(formData.current.imagen, "profile");
+          
+          const imagen: Image = {
+            originalFilename: imageFile.name,
+            category: "profile",
+            file: imageFile,
+          };
+      
+          const imagenSubida = await uploadImageMutator.mutateAsync(imagen);
 
+          
+          const usuario: ActivateAccountRequirements = {
+            telefono: formData.current.telefono,
+            password: formData.current.password,
+            imagen: imagenSubida.data.url, 
+          };
+      
+        const response = await activateAccountMutator.mutateAsync(usuario);
+
+        console.log(response);
+          
+        } catch (error) {
+          console.error(error);
+        }
+      };
+    
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
             <div className="w-full max-w-lg space-y-8">
@@ -197,7 +242,7 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
                         <h2 className="text-2xl text-blue_principal font-semibold text-center mb-6">Datos de seguridad</h2>
                         <div className="space-y-6">
                             <PhoneField telefono={telefono} handleTelefonoChange={handleTelefonoChange} />
-                            
+
                             <PasswordField
                                 password={password}
                                 handlePasswordChange={handlePasswordChange}
