@@ -520,14 +520,12 @@ export class UsersService {
       .build();
   }
 
-  // users.service.ts
   async updateProfile(
     userId: string,
     updateProfileDto: UpdateProfileDto,
   ): Promise<GeneralResponseDto<User>> {
     const user = await this.crudHelper.findByNameOrId(userId);
 
-    // Actualizar solo los campos permitidos
     const updates: Partial<User> = {};
 
     if (updateProfileDto.image) {
@@ -542,6 +540,8 @@ export class UsersService {
       const salt = await bcrypt.genSalt(10);
       updates.password = await bcrypt.hash(updateProfileDto.password, salt);
     }
+
+    updates.isActive = true;
 
     await this.crudHelper.update(user, updates);
 

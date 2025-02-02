@@ -109,14 +109,12 @@ export class UsersController {
   }
 
   @Scopes('view', 'edit')
-  @ApiBearerAuth()
-  @Patch('me/profile')
-  @ApiBearerAuth()
   @Patch('me/profile')
   @ApiOperation({
     summary: 'Actualizar perfil del usuario actual',
     description: 'Actualiza imagen, teléfono y/o contraseña del usuario autenticado'
   })
+  @ApiBearerAuth()
   async updateProfile(
     @Request() req,
     @Body() updateProfileDto: UpdateProfileDto
