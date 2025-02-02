@@ -76,10 +76,7 @@ export default function RecomendadoresPage() {
   });
 
   const handleAdd = async (newRecommender: Recomendadores) => {
-    //const generatedPassword = generatePassword();
     newRecommender.image = "http://66.70.189.110/api/uploads/users/default.webp";
-    //newRecommender.isActive = false;
-
     await addRecomendadorMutation.mutateAsync(newRecommender);
     closeModal();
   };

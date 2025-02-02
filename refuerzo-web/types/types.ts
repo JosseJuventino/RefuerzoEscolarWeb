@@ -11,27 +11,26 @@ export interface Postulante {
   createdAt: string;
 }
 
-export interface Rol{
+export interface Rol {
   _id: string;
   nombre: string;
 }
 
-export interface Section{
+export interface Section {
   _id: string;
   nombre: string;
   imagen: string;
   aula: string;
   grado: string;
-  alumnos: Alumno[]
-
+  alumnos: Alumno[];
 }
-export interface Alumno{
+export interface Alumno {
   _id: string;
   idUsuario: Usuario;
   section: Section;
 }
 
-export interface Usuario{
+export interface Usuario {
   _id: string;
   nombres: string;
   imagen: string;
@@ -41,7 +40,13 @@ export interface Usuario{
   password: string;
 }
 
-export interface Recomendadores{
+export interface ActivateAccountRequirements {
+  imagen: string;
+  telefono: string;
+  password: string;
+}
+
+export interface Recomendadores {
   _id: string;
   nombre: string;
   email: string;
@@ -51,7 +56,7 @@ export interface Recomendadores{
   password: string;
 }
 
-export interface GetRecomendadoresResponse{
+export interface GetRecomendadoresResponse {
   statusCode: number;
   message: string;
   data: Recomendadores[];
@@ -110,7 +115,6 @@ export interface TableProps<T> {
   hasShare?: boolean;
 }
 
-
 export interface AuthResponse {
   statusCode: number;
   message: string;
@@ -125,4 +129,16 @@ export interface UserInfo {
   email: string;
   image: string;
   isActive: boolean;
+}
+
+export interface Image{
+  originalFilename: string;
+  category: string;
+  file: File;
+}
+
+export interface ImageResponse {
+  data: {
+    url: string;
+  };
 }
