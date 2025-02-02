@@ -41,7 +41,7 @@ export interface Usuario {
 }
 
 export interface ActivateAccountRequirements {
-  imagen: string;
+  image: string;
   telefono: string;
   password: string;
 }

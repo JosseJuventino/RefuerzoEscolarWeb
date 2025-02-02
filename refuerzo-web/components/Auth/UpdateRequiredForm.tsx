@@ -188,10 +188,13 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
           const usuario: ActivateAccountRequirements = {
             telefono: formData.current.telefono,
             password: formData.current.password,
-            imagen: imagenSubida.data.url, 
+            image: imagenSubida.data.url, 
           };
-      
+            
+            
         const response = await activateAccountMutator.mutateAsync(usuario);
+            
+        
 
         console.log(response);
           
