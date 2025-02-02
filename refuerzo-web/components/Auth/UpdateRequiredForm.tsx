@@ -4,9 +4,10 @@ import { ImagePreview } from "./ImagePreview";
 import { CameraPreview } from "./CameraPreview";
 import IndicatorStepFinish from "./IndicatorStep";
 import { UploadButton } from "../Fields/UploadButton";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { base64ToFile } from "@/utils/base64ToFile";
-import { Image, ActivateAccountRequirements, ImageResponse } from "@/types/types";
+import { useAuthStore } from "@/stores/authStore";
+import { Image, ActivateAccountRequirements } from "@/types/types";
 
 import { uploadImage } from "@/services/images.service";
 import { activeProfile } from "@/services/user.service";
@@ -26,6 +27,8 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
     const [cameraActive, setCameraActive] = useState(false);
     const [telefono, setTelefono] = useState("");
     const [password, setPassword] = useState("");
+    const [activationStatus, setActivationStatus] = useState<"idle" | "success" | "error">("idle");
+    const { clearAuth } = useAuthStore();
 
     const queryClient = useQueryClient();
 
@@ -45,9 +48,9 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
         setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
     }, []);
 
-    useEffect(() => {
-        return () => stopCamera();
-    }, []);
+    const handleLogout = () => clearAuth('/');
+
+   
 
     useEffect(() => {
         formData.current.telefono = `+503${telefono}`;
@@ -171,38 +174,42 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
         },
     });
 
-    // En tu componente
+    useEffect(() => {
+        return () => stopCamera();
+    }, [stopCamera]);
+
     const handleFinish = async () => {
         try {
-          const imageFile = base64ToFile(formData.current.imagen, "profile");
-          
-          const imagen: Image = {
-            originalFilename: imageFile.name,
-            category: "profile",
-            file: imageFile,
-          };
-      
-          const imagenSubida = await uploadImageMutator.mutateAsync(imagen);
+            const imageFile = base64ToFile(formData.current.imagen, "profile");
 
-          
-          const usuario: ActivateAccountRequirements = {
-            telefono: formData.current.telefono,
-            password: formData.current.password,
-            image: imagenSubida.data.url, 
-          };
-            
-            
-        const response = await activateAccountMutator.mutateAsync(usuario);
-            
-        
+            const imagen: Image = {
+                originalFilename: imageFile.name,
+                category: username,
+                file: imageFile,
+            };
 
-        console.log(response);
-          
+            const imagenSubida = await uploadImageMutator.mutateAsync(imagen);
+
+
+            const usuario: ActivateAccountRequirements = {
+                telefono: formData.current.telefono,
+                password: formData.current.password,
+                image: imagenSubida.data.url,
+            };
+
+
+            await activateAccountMutator.mutateAsync(usuario);
+            setStep(3);
+            setActivationStatus("success");
+
+
         } catch (error) {
-          console.error(error);
+            console.error(error);
+            setStep(3);
+            setActivationStatus("error");
         }
-      };
-    
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
             <div className="w-full max-w-lg space-y-8">
@@ -258,6 +265,28 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
                         </div>
                     </div>
                 )}
+
+                {step === 3 && (
+                    <div className="bg-white/90 backdrop-blur-sm rounded-xl p-8 shadow-sm border border-gray-100">
+                        <h2 className="text-2xl text-center font-semibold text-blue_principal mb-6">
+                            {activationStatus === "success" ? "¡Cuenta activada!" : "Error al activar la cuenta"}
+                        </h2>
+                        <div className="space-y-6">
+                            <p className="text-center text-gray-700">
+                                {activationStatus === "success"
+                                    ? "Listo, has activado tu cuenta."
+                                    : "Hubo un error al activar tu cuenta. Por favor, inténtalo más tarde."}
+                            </p>
+                            <button
+                                onClick={handleLogout} 
+                                className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg font-medium transition-all shadow-sm"
+                            >
+                                {activationStatus === "success" ? "Ingresar con mis credenciales": "Volver a intentar"}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
             </div>
         </div>
     );

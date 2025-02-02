@@ -15,6 +15,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     const { user } = useAuth();
     const router = useRouter();
     const [isChecking, setIsChecking] = useState(true);
+    
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -30,7 +31,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
     if (isChecking) {
         return <div>Cargando...</div>;
-    }
+    }  
+    
+    console.log(user);
 
     if (user && !user.isActive) {
         return <UpdateRequiredForm username={user.nombreCompleto} />
