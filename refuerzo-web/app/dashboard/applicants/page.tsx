@@ -13,7 +13,7 @@ import { formatDate } from "@/utils/utils";
 
 export default function Applicants() {
     const [isSharePopupOpen, setIsSharePopupOpen] = useState(false);
-    const formUrl = "https://your-form-url.com";
+    const formUrl = "https://refuerzo-mendoza.me/formulario";
 
     const {
         data: postulants,

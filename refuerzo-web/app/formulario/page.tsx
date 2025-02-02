@@ -1,19 +1,44 @@
+"use client";
+
 import Image from "next/image"
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { AuthService } from "@/services/auth.service";
+import { Loading } from "@/components/Loading";
 
 export default function Formulario() {
+    const router = useRouter();
+    const [isChecking, setIsChecking] = useState(true);
+
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            const isAuthenticated = await AuthService.checkAuth();
+            if (!isAuthenticated) {
+                router.push('/');
+            } else {
+                setIsChecking(false);
+            }
+        };
+        checkAuth();
+    }, [router]);
+
+    if (isChecking) {
+        return <Loading />;
+    }
     return (
         <main className="w-full h-full bg-gray-50">
             <div className="max-w-[600px] mx-auto p-8 md:p-4">
                 <div className="text-center mb-4">
-                    <Image 
-                        src="/LogoColorido.svg" 
-                        alt="Logo" 
+                    <Image
+                        src="/LogoColorido.svg"
+                        alt="Logo"
                         className="w-24 mx-auto mb-2"
                         width={96}
                         height={96}
                     />
                     <h1 className="text-[28px] font-semibold text-[#003C71] mb-2">
-                        Formulario de Inscripción 
+                        Formulario de Inscripción
                     </h1>
                     <p className="text-base text-gray-600">
                         Por favor, complete el formulario a continuación para aplicar a nuestro programa académico.
