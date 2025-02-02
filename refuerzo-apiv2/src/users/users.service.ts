@@ -25,6 +25,7 @@ import * as crypto from 'crypto';
 
 import { recomendadorAccountCreatedTemplate } from 'src/email/templates/createRecomendatorTemplate';
 import { CreateNewAlumnoDto } from './dto/create-alumno.dto';
+import { UpdateProfileDto } from './dto/updateProfile.dto';
 
 @Injectable()
 export class UsersService {
@@ -516,6 +517,36 @@ export class UsersService {
     await this.crudHelper.delete(user, true);
     return new GeneralResponseBuilder<User>()
       .setMessage('User deleted successfully')
+      .build();
+  }
+
+  // users.service.ts
+  async updateProfile(
+    userId: string,
+    updateProfileDto: UpdateProfileDto,
+  ): Promise<GeneralResponseDto<User>> {
+    const user = await this.crudHelper.findByNameOrId(userId);
+
+    // Actualizar solo los campos permitidos
+    const updates: Partial<User> = {};
+
+    if (updateProfileDto.image) {
+      updates.image = updateProfileDto.image;
+    }
+
+    if (updateProfileDto.telefono) {
+      updates.telefono = updateProfileDto.telefono;
+    }
+
+    if (updateProfileDto.password) {
+      const salt = await bcrypt.genSalt(10);
+      updates.password = await bcrypt.hash(updateProfileDto.password, salt);
+    }
+
+    await this.crudHelper.update(user, updates);
+
+    return new GeneralResponseBuilder<User>()
+      .setMessage('Perfil actualizado exitosamente')
       .build();
   }
 }
