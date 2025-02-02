@@ -8,7 +8,6 @@ import { Plus } from "lucide-react";
 import { FormModal } from "@/components/Popups/RecomendatorModal";
 import { DeleteModal } from "@/components/Popups/DeleteModal";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { generatePassword } from "@/utils/utils";
 import { getRecomendadores, addRecomendador, updateRecomendador, deleteRecomendador } from "@/services/recomenders.service";
 
 
@@ -42,7 +41,7 @@ export default function RecomendadoresPage() {
       header: "Imagen",
       accessor: (row) => (
         <img
-          src={row.imagen}
+          src={row.image}
           alt={`Avatar de ${row.nombre}`}
           className="w-10 h-10 rounded-full object-cover"
         />
@@ -51,7 +50,7 @@ export default function RecomendadoresPage() {
     { header: "Nombre", accessor: "nombre" },
     {
       header: "Contacto",
-      accessor: (row) => <ContactInfo email={row.contacto.email} telefono={row.contacto.telefono} />
+      accessor: (row) => <ContactInfo email={row.email} telefono={row.telefono} />
     },
   ];
 
@@ -77,12 +76,7 @@ export default function RecomendadoresPage() {
   });
 
   const handleAdd = async (newRecommender: Recomendadores) => {
-    const generatedPassword = generatePassword();
-    newRecommender.imagen = "http://66.70.189.110/api/uploads/users/default.webp";
-    newRecommender.isActive = false;
-
-    newRecommender.password = generatedPassword;
-
+    newRecommender.image = "http://66.70.189.110/api/uploads/users/default.webp";
     await addRecomendadorMutation.mutateAsync(newRecommender);
     closeModal();
   };
@@ -102,14 +96,13 @@ export default function RecomendadoresPage() {
     const subject = `Acceso a plataforma de recomendadores`;
     const body = `Hola ${recomendador.nombre},\n\n` +
       `Aquí están tus credenciales para acceder a la plataforma:\n` +
-      `Email: ${recomendador.contacto.email}\n` +
+      `Email: ${recomendador.email}\n` +
       `Contraseña temporal: ${recomendador.password}\n\n` +
       `Accede aquí para activar tu cuenta: ${window.location.origin}/activate/${recomendador._id}\n\n` +
       `Saludos,\nEquipo de soporte`;
-
-    // Crea el enlace para Gmail web
+    
     const gmailUrl = `https://mail.google.com/mail/?view=cm` +
-      `&to=${encodeURIComponent(recomendador.contacto.email)}` +
+      `&to=${encodeURIComponent(recomendador.email)}` +
       `&su=${encodeURIComponent(subject)}` +
       `&body=${encodeURIComponent(body)}` +
       `&fs=1`;

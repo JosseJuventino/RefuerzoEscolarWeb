@@ -2,11 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth";
 import { useAuthStore } from "@/stores/authStore";
 import { NavItem } from "./NavItem";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
+import { UserInfo } from "@/types/types";
 import {
   LayoutDashboardIcon,
   UserIcon,
@@ -21,8 +21,13 @@ import {
   UserCircle
 } from "lucide-react";
 
-const Sidenav: React.FC = () => {
-  const { user } = useAuth();
+interface SidenavProps {
+  user: UserInfo | null;
+}
+
+const Sidenav: React.FC<SidenavProps> = ({ user }) => {
+
+
   const { clearAuth } = useAuthStore();
   const pathName = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
