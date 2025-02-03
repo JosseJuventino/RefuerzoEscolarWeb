@@ -3,11 +3,11 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { CreateGradoDto } from '../dto/create-grado.dto';
+import { CreateProgramaDto } from '../dto/create-programa.dto';
 import { ObjectId } from 'mongodb';
-import { UpdateGradoDto } from '../dto/update-grado.dto';
+import { UpdateProgramaDto } from '../dto/update-programa.dto';
 import { CrudHelper } from '../../common/helper/crud.helper';
-import { Grado } from '../entities/grado.entity';
+import { Programa } from '../entities/programa.entity';
 import { Repository, FindManyOptions } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { GeneralResponseDto } from 'src/common/dto/general-response.dto';
@@ -20,41 +20,42 @@ import { PaginationResponseDto } from 'src/common/dto/pagination-response.dto';
 import { CONFIGURABLE_MODULE_ID } from '@nestjs/common/module-utils/constants';
 
 @Injectable()
-export class GradoService {
-  private readonly crudHelper: CrudHelper<Grado>;
+export class ProgramaService {
+  private readonly crudHelper: CrudHelper<Programa>;
 
   constructor(
-    @InjectRepository(Grado)
-    private readonly gradoRepository: Repository<Grado>,
+    @InjectRepository(Programa)
+    private readonly gradoRepository: Repository<Programa>,
   ) {
-    this.crudHelper = new CrudHelper<Grado>(this.gradoRepository, 'Grados');
+    this.crudHelper = new CrudHelper<Programa>(
+      this.gradoRepository,
+      'Programas',
+    );
   }
 
   async create(
-    createGradoDto: CreateGradoDto,
-  ): Promise<GeneralResponseDto<Grado>> {
+    createProgramaDto: CreateProgramaDto,
+  ): Promise<GeneralResponseDto<Programa>> {
     const findGrado = await this.crudHelper.findByNameOrId(
-      createGradoDto.nombre,
+      createProgramaDto.nombre,
       false,
       false,
     );
     if (findGrado) {
       throw new ConflictException(
-        `Grado with username ${createGradoDto.nombre} already exists`,
+        `Programa with username ${createProgramaDto.nombre} already exists`,
       );
     }
 
-    // Crear un nuevo grado
-    const newGrado = this.gradoRepository.create({
-      nombre: createGradoDto.nombre,
+    const newPrograma = this.gradoRepository.create({
+      nombre: createProgramaDto.nombre,
     });
 
-    // Guardar el grado en la base de datos para obtener su _id
-    const savedGrado = await this.gradoRepository.save(newGrado);
+    await this.crudHelper.create(newPrograma);
 
-    return new GeneralResponseBuilder<Grado>()
+    return new GeneralResponseBuilder<Programa>()
       .setStatusCode(201)
-      .setMessage('Grado created successfully')
+      .setMessage('Programa created successfully')
       .build();
   }
 
@@ -74,7 +75,7 @@ export class GradoService {
     const applyPagination =
       paginationQuery.page !== undefined && paginationQuery.limit !== undefined;
 
-    let results: Grado[];
+    let results: Programa[];
     let total: number;
     let totalPages: number;
 
@@ -124,7 +125,9 @@ export class GradoService {
 
     // Construir la respuesta paginada
     return new PaginationResponseBuilder()
-      .setMessage(`Grados retrieved successfully. Total pages: ${totalPages}`)
+      .setMessage(
+        `Programas retrieved successfully. Total pages: ${totalPages}`,
+      )
       .setData(results)
       .setSize(total)
       .setTotalPages(totalPages)
@@ -133,34 +136,34 @@ export class GradoService {
       .build();
   }
 
-  async findOne(id: string): Promise<GeneralResponseDto<Grado>> {
+  async findOne(id: string): Promise<GeneralResponseDto<Programa>> {
     const findPostulante = await this.crudHelper.findByNameOrId(id);
     if (!findPostulante) {
-      throw new BadRequestException(`Grado with id ${id} not found`);
+      throw new BadRequestException(`Programa with id ${id} not found`);
     }
-    return new GeneralResponseBuilder<Grado>()
-      .setMessage('Grado retrieved successfully')
+    return new GeneralResponseBuilder<Programa>()
+      .setMessage('Programa retrieved successfully')
       .setData(findPostulante)
       .build();
   }
 
   async update(
     id: string,
-    updateGradoDto: UpdateGradoDto,
-  ): Promise<GeneralResponseDto<Grado>> {
-    const Grado = await this.crudHelper.findByNameOrId(id);
+    updateProgramaDto: UpdateProgramaDto,
+  ): Promise<GeneralResponseDto<Programa>> {
+    const Programa = await this.crudHelper.findByNameOrId(id);
 
-    await this.crudHelper.update(Grado, updateGradoDto);
-    return new GeneralResponseBuilder<Grado>()
-      .setMessage('Grado updated successfully')
+    await this.crudHelper.update(Programa, updateProgramaDto);
+    return new GeneralResponseBuilder<Programa>()
+      .setMessage('Programa updated successfully')
       .build();
   }
 
-  async remove(id: string): Promise<GeneralResponseDto<Grado>> {
-    const Grado = await this.crudHelper.findByNameOrId(id);
-    await this.crudHelper.delete(Grado, true);
-    return new GeneralResponseBuilder<Grado>()
-      .setMessage('Grado deleted successfully')
+  async remove(id: string): Promise<GeneralResponseDto<Programa>> {
+    const Programa = await this.crudHelper.findByNameOrId(id);
+    await this.crudHelper.delete(Programa, true);
+    return new GeneralResponseBuilder<Programa>()
+      .setMessage('Programa deleted successfully')
       .build();
   }
 }

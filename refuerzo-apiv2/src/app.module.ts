@@ -15,6 +15,8 @@ import { PostulanteModule } from './postulante/postulante.module';
 import { RecomendadorModule } from './recomendadores/recomendador.module';
 import { EmailModule } from './email/email.module';
 import { GradoModule } from './grado/grado.module';
+import { ProgramaModule } from './programa/programa.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -36,6 +38,7 @@ import { GradoModule } from './grado/grado.module';
     RecomendadorModule,
     EmailModule,
     GradoModule,
+    ProgramaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
