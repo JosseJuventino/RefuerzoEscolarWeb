@@ -18,7 +18,8 @@ import {
   XIcon,
   UsersRoundIcon,
   LogOut,
-  UserCircle
+  UserCircle,
+  LucideSquareUserRound
 } from "lucide-react";
 
 interface SidenavProps {
@@ -51,10 +52,10 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
 
   // Datos estáticos
   const userCourses = [
-    { name: "Matemática", path: '/dashboard/courses/matematica'},
-    { name: "Lenguaje", path: '/dashboard/courses/lenguaje'},
-    { name: "Sociales", path: '/dashboard/courses/sociales'},
-    { name: "Ciencias", path: '/dashboard/courses/ciencias'},
+    { name: "Matemática", path: '/dashboard/courses/matematica' },
+    { name: "Lenguaje", path: '/dashboard/courses/lenguaje' },
+    { name: "Sociales", path: '/dashboard/courses/sociales' },
+    { name: "Ciencias", path: '/dashboard/courses/ciencias' },
   ];
 
   // Handlers
@@ -188,6 +189,12 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
               label="Recomendadores"
               isActive={pathName === "/dashboard/recomendators"}
             />
+            <NavItem
+              link="/dashboard/programs"
+              icon={LucideSquareUserRound}
+              label="Programas"
+              isActive={pathName === "/dashboard/programs"}
+            />
           </nav>
         </div>
 
@@ -270,6 +277,12 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
                   icon={UsersRoundIcon}
                   label="Recomendadores"
                   isActive={pathName === "/dashboard/recomendators"}
+                />
+                <NavItem
+                  link="/dashboard/programs"
+                  icon={LucideSquareUserRound}
+                  label="Programas"
+                  isActive={pathName === "/dashboard/programs"}
                 />
               </nav>
             </div>

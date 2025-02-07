@@ -10,6 +10,7 @@ const Table = <T extends { _id: string }>({
   onDelete,
   handleShare = () => { },
   hasShare = false,
+  hasEdit = true,
 }: TableProps<T>) => {
   if (loading) {
     return (
@@ -51,7 +52,7 @@ const Table = <T extends { _id: string }>({
                 {(onEdit || onDelete) && (
                   <td className="py-4 px-6 text-center space-x-2">
                     <div className="flex flex-row gap-4 justify-center">
-                      {onEdit && (
+                      {hasEdit && onEdit && (
                         <button
                           className="flex items-center justify-center w-8 h-8 text-blue-500 hover:text-blue-700 focus:outline-none"
                           onClick={() => onEdit(row)}

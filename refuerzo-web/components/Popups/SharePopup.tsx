@@ -42,12 +42,7 @@ const SharePopup: React.FC<SharePopupProps> = ({ formUrl, onClose }) => {
             Puedes compartir este formulario con el siguiente enlace o escaneando el código QR.
           </p>
           <div className="flex items-center space-x-2">
-            <input
-              type="text"
-              value={formUrl}
-              readOnly
-              className="flex-grow border border-gray-300 rounded-lg p-2"
-            />
+            <a href={formUrl} className='py-2 px-5 rounded-xl bg-blue_principal text-white font-bold'>Ir al formulario</a>
             <button
               onClick={handleCopyUrl}
               className="bg-blue_principal text-white p-2 rounded-lg transition"
