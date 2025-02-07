@@ -8,7 +8,8 @@ import { Plus } from "lucide-react";
 import { FormModal } from "@/components/Popups/RecomendatorModal";
 import { DeleteModal } from "@/components/Popups/DeleteModal";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getRecomendadores, addRecomendador, updateRecomendador, deleteRecomendador } from "@/services/recomenders.service";
+import { getRecomendadores, addRecomendador, updateRecomendador } from "@/services/recomenders.service";
+import { deleteUser } from "@/services/user.service";
 
 
 const ContactInfo = ({ email, telefono }: { email: string; telefono: string }) => (
@@ -69,14 +70,14 @@ export default function RecomendadoresPage() {
   });
 
   const deleteRecomendadorMutation = useMutation({
-    mutationFn: deleteRecomendador,
+    mutationFn: deleteUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recomendadores'] });
     },
   });
 
   const handleAdd = async (newRecommender: Recomendadores) => {
-    newRecommender.image = "http://66.70.189.110/api/uploads/users/default.webp";
+    newRecommender.image = "https://refuerzo-mendoza.me/api/uploads/users/default.webp";
     await addRecomendadorMutation.mutateAsync(newRecommender);
     closeModal();
   };

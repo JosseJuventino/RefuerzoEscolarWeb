@@ -1,11 +1,33 @@
 import { useCallback, useRef } from "react";
+import { useState } from "react";
 
-export const useCamera = (isMobile: boolean) => {
+export const useCamera = (
+  isMobile: boolean,
+  setPreview: React.Dispatch<React.SetStateAction<string | null>>,
+  formData: React.MutableRefObject<{ imagen: string }>
+) => {
+  const [cameraActive, setCameraActive] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const stopCamera = useCallback(() => {
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((track) => {
+        track.stop();
+      });
+      mediaStreamRef.current = null;
+    }
+
+    setCameraActive(false);
+  }, []);
 
   const startCamera = useCallback(async () => {
     try {
+      setCameraActive(true);
+      abortControllerRef.current = new AbortController();
+
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: isMobile ? "environment" : "user",
@@ -15,22 +37,63 @@ export const useCamera = (isMobile: boolean) => {
       });
 
       mediaStreamRef.current = stream;
+
       if (videoRef.current) {
-        videoRef.current.srcObject = null; // Limpia el srcObject
-        videoRef.current.srcObject = stream; // Asigna el nuevo stream
+        videoRef.current.srcObject = stream;
         await videoRef.current.play();
       }
-      return true;
     } catch (error) {
       console.error("Error al iniciar cámara:", error);
-      return false;
+      setCameraActive(false);
+      stopCamera();
     }
-  }, [isMobile]);
-    
-  const stopCamera = useCallback(() => {
-    mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
-    mediaStreamRef.current = null;
-  }, []);
+  }, [isMobile, stopCamera]);
 
-  return { videoRef, startCamera, stopCamera };
+  const handleTakePhoto = useCallback(() => {
+    if (canvasRef.current && videoRef.current) {
+      const context = canvasRef.current.getContext("2d");
+      if (context) {
+        canvasRef.current.width = videoRef.current.videoWidth;
+        canvasRef.current.height = videoRef.current.videoHeight;
+        context.drawImage(videoRef.current, 0, 0);
+        const dataUrl = canvasRef.current.toDataURL("image/png");
+        setPreview(dataUrl);
+        formData.current.imagen = dataUrl;
+        stopCamera();
+      }
+    }
+  }, [stopCamera]);
+
+  const handleRetakePhoto = useCallback(() => {
+    setPreview(null);
+    formData.current.imagen = "";
+    startCamera();
+  }, [startCamera]);
+
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+        formData.current.imagen = reader.result as string;
+        stopCamera();
+      };
+      reader.readAsDataURL(file);
+    },
+    [stopCamera]
+  );
+
+  return {
+    cameraActive,
+    startCamera,
+    stopCamera,
+    handleTakePhoto,
+    videoRef,
+    canvasRef,
+    handleRetakePhoto,
+    handleFileChange
+  };
 };

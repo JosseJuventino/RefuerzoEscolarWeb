@@ -1,21 +1,80 @@
 "use client";
 
-import Image from "next/image"
+import { Header } from "@/components/Form/FormHeader";
+import { ImagePreview } from "@/components/Auth/ImagePreview";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { CameraPreview } from "@/components/Auth/CameraPreview";
+import { useEffect, useState, useRef } from "react";
+import { UploadButton } from "@/components/Fields/UploadButton";
+import InputField from "@/components/Fields/InputFieldValidate";
+import { useCamera } from "@/hooks/useCamera";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getPrograms } from "@/services/programs.service";
+import { getGrades } from "@/services/grades.service";
+import SelectField from "@/components/Fields/SelectField";
+import {useForm, SubmitHandler,} from "react-hook-form";
+import toast, { Toaster } from "react-hot-toast";
 import { AuthService } from "@/services/auth.service";
 import { Loading } from "@/components/Loading";
+import { Grade, Program } from "@/types/types";
 
-export default function Formulario() {
+interface FormValues {
+    fullName: string;
+    email: string;
+    dob: string;
+    currentSchool: string;
+    phoneNumber: string;
+    grade: string;
+    program: string;
+}
+
+
+export default function RegistrationForm() {
     const router = useRouter();
-    const [isChecking, setIsChecking] = useState(true);
 
+    const [isChecking, setIsChecking] = useState<boolean>(true);
+    const [preview, setPreview] = useState<string | null>(null);
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+        trigger,
+    } = useForm<FormValues>({
+        defaultValues: {
+            fullName: "",
+            email: "",
+            dob: "",
+            currentSchool: "",
+            phoneNumber: "",
+            grade: "",
+            program: "",
+        },
+    });
+
+    const { data: programs } = useQuery<Program[], Error>({
+        queryKey: ["programas"],
+        queryFn: getPrograms,
+      });
+      
+      const { data: grades } = useQuery<Grade[], Error>({
+        queryKey: ["grados"],
+        queryFn: getGrades,
+      });
+    const formData = useRef({
+        imagen: "",
+    });
+
+    const { cameraActive, startCamera, stopCamera, videoRef, canvasRef, handleTakePhoto, handleFileChange, handleRetakePhoto } = useCamera(isMobile, setPreview, formData);
 
     useEffect(() => {
         const checkAuth = async () => {
             const isAuthenticated = await AuthService.checkAuth();
             if (!isAuthenticated) {
-                router.push('/');
+                router.push("/");
             } else {
                 setIsChecking(false);
             }
@@ -23,108 +82,170 @@ export default function Formulario() {
         checkAuth();
     }, [router]);
 
+    const onSubmit: SubmitHandler<FormValues> = async (data) => {
+        try {
+            console.log(data);
+            toast.success("Formulario enviado con éxito!");
+        } catch {
+            toast.error("Error al enviar el formulario");
+        }
+    };
+
+    useEffect(() => {
+        if (Object.keys(errors).length > 0) {
+            Object.values(errors).forEach((error) => {
+                toast.error(error?.message || "Error de validación");
+            });
+        }
+    }, [errors]);
+
+
     if (isChecking) {
         return <Loading />;
     }
+
+    const gradeOptions = grades?.map((grade) => ({
+        value: grade._id,
+        label: grade.nombre,
+    })) || [];
+      
+    const programOptions = programs?.map((program) => ({
+        value: program._id,
+        label: program.nombre,
+    })) || [];
+
     return (
         <main className="w-full h-full bg-gray-50">
+            <Toaster position="top-right" />
             <div className="max-w-[600px] mx-auto p-8 md:p-4">
-                <div className="text-center mb-4">
-                    <Image
-                        src="/LogoColorido.svg"
-                        alt="Logo"
-                        className="w-24 mx-auto mb-2"
-                        width={96}
-                        height={96}
-                    />
-                    <h1 className="text-[28px] font-semibold text-[#003C71] mb-2">
-                        Formulario de Inscripción
-                    </h1>
-                    <p className="text-base text-gray-600">
-                        Por favor, complete el formulario a continuación para aplicar a nuestro programa académico.
-                    </p>
-                </div>
+                <Header />
 
-                <div className="p-8 md:p-4 ">
-                    <form className="space-y-4">
-                        <div className="flex flex-col space-y-2">
-                            <label className="text-sm font-semibold text-[#003C71]">Nombre Completo</label>
-                            <input
-                                type="text"
-                                id="fullName"
-                                name="fullName"
-                                className="p-2 border border-gray-300 rounded-lg focus:border-[#003C71] focus:ring-2 focus:ring-[#00509E]/20 outline-none"
-                                placeholder="Ingrese su nombre completo"
-                                required
-                            />
-                        </div>
+                <div className="p-8 md:p-4">
+                    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+                        <div className="flex justify-center">
+                            {preview ? (
+                                <ImagePreview preview={preview} setPreview={setPreview} formData={formData} handleRetakePhoto={handleRetakePhoto} />
+                            ) : cameraActive ? (
+                                <CameraPreview videoRef={videoRef} fileInputRef={fileInputRef} isMobile={isMobile} handleFileChange={handleFileChange} handleTakePhoto={handleTakePhoto} stopCamera={stopCamera} />
+                            ) : (
+                                <UploadButton fileInputRef={fileInputRef} startCamera={startCamera} isMobile={isMobile} handleFileChange={handleFileChange} />
+                            )}
 
-                        <div className="flex flex-col space-y-2">
-                            <label className="text-sm font-semibold text-[#003C71]">Correo Electrónico</label>
-                            <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                className="p-2 border border-gray-300 rounded-lg focus:border-[#003C71] focus:ring-2 focus:ring-[#00509E]/20 outline-none"
-                                placeholder="Ingrese su correo electrónico"
-                                required
-                            />
+                            <canvas ref={canvasRef} className="hidden" />
                         </div>
+                        <InputField
+                            label="Nombre Completo"
+                            id="fullName"
+                            placeholder="Ingrese su nombre completo"
+                            register={register}
+                            validation={{
+                                required: "El nombre completo es requerido",
+                                minLength: {
+                                    value: 5,
+                                    message: "Mínimo 5 caracteres",
+                                },
+                            }}
+                            trigger={trigger}
+                            error={errors.fullName?.message}
+                        />
 
-                        <div className="flex flex-col space-y-2">
-                            <label className="text-sm font-semibold text-[#003C71]">Fecha de Nacimiento</label>
-                            <input
-                                type="date"
-                                id="dob"
-                                name="dob"
-                                className="p-2 border border-gray-300 rounded-lg focus:border-[#003C71] focus:ring-2 focus:ring-[#00509E]/20 outline-none"
-                                placeholder="dd/mm/aaaa"
-                                required
-                            />
-                        </div>
 
-                        <div className="flex flex-col space-y-2">
-                            <label className="text-sm font-semibold text-[#003C71]">Escuela Actual</label>
-                            <input
-                                type="text"
-                                id="currentSchool"
-                                name="currentSchool"
-                                className="p-2 border border-gray-300 rounded-lg focus:border-[#003C71] focus:ring-2 focus:ring-[#00509E]/20 outline-none"
-                                placeholder="Ingrese el nombre de su escuela actual"
-                                required
-                            />
-                        </div>
 
-                        <div className="flex flex-col space-y-2">
-                            <label className="text-sm font-semibold text-[#003C71]">Grado</label>
-                            <select
-                                id="desiredProgram"
-                                name="desiredProgram"
-                                className="p-2 border border-gray-300 rounded-lg focus:border-[#003C71] focus:ring-2 focus:ring-[#00509E]/20 outline-none appearance-none"
-                                required
-                                defaultValue={"default"}
-                            >
-                                <option value="default" disabled >Seleccione un grado</option>
-                                <option value="1">7º grado</option>
-                                <option value="2">8º grado</option>
-                                <option value="3">9º grado</option>
-                                <option value="4">Primer año bachillerato</option>
-                                <option value="5">Segundo año bachillerato</option>
-                                <option value="6">Tercer año bachillerato</option>
-                            </select>
-                        </div>
+                        <InputField
+                            label="Correo Electrónico"
+                            id="email"
+                            type="email"
+                            placeholder="Ingrese su correo electrónico"
+                            register={register}
+                            validation={{
+                                required: "El correo electrónico es requerido",
+                                pattern: {
+                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                    message: "Correo electrónico inválido",
+                                },
+                            }}
+                            trigger={trigger}
+                            error={errors.email?.message}
+                        />
+
+                        <InputField
+                            label="Fecha de Nacimiento"
+                            id="dob"
+                            type="date"
+                            register={register}
+                            validation={{
+                                required: "Debes seleccionar un programa",
+                                validate: value => value !== "" || "Selecciona una opción válida"
+                            }}
+                            trigger={trigger}
+                            error={errors.dob?.message}
+                        />
+
+                        <InputField
+                            label="Escuela Actual"
+                            id="currentSchool"
+                            placeholder="Ingrese el nombre de su escuela actual"
+                            register={register}
+                            validation={{
+                                required: "La escuela actual es requerida",
+                            }}
+                            trigger={trigger}
+                            error={errors.currentSchool?.message}
+                        />
+
+                        <InputField
+                            label="Número de contacto"
+                            id="phoneNumber"
+                            type="tel"
+                            placeholder="Ingrese su número de contacto"
+                            register={register}
+                            validation={{
+                                required: "El número de contacto es requerido",
+                                pattern: {
+                                    value: /^[0-9]{10}$/,
+                                    message: "Número inválido (10 dígitos requeridos)",
+                                },
+                            }}
+                            trigger={trigger}
+                            error={errors.phoneNumber?.message}
+                        />
+
+                        <SelectField
+                            label="Grado"
+                            id="grade"
+                            register={register}
+                            options={gradeOptions} 
+                            validation={{
+                                required: "Debes seleccionar un grado",
+                            }}
+                            error={errors.grade?.message}
+                            trigger={trigger}
+                        />
+
+                        <SelectField
+                            label="Programa"
+                            id="program"
+                            register={register}
+                            options={programOptions} 
+                            validation={{
+                                required: "Debes seleccionar un programa",
+                            }}
+                            error={errors.program?.message}
+                            trigger={trigger}
+                        />
 
                         <div className="flex justify-center pt-4">
                             <button
                                 type="submit"
-                                className="bg-[#003C71] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#00509E] transition-colors duration-300"
+                                disabled={isSubmitting}
+                                className="bg-[#003C71] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#00509E] transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Enviar Aplicación
+                                {isSubmitting ? "Enviando..." : "Enviar Aplicación"}
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
         </main>
-    )
+    );
 }
