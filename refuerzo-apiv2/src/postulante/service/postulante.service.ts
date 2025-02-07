@@ -200,6 +200,18 @@ export class PostulanteService {
       false,
     );
 
+    const grado = await this.userCrudHelper.findByNameOrId(
+      findPostulante.grado.toString(),
+      false,
+      false,
+    );
+
+    const programa = await this.userCrudHelper.findByNameOrId(
+      findPostulante.programa.toString(),
+      false,
+      false,
+    );
+
     const postulanteWithRecomendador: PostulanteResponseDto = {
       _id: findPostulante._id,
       nombre: findPostulante.nombre,
@@ -207,7 +219,20 @@ export class PostulanteService {
       direccion: findPostulante.direccion,
       telefono: findPostulante.telefono,
       email: findPostulante.email,
-      grado: findPostulante.grado,
+      grado: grado
+        ? {
+            nombre: grado.nombre,
+          }
+        : {
+            nombre: 'No grado',
+          },
+      programa: programa
+        ? {
+            nombre: programa.nombre,
+          }
+        : {
+            nombre: 'No programa',
+          },
       isUser: findPostulante.isUser,
       recomendador: recomendador
         ? {
