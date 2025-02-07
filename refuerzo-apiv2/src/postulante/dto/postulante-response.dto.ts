@@ -21,6 +21,22 @@ export class RecomendadorDto {
   image: string;
 }
 
+export class GradoDto {
+  @ApiProperty({
+    description: 'Nombre del grado',
+    example: 'grado nombre',
+  })
+  nombre: string;
+}
+
+export class ProgramaDto {
+  @ApiProperty({
+    description: 'Nombre del programa',
+    example: 'programa nombre',
+  })
+  nombre: string;
+}
+
 export class PostulanteResponseDto {
   @ApiProperty({
     description: 'ID del postulante',
@@ -58,11 +74,6 @@ export class PostulanteResponseDto {
   })
   email: string;
 
-  @ApiProperty({
-    description: 'grado del postulante',
-    example: 'postulante grado',
-  })
-  grado: string;
 
   @ApiProperty({
     description: 'si el postulante es usuario',
@@ -75,6 +86,18 @@ export class PostulanteResponseDto {
     type: RecomendadorDto,
   })
   recomendador: RecomendadorDto;
+
+  @ApiProperty({
+    description: 'Detalles del grado asociado al postulante',
+    type: GradoDto,
+  })
+  grado: GradoDto;
+
+  @ApiProperty({
+    description: 'Detalles del programa asociado al postulante',
+    type: ProgramaDto,
+  })
+  programa: ProgramaDto;
 
   @ApiProperty({
     description: 'Fecha de envio del postulante',
