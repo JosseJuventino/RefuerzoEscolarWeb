@@ -8,6 +8,11 @@ export interface Postulante {
   telefono: string;
   email: string;
   grado: number;
+  recomendador: {
+    nombreCompleto: string;
+    email: string;
+    image: string;
+  }
   createdAt: string;
 }
 
@@ -79,17 +84,19 @@ export interface Estudiante {
   _id: string;
   nombre: string;
   email: string;
-  año: number;
-  fechaEnvio: string;
+  telefono: string;
+  imagen: string;
+  isActive: boolean;
 }
 
 export interface GetEstudiantesResponse {
-  data: Postulante[];
-  totalDocuments: number;
-  timestamp: string;
+  data: Estudiante[];
+  size: number;
+  totalPages: number;
   page: number;
   limit: number;
-  totalPages: number;
+  statusCode: number;
+  message: string;
 }
 
 export interface ColumnWithKey<T> {
@@ -113,6 +120,7 @@ export interface TableProps<T> {
   onDelete?: (itemId: string) => void;
   handleShare?: (item: T) => void;
   hasShare?: boolean;
+  hasEdit?: boolean;
 }
 
 export interface AuthResponse {
@@ -141,4 +149,34 @@ export interface ImageResponse {
   data: {
     url: string;
   };
+}
+
+export interface Program {
+  _id: string;
+  nombre: string;
+}
+
+export interface ProgramsResponse {
+  "statusCode": number,
+  "message": string,
+  "data": Program[],
+  "size": number,
+  "totalPages": number,
+  "page": number,
+  "limit": number
+}
+
+export interface Grade {
+  _id: string;
+  nombre: string;
+}
+
+export interface GradeResponse {
+  "statusCode": number,
+  "message": string,
+  "data": Grade[],
+  "size": number,
+  "totalPages": number,
+  "page": number,
+  "limit": number
 }
