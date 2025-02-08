@@ -31,7 +31,7 @@ export default function Page() {
       header: "Imagen",
       accessor: (row) => (
         <img
-          src={row.imagen}
+          src={row.image}
           alt={`Avatar de ${row.nombre}`}
           className="w-10 h-10 rounded-full object-cover"
         />

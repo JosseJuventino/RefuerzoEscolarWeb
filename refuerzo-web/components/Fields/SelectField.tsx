@@ -33,7 +33,7 @@ const SelectField = <T extends FieldValues>({
             </option>
             {options?.map((option) => (
                 <option
-                    key={option.value} // Usamos el value como key único
+                    key={option.value}
                     value={option.value}
                 >
                     {option.label}

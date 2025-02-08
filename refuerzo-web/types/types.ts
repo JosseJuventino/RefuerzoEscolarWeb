@@ -1,18 +1,36 @@
 /** Interfaces principales */
 
-export interface Postulante {
+export interface PartialPostulant {
+  _id?: string;
+  nombre: string;
+  imagen: string;
+  direccion: string;
+  telefono: string;
+  email: string;
+  grado: string;
+  programa: string;
+  recomendador?: {
+    nombreCompleto: string;
+    email: string;
+    image: string;
+  };
+  createdAt?: string;
+}
+
+export interface CompletePostulant {
   _id: string;
   nombre: string;
   imagen: string;
   direccion: string;
   telefono: string;
   email: string;
-  grado: number;
+  grado: string;
+  programa: string;
   recomendador: {
     nombreCompleto: string;
     email: string;
     image: string;
-  }
+  };
   createdAt: string;
 }
 
@@ -72,7 +90,7 @@ export interface GetRecomendadoresResponse {
 }
 
 export interface GetPostulantesResponse {
-  data: Postulante[];
+  data: CompletePostulant[];
   totalDocuments: number;
   timestamp: string;
   page: number;
@@ -85,7 +103,7 @@ export interface Estudiante {
   nombre: string;
   email: string;
   telefono: string;
-  imagen: string;
+  image: string;
   isActive: boolean;
 }
 
