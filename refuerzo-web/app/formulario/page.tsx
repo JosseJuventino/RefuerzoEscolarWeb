@@ -8,24 +8,26 @@ import { useEffect, useState, useRef } from "react";
 import { UploadButton } from "@/components/Fields/UploadButton";
 import InputField from "@/components/Fields/InputFieldValidate";
 import { useCamera } from "@/hooks/useCamera";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getPrograms } from "@/services/programs.service";
 import { getGrades } from "@/services/grades.service";
 import SelectField from "@/components/Fields/SelectField";
-import {useForm, SubmitHandler,} from "react-hook-form";
+import { useForm, SubmitHandler, } from "react-hook-form";
 import toast, { Toaster } from "react-hot-toast";
 import { AuthService } from "@/services/auth.service";
 import { Loading } from "@/components/Loading";
-import { Grade, Program } from "@/types/types";
+import { Grade, Image, Program } from "@/types/types";
+import { addPostulante } from "@/services/applicants.service";
+import { uploadImage } from "@/services/images.service";
+import { base64ToFile } from "@/utils/base64ToFile";
 
 interface FormValues {
-    fullName: string;
+    nombre: string;
     email: string;
-    dob: string;
-    currentSchool: string;
-    phoneNumber: string;
-    grade: string;
-    program: string;
+    direccion: string;
+    telefono: string;
+    grado: string;
+    programa: string;
 }
 
 
@@ -38,6 +40,8 @@ export default function RegistrationForm() {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const queryClient = useQueryClient();
+
     const {
         register,
         handleSubmit,
@@ -45,25 +49,24 @@ export default function RegistrationForm() {
         trigger,
     } = useForm<FormValues>({
         defaultValues: {
-            fullName: "",
+            nombre: "",
             email: "",
-            dob: "",
-            currentSchool: "",
-            phoneNumber: "",
-            grade: "",
-            program: "",
+            direccion: "",
+            telefono: "",
+            grado: "",
+            programa: "",
         },
     });
 
     const { data: programs } = useQuery<Program[], Error>({
         queryKey: ["programas"],
         queryFn: getPrograms,
-      });
-      
-      const { data: grades } = useQuery<Grade[], Error>({
+    });
+
+    const { data: grades } = useQuery<Grade[], Error>({
         queryKey: ["grados"],
         queryFn: getGrades,
-      });
+    });
     const formData = useRef({
         imagen: "",
     });
@@ -82,10 +85,45 @@ export default function RegistrationForm() {
         checkAuth();
     }, [router]);
 
+
+    const addPostulant = useMutation({
+        mutationFn: addPostulante,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['postulante'] });
+        },
+    });
+
+    const uploadImageMutator = useMutation({
+        mutationFn: uploadImage,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['image'] });
+        },
+    });
+
+
     const onSubmit: SubmitHandler<FormValues> = async (data) => {
         try {
-            console.log(data);
-            toast.success("Formulario enviado con éxito!");
+
+            const imageFile = base64ToFile(formData.current.imagen, data.nombre);
+
+            const imagen: Image = {
+                originalFilename: imageFile.name,
+                category: "profile_images",
+                file: imageFile,
+            };
+
+            const imagenSubida = await uploadImageMutator.mutateAsync(imagen);
+
+            const postulanteData = {
+                ...data,
+                imagen: imagenSubida.data.url,
+                isUser: false
+            };
+
+            const response = await addPostulant.mutateAsync(postulanteData);
+
+            console.log(response);
+            router.push("/dashboard/postulantes/sucess");
         } catch {
             toast.error("Error al enviar el formulario");
         }
@@ -108,7 +146,7 @@ export default function RegistrationForm() {
         value: grade._id,
         label: grade.nombre,
     })) || [];
-      
+
     const programOptions = programs?.map((program) => ({
         value: program._id,
         label: program.nombre,
@@ -135,7 +173,7 @@ export default function RegistrationForm() {
                         </div>
                         <InputField
                             label="Nombre Completo"
-                            id="fullName"
+                            id="nombre"
                             placeholder="Ingrese su nombre completo"
                             register={register}
                             validation={{
@@ -146,9 +184,8 @@ export default function RegistrationForm() {
                                 },
                             }}
                             trigger={trigger}
-                            error={errors.fullName?.message}
+                            error={errors.nombre?.message}
                         />
-
 
 
                         <InputField
@@ -169,35 +206,22 @@ export default function RegistrationForm() {
                         />
 
                         <InputField
-                            label="Fecha de Nacimiento"
-                            id="dob"
-                            type="date"
+                            label="Dirección:"
+                            id="direccion"
+                            placeholder="Ingrese la direccion donde vive"
                             register={register}
                             validation={{
-                                required: "Debes seleccionar un programa",
-                                validate: value => value !== "" || "Selecciona una opción válida"
+                                required: "La dirección es requerida",
                             }}
                             trigger={trigger}
-                            error={errors.dob?.message}
-                        />
-
-                        <InputField
-                            label="Escuela Actual"
-                            id="currentSchool"
-                            placeholder="Ingrese el nombre de su escuela actual"
-                            register={register}
-                            validation={{
-                                required: "La escuela actual es requerida",
-                            }}
-                            trigger={trigger}
-                            error={errors.currentSchool?.message}
+                            error={errors.direccion?.message}
                         />
 
                         <InputField
                             label="Número de contacto"
-                            id="phoneNumber"
+                            id="telefono"
                             type="tel"
-                            placeholder="Ingrese su número de contacto"
+                            placeholder="Ingrese el número de contacto"
                             register={register}
                             validation={{
                                 required: "El número de contacto es requerido",
@@ -207,30 +231,30 @@ export default function RegistrationForm() {
                                 },
                             }}
                             trigger={trigger}
-                            error={errors.phoneNumber?.message}
+                            error={errors.telefono?.message}
                         />
 
                         <SelectField
                             label="Grado"
-                            id="grade"
+                            id="grado"
                             register={register}
-                            options={gradeOptions} 
+                            options={gradeOptions}
                             validation={{
                                 required: "Debes seleccionar un grado",
                             }}
-                            error={errors.grade?.message}
+                            error={errors.grado?.message}
                             trigger={trigger}
                         />
 
                         <SelectField
                             label="Programa"
-                            id="program"
+                            id="programa"
                             register={register}
-                            options={programOptions} 
+                            options={programOptions}
                             validation={{
                                 required: "Debes seleccionar un programa",
                             }}
-                            error={errors.program?.message}
+                            error={errors.programa?.message}
                             trigger={trigger}
                         />
 
