@@ -26,6 +26,8 @@ import * as crypto from 'crypto';
 import { recomendadorAccountCreatedTemplate } from 'src/email/templates/createRecomendatorTemplate';
 import { CreateNewAlumnoDto } from './dto/create-alumno.dto';
 import { UpdateProfileDto } from './dto/updateProfile.dto';
+import { Postulante } from 'src/postulante/entities/postulante.entity';
+import { alumnoAccountCreatedTemplate } from 'src/email/templates/createAlumnoTemplate';
 
 @Injectable()
 export class UsersService {
@@ -36,6 +38,8 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+    @InjectRepository(Postulante)
+    private readonly postulanteRepository: Repository<Postulante>,
 
     private readonly emailService: EmailService,
   ) {
@@ -116,7 +120,7 @@ export class UsersService {
     const sendEmailDto: SendEmailDto = {
       to: [createNewRecomendadorDto.email],
       replyTo: ['soporte@refuerzo-mendoza.me'],
-      subject: 'Cuenta de Postulante Creada',
+      subject: 'Cuenta de Recomendador Creada',
       from: 'soporte@refuerzo-mendoza.me',
       text: `Hola ${createNewRecomendadorDto.nombre},\n\nTu contraseña temporal es: ${temporaryPassword}\nPor favor inicia sesión y cambia tu contraseña.`,
       html: recomendadorAccountCreatedTemplate(
@@ -180,10 +184,10 @@ export class UsersService {
     const sendEmailDto: SendEmailDto = {
       to: [createNewAlumnoDto.email],
       replyTo: ['soporte@refuerzo-mendoza.me'],
-      subject: 'Cuenta de Recomendador Creada',
+      subject: 'Cuenta de Alumno Creada',
       from: 'soporte@refuerzo-mendoza.me',
       text: `Hola ${createNewAlumnoDto.nombre},\n\nTu contraseña temporal es: ${temporaryPassword}\nPor favor inicia sesión y cambia tu contraseña.`,
-      html: recomendadorAccountCreatedTemplate(
+      html: alumnoAccountCreatedTemplate(
         createNewAlumnoDto.nombre,
         temporaryPassword,
       ),
@@ -197,7 +201,7 @@ export class UsersService {
 
     return new GeneralResponseBuilder<User>()
       .setStatusCode(201)
-      .setMessage('Recomendador created successfully')
+      .setMessage('Alumno created successfully')
       .build();
   }
 
@@ -370,18 +374,33 @@ export class UsersService {
       totalPages = 1;
     }
 
-    const recomendadores = await Promise.all(
-      results.map(async (user) => {
-        return {
-          _id: user._id,
-          nombre: user.nombre,
-          email: user.email,
-          telefono: user.telefono,
-          image: user.image,
-          isActive: user.isActive,
-        };
-      }),
-    );
+    // 1. Obtener IDs de los recomendadores como strings
+    const recomendadorIds = results.map((user) => user._id.toString());
+
+    // 2. Buscar todos los postulantes relacionados (usando strings)
+    const postulantes = await this.postulanteRepository.find({
+      where: {
+        recomendador: { $in: recomendadorIds } as any,
+      },
+    });
+
+    // 3. Contar postulantes por recomendador
+    const postulantesCountMap = postulantes.reduce((map, postulante) => {
+      const key = postulante.recomendador; // Ya es string
+      map.set(key, (map.get(key) || 0) + 1);
+      return map;
+    }, new Map<string, number>());
+
+    // 4. Mapear resultados con el conteo
+    const recomendadores = results.map((user) => ({
+      _id: user._id,
+      nombre: user.nombre,
+      email: user.email,
+      telefono: user.telefono,
+      image: user.image,
+      isActive: user.isActive,
+      postulantesCount: postulantesCountMap.get(user._id.toString()) || 0,
+    }));
 
     return new PaginationResponseBuilder()
       .setMessage(
@@ -391,7 +410,7 @@ export class UsersService {
       .setSize(total)
       .setTotalPages(totalPages)
       .setPage(applyPagination ? paginationQuery.page : 1)
-      .setLimit(applyPagination ? paginationQuery.limit : total) // Si no hay paginación, devolver todos los registros
+      .setLimit(applyPagination ? paginationQuery.limit : total)
       .build();
   }
 
