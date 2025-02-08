@@ -52,10 +52,10 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
 
   // Datos estáticos
   const userCourses = [
-    { name: "Matemática", path: '/dashboard/courses/matematica' },
-    { name: "Lenguaje", path: '/dashboard/courses/lenguaje' },
-    { name: "Sociales", path: '/dashboard/courses/sociales' },
-    { name: "Ciencias", path: '/dashboard/courses/ciencias' },
+    { name: "Matemática", path: '/dashboard/my-courses/matematica' },
+    { name: "Lenguaje", path: '/dashboard/my-courses/lenguaje' },
+    { name: "Sociales", path: '/dashboard/my-courses/sociales' },
+    { name: "Ciencias", path: '/dashboard/my-courses/ciencias' },
   ];
 
   // Handlers
@@ -168,14 +168,14 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
             <NavItem
               icon={BookOpen}
               label="Mis cursos"
-              isActive={pathName.startsWith("/dashboard/courses")}
+              isActive={pathName.startsWith("/dashboard/my-courses")}
               subItems={userCourses}
             />
             <NavItem
-              link="/dashboard/sections"
+              link="/dashboard/courses"
               icon={LayersIcon}
-              label="Secciones"
-              isActive={pathName === "/dashboard/sections"}
+              label="Cursos"
+              isActive={pathName === "/dashboard/courses"}
             />
             <NavItem
               link="/dashboard/applicants"
@@ -257,14 +257,14 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
                 <NavItem
                   icon={BookOpen}
                   label="Mis cursos"
-                  isActive={pathName.startsWith("/dashboard/courses")}
+                  isActive={pathName.startsWith("/dashboard/my-courses")}
                   subItems={userCourses}
                 />
                 <NavItem
-                  link="/dashboard/sections"
+                  link="/dashboard/courses"
                   icon={LayersIcon}
-                  label="Secciones"
-                  isActive={pathName === "/dashboard/sections"}
+                  label="Cursos"
+                  isActive={pathName === "/dashboard/courses"}
                 />
                 <NavItem
                   link="/dashboard/applicants"

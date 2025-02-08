@@ -1,12 +1,21 @@
 "use client"
 
+import { useState } from "react";
 import PageHeader from '@/components/Dashboard/PageHeader'
 import Table from '@/components/Tables/Table';
 import { getAlumnos } from '@/services/alumnos.service';
 import { useQuery } from "@tanstack/react-query";
 import { Estudiante, Column } from '@/types/types';
+import CardStudent from '@/components/CardViews/StudentCard';
+import ListGridLayout from "@/components/Dashboard/ListGridLayout";
 
 export default function Page() {
+  const [isCardView, setIsCardView] = useState(false);
+
+  const [modalState, setModalState] = useState<{
+    type: 'add' | 'edit' | 'delete' | null;
+    selected: Estudiante | null;
+  }>({ type: null, selected: null });
 
   const {
     data: alumnos,
@@ -20,10 +29,10 @@ export default function Page() {
 
   const ContactInfo = ({ email, telefono }: { email: string; telefono: string }) => (
     <div className="flex flex-col">
-        <span>{email}</span>
-        <span className="text-gray-500">{telefono}</span>
+      <span>{email}</span>
+      <span className="text-gray-500">{telefono}</span>
     </div>
-);
+  );
 
 
   const columns: Column<Estudiante>[] = [
@@ -61,20 +70,37 @@ export default function Page() {
         title="Alumnos"
       />
 
-      <div className="overflow-auto bg-white rounded-lg shadow-md">
-        <Table
-          data={alumnos ?? []}
-          loading={isLoading}
-          columns={columns}
-          hasEdit={true}
-          onEdit={(row) => {
-            console.log("Editar: ", row);
-          }}
-          onDelete={(id) => {
-            console.log("Eliminar id: ", id);
-          }}
-        />
-      </div>
+
+      <ListGridLayout isCardView={isCardView} setIsCardView={setIsCardView} />
+      {
+        isCardView ? (
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {alumnos?.map((alumno) => (
+              <CardStudent
+                key={alumno._id}
+                alumno={alumno}
+                setModalState={setModalState}
+              />
+            ))}
+          </div>
+        ) :
+          (
+            <div className="mt-4 overflow-auto bg-white rounded-lg shadow-md">
+              <Table
+                data={alumnos ?? []}
+                loading={isLoading}
+                columns={columns}
+                hasEdit={true}
+                onEdit={(row) => {
+                  console.log("Editar: ", row);
+                }}
+                onDelete={(id) => {
+                  console.log("Eliminar id: ", id);
+                }}
+              />
+            </div>
+          )
+      }
     </div>
   )
 }
