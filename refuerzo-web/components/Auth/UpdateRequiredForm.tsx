@@ -35,11 +35,13 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
         password: "",
     });
 
+
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
      const { cameraActive, startCamera, stopCamera, videoRef, canvasRef, handleTakePhoto, handleFileChange, handleRetakePhoto } = useCamera(isMobile, setPreview, formData);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     const handleLogout = () => clearAuth('/');
 
@@ -101,11 +103,11 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
 
     const handleFinish = async () => {
         try {
-            const imageFile = base64ToFile(formData.current.imagen, "profile");
+            const imageFile = base64ToFile(formData.current.imagen, username);
 
             const imagen: Image = {
                 originalFilename: imageFile.name,
-                category: username,
+                category: "profile_images",
                 file: imageFile,
             };
 

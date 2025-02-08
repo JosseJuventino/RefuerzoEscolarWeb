@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getPostulants, deletePostulant } from "@/services/applicants.service";
 import Table from "@/components/Tables/Table";
-import { Postulante, Column } from "@/types/types";
+import { CompletePostulant, Column } from "@/types/types";
 import { useState } from "react";
 import PageHeader from "@/components/Dashboard/PageHeader";
 import { Share2 } from "lucide-react";
@@ -17,7 +17,7 @@ export default function Applicants() {
     const formUrl = "https://refuerzo-mendoza.me/formulario";
     const [modalState, setModalState] = useState<{
         type: 'add' | 'edit' | 'delete' | null;
-        selected: Postulante | null;
+        selected: CompletePostulant | null;
     }>({ type: null, selected: null });
 
     const queryClient = useQueryClient();
@@ -27,7 +27,7 @@ export default function Applicants() {
         error,
         isLoading,
         isError,
-    } = useQuery<Postulante[], Error>({
+    } = useQuery<CompletePostulant[], Error>({
         queryKey: ["postulants"],
         queryFn: getPostulants,
     });
@@ -55,11 +55,12 @@ export default function Applicants() {
         closeModal();
     };
 
-    const RecomendadorText = ({ postulante }: { postulante: Postulante }) => (
-        <span className="text-center">{postulante.recomendador.nombreCompleto}</span>
-    );
-
-    const columns: Column<Postulante>[] = [
+    const RecomendadorText = ({ postulante }: { postulante: CompletePostulant }) => (
+        <span className="text-center">
+          {postulante.recomendador?.nombreCompleto || 'N/A'}
+        </span>
+      );
+    const columns: Column<CompletePostulant>[] = [
         {
             header: "Imagen",
             accessor: (row) => (
@@ -141,7 +142,7 @@ export default function Applicants() {
             </div>
 
 
-            <DeleteModal<Postulante>
+            <DeleteModal<CompletePostulant>
                 isOpen={modalState.type === 'delete'}
                 title="Eliminar Postulante"
                 item={modalState.selected!}
