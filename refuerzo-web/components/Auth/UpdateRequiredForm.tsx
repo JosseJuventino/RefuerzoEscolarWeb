@@ -1,3 +1,6 @@
+'use client'
+
+
 import { useState, useRef, useEffect } from "react";
 import { PasswordField } from "../Fields/PasswordField";
 import { ImagePreview } from "./ImagePreview";
@@ -24,6 +27,7 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
     const [passwordStrength, setPasswordStrength] = useState(0);
     const [telefono, setTelefono] = useState("");
     const [password, setPassword] = useState("");
+    const [isMobile, setIsMobile] = useState<boolean>(false);
     const [activationStatus, setActivationStatus] = useState<"idle" | "success" | "error">("idle");
     const { clearAuth } = useAuthStore();
 
@@ -36,7 +40,11 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
     });
 
 
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+
+    useEffect(() => {
+        setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+    }, []);
 
      const { cameraActive, startCamera, stopCamera, videoRef, canvasRef, handleTakePhoto, handleFileChange, handleRetakePhoto } = useCamera(isMobile, setPreview, formData);
 
