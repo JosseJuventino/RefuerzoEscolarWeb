@@ -27,6 +27,7 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
     const [passwordStrength, setPasswordStrength] = useState(0);
     const [telefono, setTelefono] = useState("");
     const [password, setPassword] = useState("");
+    const [isMobile, setIsMobile] = useState<boolean>(false);
     const [activationStatus, setActivationStatus] = useState<"idle" | "success" | "error">("idle");
     const { clearAuth } = useAuthStore();
 
@@ -39,21 +40,20 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
     });
 
 
-    const isMobile = () => {
-        if (typeof window !== 'undefined') {
-            return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        }
-        return false; // Valor predeterminado si no está en el cliente
-    };
+    
 
-    const { cameraActive, startCamera, stopCamera, videoRef, canvasRef, handleTakePhoto, handleFileChange, handleRetakePhoto } = useCamera(isMobile, setPreview, formData);
+    useEffect(() => {
+        setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+    }, []);
+
+     const { cameraActive, startCamera, stopCamera, videoRef, canvasRef, handleTakePhoto, handleFileChange, handleRetakePhoto } = useCamera(isMobile, setPreview, formData);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
 
     const handleLogout = () => clearAuth('/');
 
-
+   
 
     useEffect(() => {
         formData.current.telefono = `+503${telefono}`;
@@ -79,7 +79,7 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
     };
 
     const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value.replace(/\D/g, '');
+        const value = e.target.value.replace(/\D/g, ''); 
         if (value.length <= 8) {
             setTelefono(value);
         }
@@ -208,10 +208,10 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
                                     : "Hubo un error al activar tu cuenta. Por favor, inténtalo más tarde."}
                             </p>
                             <button
-                                onClick={handleLogout}
+                                onClick={handleLogout} 
                                 className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg font-medium transition-all shadow-sm"
                             >
-                                {activationStatus === "success" ? "Ingresar con mis credenciales" : "Volver a intentar"}
+                                {activationStatus === "success" ? "Ingresar con mis credenciales": "Volver a intentar"}
                             </button>
                         </div>
                     </div>
