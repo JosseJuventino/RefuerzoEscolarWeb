@@ -36,7 +36,13 @@ export default function RegistrationForm() {
 
     const [isChecking, setIsChecking] = useState<boolean>(true);
     const [preview, setPreview] = useState<string | null>(null);
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    const isMobile = () => {
+        if (typeof window !== 'undefined') {
+            return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        }
+        return false; // Valor predeterminado si no está en el cliente
+    };
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
