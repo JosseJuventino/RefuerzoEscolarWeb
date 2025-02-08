@@ -10,10 +10,13 @@ import { Share2 } from "lucide-react";
 import SharePopup from "@/components/Popups/SharePopup";
 import { formatDate } from "@/utils/utils";
 import { DeleteModal } from "@/components/Popups/DeleteModal";
+import CardPostulante from "@/components/CardViews/PostulantCard";
+import ListGridLayout from "@/components/Dashboard/ListGridLayout";
 
 
 export default function Applicants() {
     const [isSharePopupOpen, setIsSharePopupOpen] = useState(false);
+    const [isCardView, setIsCardView] = useState(false);
     const formUrl = "https://refuerzo-mendoza.me/formulario";
     const [modalState, setModalState] = useState<{
         type: 'add' | 'edit' | 'delete' | null;
@@ -57,9 +60,9 @@ export default function Applicants() {
 
     const RecomendadorText = ({ postulante }: { postulante: CompletePostulant }) => (
         <span className="text-center">
-          {postulante.recomendador?.nombreCompleto || 'N/A'}
+            {postulante.recomendador?.nombreCompleto || 'N/A'}
         </span>
-      );
+    );
     const columns: Column<CompletePostulant>[] = [
         {
             header: "Imagen",
@@ -115,31 +118,42 @@ export default function Applicants() {
                 buttons={[
                     {
                         label: "Compartir formulario",
-                        icon: <Share2 />,
+                        icon: <Share2 size={18} />,
                         onClick: () => handleShareForm(),
-                        className:
-                            "text-blue_principal bg-white font-medium px-4 py-2 rounded-lg shadow transition-transform transform hover:scale-105 focus:outline-none",
+                        className: "text-blue_principal bg-white font-medium px-4 py-2 rounded-lg shadow transition-transform hover:scale-105"
                     },
                 ]}
 
             />
-            <div className="overflow-auto bg-white rounded-lg shadow-md">
-                <Table
-                    data={postulants ?? []}
-                    loading={isLoading}
-                    columns={columns}
-                    hasEdit={false}
-                    onEdit={(row) => {
-                        console.log("Editar: ", row);
-                    }}
-                    onDelete={(id) => {
-                        const selected = postulants?.find(r => r._id === id);
-                        if (selected) {
-                          setModalState({ type: 'delete', selected });
-                        }
-                      }}
-                />
-            </div>
+
+            <ListGridLayout isCardView={isCardView} setIsCardView={setIsCardView} />
+
+            {isCardView ? (
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {postulants?.map((postulante) => (
+                        <CardPostulante
+                            key={postulante._id}
+                            postulante={postulante}
+                            setModalState={setModalState} // Pasamos la función del estado
+                        />
+                    ))}
+                </div>
+            ) : (
+                <div className="mt-4 overflow-auto bg-white rounded-lg shadow-md">
+                    <Table
+                        data={postulants ?? []}
+                        loading={isLoading}
+                        columns={columns}
+                        hasEdit={false}
+                        onEdit={(row) => console.log("Editar: ", row)}
+                        onDelete={(id) => {
+                            const selected = postulants?.find(r => r._id === id);
+                            if (selected) setModalState({ type: 'delete', selected });
+                        }}
+                    />
+                </div>
+            )}
+
 
 
             <DeleteModal<CompletePostulant>
