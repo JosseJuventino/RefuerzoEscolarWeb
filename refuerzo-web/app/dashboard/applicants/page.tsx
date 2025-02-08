@@ -1,26 +1,33 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { getPostulants } from "@/services/applicants.service";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getPostulants, deletePostulant } from "@/services/applicants.service";
 import Table from "@/components/Tables/Table";
-import { Postulante, Column } from "@/types/types";
+import { CompletePostulant, Column } from "@/types/types";
 import { useState } from "react";
 import PageHeader from "@/components/Dashboard/PageHeader";
 import { Share2 } from "lucide-react";
 import SharePopup from "@/components/Popups/SharePopup";
 import { formatDate } from "@/utils/utils";
+import { DeleteModal } from "@/components/Popups/DeleteModal";
 
 
 export default function Applicants() {
     const [isSharePopupOpen, setIsSharePopupOpen] = useState(false);
-    const formUrl = "https://your-form-url.com";
+    const formUrl = "https://refuerzo-mendoza.me/formulario";
+    const [modalState, setModalState] = useState<{
+        type: 'add' | 'edit' | 'delete' | null;
+        selected: CompletePostulant | null;
+    }>({ type: null, selected: null });
+
+    const queryClient = useQueryClient();
 
     const {
         data: postulants,
         error,
         isLoading,
         isError,
-    } = useQuery<Postulante[], Error>({
+    } = useQuery<CompletePostulant[], Error>({
         queryKey: ["postulants"],
         queryFn: getPostulants,
     });
@@ -32,7 +39,28 @@ export default function Applicants() {
         </div>
     );
 
-    const columns: Column<Postulante>[] = [
+
+    const closeModal = () => setModalState({ type: null, selected: null, });
+
+    const deletePostulantMutation = useMutation({
+        mutationFn: deletePostulant,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['postulants'] });
+        },
+    });
+
+    const handleDelete = async () => {
+        if (!modalState.selected) return;
+        await deletePostulantMutation.mutateAsync(modalState.selected._id);
+        closeModal();
+    };
+
+    const RecomendadorText = ({ postulante }: { postulante: CompletePostulant }) => (
+        <span className="text-center">
+          {postulante.recomendador?.nombreCompleto || 'N/A'}
+        </span>
+      );
+    const columns: Column<CompletePostulant>[] = [
         {
             header: "Imagen",
             accessor: (row) => (
@@ -43,7 +71,7 @@ export default function Applicants() {
                 />
             )
         },
-       
+
         {
             header: "Nombre",
             accessor: "nombre",
@@ -60,7 +88,12 @@ export default function Applicants() {
             header: "Grado",
             accessor: "grado",
         },
-        
+
+        {
+            header: "Recomendador",
+            accessor: (row) => <RecomendadorText postulante={row} />,
+        }
+
     ];
 
     if (isLoading) return <div>Loading...</div>;
@@ -68,6 +101,9 @@ export default function Applicants() {
     if (isError) {
         return <div>Error: {error?.message}</div>;
     }
+
+
+
     function handleShareForm() {
         setIsSharePopupOpen(true);
     }
@@ -92,14 +128,35 @@ export default function Applicants() {
                     data={postulants ?? []}
                     loading={isLoading}
                     columns={columns}
+                    hasEdit={false}
                     onEdit={(row) => {
                         console.log("Editar: ", row);
                     }}
                     onDelete={(id) => {
-                        console.log("Eliminar id: ", id);
-                    }}
+                        const selected = postulants?.find(r => r._id === id);
+                        if (selected) {
+                          setModalState({ type: 'delete', selected });
+                        }
+                      }}
                 />
             </div>
+
+
+            <DeleteModal<CompletePostulant>
+                isOpen={modalState.type === 'delete'}
+                title="Eliminar Postulante"
+                item={modalState.selected!}
+                onClose={closeModal}
+                onConfirm={handleDelete}
+                description={(item) => (
+                    <p>
+                        ¿Estás seguro de eliminar al postulante{" "}
+                        <strong className="text-red-600">{item?.nombre}</strong>?
+                        <br />
+                        <span className="text-sm text-gray-500">Esta acción no se puede deshacer</span>
+                    </p>
+                )}
+            />
 
             {isSharePopupOpen && (
                 <SharePopup

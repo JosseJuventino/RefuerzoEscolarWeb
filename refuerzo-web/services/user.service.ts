@@ -8,3 +8,7 @@ export const activeProfile = async (usuario: ActivateAccountRequirements): Promi
   
   return response.data;
 };
+
+export const deleteUser = async (id: string): Promise<void> => {
+  await api.delete(`/users/${id}`);
+}

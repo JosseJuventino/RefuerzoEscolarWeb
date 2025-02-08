@@ -28,7 +28,10 @@ export class Postulante {
   email: string;
 
   @Column()
-  grado: string;
+  grado: ObjectId;
+
+  @Column()
+  programa: ObjectId;
 
   @Column()
   isUser: boolean;

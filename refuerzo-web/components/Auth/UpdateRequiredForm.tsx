@@ -1,4 +1,7 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+'use client'
+
+
+import { useState, useRef, useEffect } from "react";
 import { PasswordField } from "../Fields/PasswordField";
 import { ImagePreview } from "./ImagePreview";
 import { CameraPreview } from "./CameraPreview";
@@ -8,11 +11,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { base64ToFile } from "@/utils/base64ToFile";
 import { useAuthStore } from "@/stores/authStore";
 import { Image, ActivateAccountRequirements } from "@/types/types";
-
 import { uploadImage } from "@/services/images.service";
 import { activeProfile } from "@/services/user.service";
-
 import { PhoneField } from "../Fields/PhoneField";
+import { useCamera } from "@/hooks/useCamera";
 
 interface UpdateRequiredFormProps {
     username: string;
@@ -23,10 +25,9 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
     const [preview, setPreview] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState(0);
-    const [isMobile, setIsMobile] = useState(false);
-    const [cameraActive, setCameraActive] = useState(false);
     const [telefono, setTelefono] = useState("");
     const [password, setPassword] = useState("");
+    const [isMobile, setIsMobile] = useState<boolean>(false);
     const [activationStatus, setActivationStatus] = useState<"idle" | "success" | "error">("idle");
     const { clearAuth } = useAuthStore();
 
@@ -38,15 +39,17 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
         password: "",
     });
 
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const mediaStreamRef = useRef<MediaStream | null>(null);
-    const abortControllerRef = useRef<AbortController | null>(null);
+
+    
 
     useEffect(() => {
         setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
     }, []);
+
+     const { cameraActive, startCamera, stopCamera, videoRef, canvasRef, handleTakePhoto, handleFileChange, handleRetakePhoto } = useCamera(isMobile, setPreview, formData);
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
 
     const handleLogout = () => clearAuth('/');
 
@@ -63,17 +66,6 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
     const handleNext = () => setStep(step + 1);
     const handlePrevious = () => setStep(step - 1);
 
-    const stopCamera = useCallback(() => {
-        if (mediaStreamRef.current) {
-            mediaStreamRef.current.getTracks().forEach(track => {
-                track.stop();
-            });
-            mediaStreamRef.current = null;
-        }
-
-        setCameraActive(false);
-    }, []);
-
     const validatePassword = (password: string): number => {
         const minLength = 8;
         const hasLetter = /[a-zA-Z]/.test(password);
@@ -87,72 +79,11 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
     };
 
     const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value.replace(/\D/g, ''); // Eliminar todos los caracteres que no sean dígitos
+        const value = e.target.value.replace(/\D/g, ''); 
         if (value.length <= 8) {
             setTelefono(value);
         }
     };
-
-    const startCamera = useCallback(async () => {
-        try {
-            setCameraActive(true);
-            abortControllerRef.current = new AbortController();
-
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: isMobile ? "environment" : "user",
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                }
-            });
-
-            mediaStreamRef.current = stream;
-
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-                await videoRef.current.play();
-            }
-
-        } catch (error) {
-            console.error("Error al iniciar cámara:", error);
-            setCameraActive(false);
-            stopCamera();
-        }
-    }, [isMobile, stopCamera]);
-
-    const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setPreview(reader.result as string);
-            formData.current.imagen = reader.result as string;
-            stopCamera();
-        };
-        reader.readAsDataURL(file);
-    }, [stopCamera]);
-
-    const handleTakePhoto = useCallback(() => {
-        if (canvasRef.current && videoRef.current) {
-            const context = canvasRef.current.getContext('2d');
-            if (context) {
-                canvasRef.current.width = videoRef.current.videoWidth;
-                canvasRef.current.height = videoRef.current.videoHeight;
-                context.drawImage(videoRef.current, 0, 0);
-                const dataUrl = canvasRef.current.toDataURL('image/png');
-                setPreview(dataUrl);
-                formData.current.imagen = dataUrl;
-                stopCamera();
-            }
-        }
-    }, [stopCamera]);
-
-    const handleRetakePhoto = useCallback(() => {
-        setPreview(null);
-        formData.current.imagen = "";
-        startCamera();
-    }, [startCamera]);
 
     const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -180,16 +111,15 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
 
     const handleFinish = async () => {
         try {
-            const imageFile = base64ToFile(formData.current.imagen, "profile");
+            const imageFile = base64ToFile(formData.current.imagen, username);
 
             const imagen: Image = {
                 originalFilename: imageFile.name,
-                category: username,
+                category: "profile_images",
                 file: imageFile,
             };
 
             const imagenSubida = await uploadImageMutator.mutateAsync(imagen);
-
 
             const usuario: ActivateAccountRequirements = {
                 telefono: formData.current.telefono,

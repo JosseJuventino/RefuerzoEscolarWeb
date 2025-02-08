@@ -1,13 +1,36 @@
 /** Interfaces principales */
 
-export interface Postulante {
+export interface PartialPostulant {
+  _id?: string;
+  nombre: string;
+  imagen: string;
+  direccion: string;
+  telefono: string;
+  email: string;
+  grado: string;
+  programa: string;
+  recomendador?: {
+    nombreCompleto: string;
+    email: string;
+    image: string;
+  };
+  createdAt?: string;
+}
+
+export interface CompletePostulant {
   _id: string;
   nombre: string;
   imagen: string;
   direccion: string;
   telefono: string;
   email: string;
-  grado: number;
+  grado: string;
+  programa: string;
+  recomendador: {
+    nombreCompleto: string;
+    email: string;
+    image: string;
+  };
   createdAt: string;
 }
 
@@ -67,7 +90,7 @@ export interface GetRecomendadoresResponse {
 }
 
 export interface GetPostulantesResponse {
-  data: Postulante[];
+  data: CompletePostulant[];
   totalDocuments: number;
   timestamp: string;
   page: number;
@@ -79,17 +102,19 @@ export interface Estudiante {
   _id: string;
   nombre: string;
   email: string;
-  año: number;
-  fechaEnvio: string;
+  telefono: string;
+  image: string;
+  isActive: boolean;
 }
 
 export interface GetEstudiantesResponse {
-  data: Postulante[];
-  totalDocuments: number;
-  timestamp: string;
+  data: Estudiante[];
+  size: number;
+  totalPages: number;
   page: number;
   limit: number;
-  totalPages: number;
+  statusCode: number;
+  message: string;
 }
 
 export interface ColumnWithKey<T> {
@@ -113,6 +138,7 @@ export interface TableProps<T> {
   onDelete?: (itemId: string) => void;
   handleShare?: (item: T) => void;
   hasShare?: boolean;
+  hasEdit?: boolean;
 }
 
 export interface AuthResponse {
@@ -141,4 +167,34 @@ export interface ImageResponse {
   data: {
     url: string;
   };
+}
+
+export interface Program {
+  _id: string;
+  nombre: string;
+}
+
+export interface ProgramsResponse {
+  "statusCode": number,
+  "message": string,
+  "data": Program[],
+  "size": number,
+  "totalPages": number,
+  "page": number,
+  "limit": number
+}
+
+export interface Grade {
+  _id: string;
+  nombre: string;
+}
+
+export interface GradeResponse {
+  "statusCode": number,
+  "message": string,
+  "data": Grade[],
+  "size": number,
+  "totalPages": number,
+  "page": number,
+  "limit": number
 }

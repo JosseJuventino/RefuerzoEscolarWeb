@@ -53,11 +53,11 @@ export class CreatePostulanteDto {
 
   @ApiProperty({
     description: 'Grado del postulante',
-    example: '8 grado',
+    example: '60d5f484f1d2b45c6c8f1d4a',
   })
   @IsString()
   @IsNotEmpty()
-  readonly grado: string;
+  readonly grado: ObjectId;
 
   @ApiProperty({
     description: 'Es usuario',
@@ -66,6 +66,15 @@ export class CreatePostulanteDto {
   @IsBoolean()
   @IsNotEmpty()
   readonly isUser: boolean;
+
+  @ApiProperty({
+    description: 'Programa del postulante',
+    example: '60d5f484f1d2b45c6c8f1d4b',
+  })
+  @IsString()
+  @IsNotEmpty()
+  readonly programa: ObjectId;
+
 
   readonly recomendador: ObjectId;
 }
