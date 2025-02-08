@@ -12,6 +12,13 @@ const nextConfig: NextConfig = {
         port: '',
         search: '',
       },
+      {
+        protocol: 'https',
+        hostname: 'refuerzo-mendoza.me',
+        pathname: '/api/uploads/*',
+        port: '',
+        search: '',
+      },
     ],
   },
 };
