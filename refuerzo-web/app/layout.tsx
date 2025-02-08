@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { NextUIProvider } from '@nextui-org/react';
 import './globals.css';
 
-import ClientProviders from './ClientProvider';
+import ClientProviders from '@/components/ClientProvider';
 
 export const metadata: Metadata = {
   title: 'Refuerzo Escolar Web',
