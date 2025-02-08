@@ -36,7 +36,11 @@ export default function RegistrationForm() {
 
     const [isChecking, setIsChecking] = useState<boolean>(true);
     const [preview, setPreview] = useState<string | null>(null);
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const [isMobile, setIsMobile] = useState<boolean>(false);
+
+    useEffect(() => {
+        setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+    }, []);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
