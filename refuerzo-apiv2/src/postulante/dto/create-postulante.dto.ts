@@ -75,6 +75,5 @@ export class CreatePostulanteDto {
   @IsNotEmpty()
   readonly programa: ObjectId;
 
-
-  readonly recomendador: ObjectId;
+  readonly recomendador: string;
 }

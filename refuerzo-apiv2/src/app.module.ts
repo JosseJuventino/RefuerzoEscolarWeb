@@ -16,6 +16,7 @@ import { RecomendadorModule } from './recomendadores/recomendador.module';
 import { EmailModule } from './email/email.module';
 import { GradoModule } from './grado/grado.module';
 import { ProgramaModule } from './programa/programa.module';
+import { AlumnoModule } from './alumno/alumno.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ProgramaModule } from './programa/programa.module';
     EmailModule,
     GradoModule,
     ProgramaModule,
+    AlumnoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

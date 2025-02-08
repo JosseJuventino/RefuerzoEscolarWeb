@@ -6,11 +6,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { RolesModule } from 'src/roles/roles.module';
 import { EmailModule } from '../email/email.module';
+import { Postulante } from 'src/postulante/entities/postulante.entity';
 
 @Module({
   controllers: [UsersController],
   providers: [UsersService],
-  imports: [CommonModule, RolesModule, TypeOrmModule.forFeature([User]), EmailModule],
+  imports: [
+    CommonModule,
+    RolesModule,
+    TypeOrmModule.forFeature([User, Postulante]),
+    EmailModule,
+  ],
   exports: [TypeOrmModule, UsersService],
 })
 export class UsersModule {}
