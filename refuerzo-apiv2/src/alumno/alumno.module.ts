@@ -11,6 +11,6 @@ import { Grado } from 'src/grado/entities/grado.entity';
   controllers: [AlumnoController],
   providers: [AlumnoService],
   imports: [CommonModule, TypeOrmModule.forFeature([Alumno, User, Grado])],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, AlumnoService],
 })
 export class AlumnoModule {}
