@@ -3,11 +3,12 @@
 import { useState } from "react";
 import PageHeader from '@/components/Dashboard/PageHeader'
 import Table from '@/components/Tables/Table';
-import { getAlumnos } from '@/services/alumnos.service';
-import { useQuery } from "@tanstack/react-query";
+import { deleteAlumno, getAlumnos } from '@/services/alumnos.service';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Estudiante, Column } from '@/types/types';
 import CardStudent from '@/components/CardViews/StudentCard';
 import ListGridLayout from "@/components/Dashboard/ListGridLayout";
+import { DeleteModal } from "@/components/Popups/DeleteModal";
 
 export default function Page() {
   const [isCardView, setIsCardView] = useState(false);
@@ -27,12 +28,31 @@ export default function Page() {
     queryFn: getAlumnos,
   });
 
+  const queryClient = useQueryClient();
+
+  const deleteProgramMutation = useMutation({
+    mutationFn: deleteAlumno,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['programas'] });
+    },
+  });
+
+
   const ContactInfo = ({ email, telefono }: { email: string; telefono: string }) => (
     <div className="flex flex-col">
       <span>{email}</span>
       <span className="text-gray-500">{telefono}</span>
     </div>
   );
+
+  const handleDelete = async () => {
+    if (!modalState.selected) return;
+    await deleteProgramMutation.mutateAsync(modalState.selected._id);
+    closeModal();
+  };
+
+
+  const closeModal = () => setModalState({ type: null, selected: null, });
 
 
   const columns: Column<Estudiante>[] = [
@@ -48,7 +68,7 @@ export default function Page() {
     },
     {
       header: "Nombre",
-      accessor: (row) => (<span>{row.user.nombre}</span> ),
+      accessor: (row) => (<span>{row.user.nombre}</span>),
     },
 
     {
@@ -103,6 +123,22 @@ export default function Page() {
             </div>
           )
       }
+
+      <DeleteModal<Estudiante>
+        isOpen={modalState.type === 'delete'}
+        title="Eliminar Recomendador"
+        item={modalState.selected!}
+        onClose={closeModal}
+        onConfirm={handleDelete}
+        description={(item) => (
+          <p>
+            ¿Estás seguro de eliminar el alumno{" "}
+            <strong className="text-red-600">{item?.user.nombre}</strong>?
+            <br />
+            <span className="text-sm text-gray-500">Esta acción no se puede deshacer</span>
+          </p>
+        )}
+      />
     </div>
   )
 }
