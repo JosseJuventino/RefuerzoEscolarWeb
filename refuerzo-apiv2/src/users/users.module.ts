@@ -18,7 +18,7 @@ import { PostulanteModule } from 'src/postulante/postulante.module';
     RolesModule,
     TypeOrmModule.forFeature([User, Postulante]),
     EmailModule,
-    AlumnoModule,
+    forwardRef(() => AlumnoModule), // Usar forwardRef
     forwardRef(() => PostulanteModule), // Usar forwardRef
   ],
   exports: [TypeOrmModule, UsersService],
