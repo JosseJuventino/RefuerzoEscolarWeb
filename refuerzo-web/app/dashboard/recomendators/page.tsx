@@ -57,6 +57,7 @@ export default function RecomendadoresPage() {
       header: "Contacto",
       accessor: (row) => <ContactInfo email={row.email} telefono={row.telefono} />
     },
+    { header: "Recomendados", accessor: "postulantesCount" },
   ];
 
   const addRecomendadorMutation = useMutation({
