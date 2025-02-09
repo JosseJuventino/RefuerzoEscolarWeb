@@ -2,20 +2,24 @@
 
 import { Column, Program } from "@/types/types";
 import PageHeader from "@/components/Dashboard/PageHeader";
-import { Plus, BookmarkIcon } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { getPrograms } from "@/services/programs.service";
 import { Loading } from "@/components/Loading";
+import ProgramCard from "@/components/CardViews/ProgramCard";
+import ListGridLayout from "@/components/Dashboard/ListGridLayout";
+import Table from "@/components/Tables/Table";
 
 export default function Page() {
+
+    const [isCardView, setIsCardView] = useState(false);
 
     const [modalState, setModalState] = useState<{
         type: 'add' | 'edit' | 'delete' | null;
         selected: Program | null;
     }>({ type: null, selected: null });
 
-    const queryClient = useQueryClient();
 
     const {
         data: program,
@@ -26,6 +30,7 @@ export default function Page() {
         queryKey: ["programas"],
         queryFn: getPrograms,
     });
+
 
     const columns: Column<Program>[] = [
         { header: "Nombre", accessor: "nombre" },
@@ -52,43 +57,33 @@ export default function Page() {
                 ]}
             />
 
-            <table>
-                <tbody>
-                    {program?.map((programa) => (
-                        <tr
-                            key={programa._id}
-                            className="group hover:bg-gray-50 transition-colors relative"
-                        >
-                            <td className="p-4">
-                                <div className="flex items-center space-x-4">
-                                    <div className="bg-blue-100 p-3 rounded-lg">
-                                        <BookmarkIcon className="w-6 h-6 text-blue-600" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-medium text-gray-900">{programa.nombre}</h3>
-                                    </div>
-                                </div>
-                            </td>
-                            <td className="text-right pr-6">
-                                <div className="flex space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button
-                                        onClick={() => setModalState({ type: 'edit', selected: programa })}
-                                        className="text-blue-600 hover:text-blue-800"
-                                    >
-                                        Editar
-                                    </button>
-                                    <button
-                                        onClick={() => setModalState({ type: 'delete', selected: programa })}
-                                        className="text-red-600 hover:text-red-800"
-                                    >
-                                        Eliminar
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+
+            <ListGridLayout isCardView={isCardView} setIsCardView={setIsCardView} />
+
+            {
+                isCardView ? (
+                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {program?.map((programa) => (
+                            <ProgramCard programa={programa} setModalState={setModalState} key={programa._id} />
+                        ))}
+                    </div>
+                ) :
+                    (
+                        <div className="mt-4 overflow-auto bg-white rounded-lg shadow-md">
+                            <Table
+                                data={program ?? []}
+                                loading={isLoading}
+                                columns={columns}
+                                hasEdit={false}
+                                onEdit={(row) => console.log("Editar: ", row)}
+                                onDelete={(id) => {
+                                    const selected = program?.find(r => r._id === id);
+                                    if (selected) setModalState({ type: 'delete', selected });
+                                }}
+                            />
+                        </div>
+                    )
+            }
         </div>
     );
 }

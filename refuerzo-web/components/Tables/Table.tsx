@@ -1,5 +1,5 @@
 import React from "react";
-import { Edit2, Trash2, Share2 } from "lucide-react";
+import { Edit2, Trash2, Repeat2Icon } from "lucide-react";
 import { TableProps } from "@/types/types";
 
 const Table = <T extends { _id: string }>({
@@ -8,8 +8,8 @@ const Table = <T extends { _id: string }>({
   columns,
   onEdit,
   onDelete,
-  handleShare = () => { },
-  hasShare = false,
+  handleMove = () => { },
+  hasMove = false,
   hasEdit = true,
 }: TableProps<T>) => {
   if (loading) {
@@ -72,13 +72,13 @@ const Table = <T extends { _id: string }>({
                       )}
 
                       {
-                        hasShare &&
+                        hasMove &&
                         <button
-                          className="flex items-center justify-center w-8 h-8 text-blue-500 hover:text-blue-700 focus:outline-none"
-                          onClick={() => handleShare(row)}
-                          aria-label="Compartir"
+                          className="flex items-center justify-center w-8 h-8 text-yellow-500 hover:text-yellow-700 focus:outline-none"
+                          onClick={() => handleMove(row)}
+                          aria-label="Mover"
                         >
-                          <Share2 size={20} />
+                          <Repeat2Icon size={22} />
                         </button>
                       }
                     </div>

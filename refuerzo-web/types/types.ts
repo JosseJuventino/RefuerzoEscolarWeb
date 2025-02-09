@@ -75,6 +75,7 @@ export interface Recomendadores {
   email: string;
   telefono: string;
   image: string;
+  postulantesCount: number;
   isActive: boolean;
   password: string;
 }
@@ -100,11 +101,14 @@ export interface GetPostulantesResponse {
 
 export interface Estudiante {
   _id: string;
-  nombre: string;
-  email: string;
-  telefono: string;
-  image: string;
-  isActive: boolean;
+  cursosId: [];
+  user: {
+    nombre: string;
+    email: string;
+    telefono: string;
+    image: string;
+  };
+  grado: string;
 }
 
 export interface GetEstudiantesResponse {
@@ -136,8 +140,8 @@ export interface TableProps<T> {
   columns: Column<T>[];
   onEdit?: (item: T) => void;
   onDelete?: (itemId: string) => void;
-  handleShare?: (item: T) => void;
-  hasShare?: boolean;
+  handleMove?: (item: T) => void;
+  hasMove?: boolean;
   hasEdit?: boolean;
 }
 
@@ -157,7 +161,7 @@ export interface UserInfo {
   isActive: boolean;
 }
 
-export interface Image{
+export interface Image {
   originalFilename: string;
   category: string;
   file: File;
@@ -175,13 +179,13 @@ export interface Program {
 }
 
 export interface ProgramsResponse {
-  "statusCode": number,
-  "message": string,
-  "data": Program[],
-  "size": number,
-  "totalPages": number,
-  "page": number,
-  "limit": number
+  statusCode: number;
+  message: string;
+  data: Program[];
+  size: number;
+  totalPages: number;
+  page: number;
+  limit: number;
 }
 
 export interface Grade {
@@ -190,11 +194,11 @@ export interface Grade {
 }
 
 export interface GradeResponse {
-  "statusCode": number,
-  "message": string,
-  "data": Grade[],
-  "size": number,
-  "totalPages": number,
-  "page": number,
-  "limit": number
+  statusCode: number;
+  message: string;
+  data: Grade[];
+  size: number;
+  totalPages: number;
+  page: number;
+  limit: number;
 }

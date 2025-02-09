@@ -40,22 +40,26 @@ export default function Page() {
       header: "Imagen",
       accessor: (row) => (
         <img
-          src={row.image}
-          alt={`Avatar de ${row.nombre}`}
+          src={row.user.image}
+          alt={`Avatar de ${row.user.image}`}
           className="w-10 h-10 rounded-full object-cover"
         />
       )
     },
     {
       header: "Nombre",
-      accessor: "nombre",
+      accessor: (row) => (<span>{row.user.nombre}</span> ),
     },
 
     {
       header: "Contacto",
-      accessor: (row) => <ContactInfo email={row.email} telefono={row.telefono} />
+      accessor: (row) => <ContactInfo email={row.user.email} telefono={row.user.telefono} />
     },
 
+    {
+      header: "Grado",
+      accessor: "grado"
+    },
   ]
 
   if (isLoading) return <div>Loading...</div>;
@@ -90,10 +94,8 @@ export default function Page() {
                 data={alumnos ?? []}
                 loading={isLoading}
                 columns={columns}
-                hasEdit={true}
-                onEdit={(row) => {
-                  console.log("Editar: ", row);
-                }}
+                hasMove={true}
+                handleMove={() => { }}
                 onDelete={(id) => {
                   console.log("Eliminar id: ", id);
                 }}
