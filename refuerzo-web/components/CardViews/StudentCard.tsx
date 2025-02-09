@@ -14,20 +14,20 @@ export default function CardStudent({ alumno, setModalState }: EstudianteCardPro
         <div className="group relative p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-gray-100">
             <div className="flex items-start gap-4">
                 <img
-                    src={alumno.image}
-                    alt={`Avatar de ${alumno.nombre}`}
+                    src={alumno.user.image}
+                    alt={`Avatar de ${alumno.user.nombre}`}
                     className="w-14 h-14 rounded-full object-cover border-2 border-blue-100"
                 />
                 <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-800">{alumno.nombre}</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">{alumno.user.nombre}</h3>
                     <div className="mt-2 space-y-1">
                         <div className="flex items-center text-sm text-gray-600">
                             <Mail className="w-4 h-4 mr-2 text-blue-500" />
-                            {alumno.email}
+                            {alumno.user.email}
                         </div>
                         <div className="flex items-center text-sm text-gray-600">
                             <Phone className="w-4 h-4 mr-2 text-green-500" />
-                            {alumno.telefono}
+                            {alumno.user.telefono}
                         </div>
                     </div>
                 </div>

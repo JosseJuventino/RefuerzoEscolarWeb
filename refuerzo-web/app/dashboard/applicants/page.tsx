@@ -63,6 +63,7 @@ export default function Applicants() {
             {postulante.recomendador?.nombreCompleto || 'N/A'}
         </span>
     );
+    
     const columns: Column<CompletePostulant>[] = [
         {
             header: "Imagen",

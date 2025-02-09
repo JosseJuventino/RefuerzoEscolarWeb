@@ -12,6 +12,5 @@ export const deletePostulant = async (id: string): Promise<void> => {
 
 export const addPostulante = async (postulante: PartialPostulant): Promise<PartialPostulant> => {
   const response = await api.post<PartialPostulant>('/postulantes', postulante);
-  console.log(response);
   return response.data;
 };
