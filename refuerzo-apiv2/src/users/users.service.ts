@@ -45,10 +45,10 @@ export class UsersService {
     private readonly roleRepository: Repository<Role>,
     @InjectRepository(Postulante)
     private readonly postulanteRepository: Repository<Postulante>,
-
+    @Inject(forwardRef(() => AlumnoService))
     private readonly alumnoService: AlumnoService,
     private readonly emailService: EmailService,
-    @Inject(forwardRef(() => PostulanteService)) // <-- Añade forwardRef si es necesario
+    @Inject(forwardRef(() => PostulanteService))
     private readonly postulanteService: PostulanteService,
   ) {
     this.crudHelper = new CrudHelper<User>(this.userRepository, 'Users');

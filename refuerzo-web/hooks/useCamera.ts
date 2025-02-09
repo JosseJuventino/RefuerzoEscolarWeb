@@ -1,5 +1,6 @@
 import { useCallback, useRef } from "react";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 export const useCamera = (
   isMobile: boolean,
@@ -74,6 +75,11 @@ export const useCamera = (
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
+
+      if (!file.type.startsWith("image/")) {
+        toast.error("El archivo debe ser una imagen");
+        return;
+      }
 
       const reader = new FileReader();
       reader.onloadend = () => {

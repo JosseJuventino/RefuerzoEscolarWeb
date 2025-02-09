@@ -72,7 +72,7 @@ export const FormModal = ({
                 </div>
             }
         >
-            <form className="space-y-4" onSubmit={handleSubmit}>
+            <form className="space-y-4 px-6" onSubmit={handleSubmit}>
                 <InputField
                     label="Nombre"
                     type="text"
