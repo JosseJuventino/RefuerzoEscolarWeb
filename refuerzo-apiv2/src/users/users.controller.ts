@@ -122,7 +122,7 @@ export class UsersController {
     if (!req.user?.id) {
       throw new UnauthorizedException('Usuario no autenticado');
     }
-    return this.usersService.updateProfile(req.user.id, updateProfileDto);
+    return this.usersService.updateProfile(req.user.id, req.user.role, req.user.idDependingRole, updateProfileDto);
   }  
     
     

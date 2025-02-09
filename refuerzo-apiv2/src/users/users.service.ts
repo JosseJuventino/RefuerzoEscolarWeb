@@ -2,6 +2,8 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ObjectId } from 'mongodb';
@@ -28,6 +30,9 @@ import { CreateNewAlumnoDto } from './dto/create-alumno.dto';
 import { UpdateProfileDto } from './dto/updateProfile.dto';
 import { Postulante } from 'src/postulante/entities/postulante.entity';
 import { alumnoAccountCreatedTemplate } from 'src/email/templates/createAlumnoTemplate';
+import { AlumnoService } from '../alumno/service/alumno.service';
+import { CreateAlumnoDto } from 'src/alumno/dto/create-alumno.dto';
+import { PostulanteService } from 'src/postulante/service/postulante.service';
 
 @Injectable()
 export class UsersService {
@@ -41,7 +46,10 @@ export class UsersService {
     @InjectRepository(Postulante)
     private readonly postulanteRepository: Repository<Postulante>,
 
+    private readonly alumnoService: AlumnoService,
     private readonly emailService: EmailService,
+    @Inject(forwardRef(() => PostulanteService)) // <-- Añade forwardRef si es necesario
+    private readonly postulanteService: PostulanteService,
   ) {
     this.crudHelper = new CrudHelper<User>(this.userRepository, 'Users');
     this.roleCrudHelper = new CrudHelper<Role>(this.roleRepository, 'Roles');
@@ -179,7 +187,16 @@ export class UsersService {
       idDependingRole: createNewAlumnoDto.idDependingRole,
     });
 
-    await this.crudHelper.create(newUser);
+    const savedUser = await this.userRepository.save(newUser);
+
+    // Crear un nuevo alumno asociado al usuario
+    const createNewAlumno: CreateAlumnoDto = {
+      userId: savedUser._id.toString(),
+      gradoId: createNewAlumnoDto.grado,
+      cursosId: [],
+    };
+
+    await this.alumnoService.create(createNewAlumno);
 
     const sendEmailDto: SendEmailDto = {
       to: [createNewAlumnoDto.email],
@@ -198,6 +215,8 @@ export class UsersService {
     } catch (error) {
       console.error('Error sending email:', error);
     }
+
+    //
 
     return new GeneralResponseBuilder<User>()
       .setStatusCode(201)
@@ -541,6 +560,8 @@ export class UsersService {
 
   async updateProfile(
     userId: string,
+    role: string,
+    idDependingRole: string,
     updateProfileDto: UpdateProfileDto,
   ): Promise<GeneralResponseDto<User>> {
     const user = await this.crudHelper.findByNameOrId(userId);
@@ -564,6 +585,17 @@ export class UsersService {
 
     updates.isActive = true;
     await this.crudHelper.update(user, updates);
+
+    const roles = ['recomendador', 'alumno'];
+
+    const actualRole = await this.roleCrudHelper.findByNameOrId(role);
+    if (!actualRole) {
+      throw new BadRequestException(`Role ${role} not found`);
+    }
+
+    if (actualRole.name === roles[1]) {
+      await this.postulanteService.updateIsUser(idDependingRole, true);
+    }
 
     return new GeneralResponseBuilder<User>()
       .setMessage('Perfil actualizado exitosamente')

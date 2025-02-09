@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { PostulanteService } from './service/postulante.service';
 import { PostulanteController } from './controller/postulante.controller';
 import { CommonModule } from 'src/common/common.module';
@@ -14,8 +14,8 @@ import { Grado } from 'src/grado/entities/grado.entity';
   imports: [
     CommonModule,
     TypeOrmModule.forFeature([Postulante, User, Grado]),
-    UsersModule, // Importar UsersModule
+    forwardRef(() => UsersModule), // Usar forwardRef
   ],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, PostulanteService],
 })
 export class PostulanteModule {}

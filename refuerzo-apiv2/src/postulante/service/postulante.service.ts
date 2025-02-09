@@ -2,6 +2,8 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { CreatePostulanteDto } from '../dto/create-postulante.dto';
 import { ObjectId } from 'mongodb';
@@ -32,7 +34,8 @@ export class PostulanteService {
     private readonly postulanteRepository: Repository<Postulante>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly usersService: UsersService, // Inyectar UsersService
+    @Inject(forwardRef(() => UsersService)) // <-- Añade forwardRef
+    private readonly usersService: UsersService,
     @InjectRepository(Grado)
     private readonly gradoRepository: Repository<Grado>,
   ) {
@@ -75,6 +78,7 @@ export class PostulanteService {
       image: createPostulanteDto.imagen,
       telefono: createPostulanteDto.telefono, // Asumiendo que el contacto tiene un campo telefono
       idDependingRole: savedPostulante._id.toString(), // Usar el _id generado
+      grado: createPostulanteDto.grado.toString(), // Asumiendo que el contacto tiene un campo grado
     };
 
     // Crear el usuario usando UsersService
@@ -277,6 +281,17 @@ export class PostulanteService {
     const Postulante = await this.crudHelper.findByNameOrId(id);
 
     await this.crudHelper.update(Postulante, updatePostulanteDto);
+    return new GeneralResponseBuilder<Postulante>()
+      .setMessage('Postulante updated successfully')
+      .build();
+  }
+
+  async updateIsUser(
+    id: string,
+    isUser: boolean,
+  ): Promise<GeneralResponseDto<Postulante>> {
+    const postulante = await this.crudHelper.findByNameOrId(id);
+    await this.crudHelper.update(postulante, { isUser }); // Actualiza el campo isUser
     return new GeneralResponseBuilder<Postulante>()
       .setMessage('Postulante updated successfully')
       .build();
