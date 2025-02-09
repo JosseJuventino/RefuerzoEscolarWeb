@@ -2,6 +2,8 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { CreateAlumnoDto } from '../dto/create-alumno.dto';
 import { ObjectId } from 'mongodb';
@@ -20,10 +22,13 @@ import { PaginationResponseDto } from 'src/common/dto/pagination-response.dto';
 import { CONFIGURABLE_MODULE_ID } from '@nestjs/common/module-utils/constants';
 import { User } from 'src/users/entities/user.entity';
 import { Grado } from 'src/grado/entities/grado.entity';
+import { UsersService } from 'src/users/users.service';
+import { PostulanteService } from 'src/postulante/service/postulante.service';
 
 @Injectable()
 export class AlumnoService {
   private readonly crudHelper: CrudHelper<Alumno>;
+  private readonly userCrudHelper: CrudHelper<User>;
 
   constructor(
     @InjectRepository(Alumno)
@@ -32,14 +37,17 @@ export class AlumnoService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Grado)
     private readonly gradoRepository: Repository<Grado>,
+    @Inject(forwardRef(() => UsersService))
+    private readonly usersService: UsersService,
+    private readonly postulanteService: PostulanteService,
   ) {
     this.crudHelper = new CrudHelper<Alumno>(this.alumnoRepository, 'Alumnos');
+    this.userCrudHelper = new CrudHelper<User>(this.userRepository, 'Users');
   }
 
   async create(
     createAlumnoDto: CreateAlumnoDto,
   ): Promise<GeneralResponseDto<Alumno>> {
-    console.log(createAlumnoDto);
     const findAlumno = await this.crudHelper.findByIdOrUserId(
       createAlumnoDto.userId,
       false,
@@ -56,8 +64,6 @@ export class AlumnoService {
       gradoId: createAlumnoDto.gradoId,
       cursosId: createAlumnoDto.cursosId || [],
     });
-
-    console.log('nuevo', newAlumno);
 
     await this.crudHelper.create(newAlumno);
 
@@ -145,9 +151,6 @@ export class AlumnoService {
       where: { _id: { $in: gradoIds } } as any,
       select: ['_id', 'nombre'],
     });
-
-    console.log(users);
-    console.log(grados);
 
     // Crear mapas para búsqueda rápida
     const userMap = new Map<string, any>();
@@ -252,6 +255,15 @@ export class AlumnoService {
   async remove(id: string): Promise<GeneralResponseDto<Alumno>> {
     const Alumno = await this.crudHelper.findByNameOrId(id);
     await this.crudHelper.delete(Alumno, true);
+
+    const user = await this.userCrudHelper.findByNameOrId(Alumno.userId);
+
+    // Cambiar el isUser de Postulante a false
+    await this.postulanteService.updateIsUser(user.idDependingRole, false);
+
+    // Eliminar el usuario
+    await this.usersService.remove(Alumno.userId);
+
     return new GeneralResponseBuilder<Alumno>()
       .setMessage('Alumno deleted successfully')
       .build();

@@ -1,5 +1,14 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateAlumnoDto } from './create-alumno.dto';
-import { OmitType } from '@nestjs/swagger';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { IsString, IsNotEmpty } from 'class-validator';
 
-export class UpdateAlumnoDto extends PartialType(CreateAlumnoDto) {}
+export class UpdateAlumnoDto {
+  @ApiProperty({
+    description: 'Grado del alumno',
+    example: '60d5f484f1d2b45c6c8f1d4a',
+  })
+  @IsString()
+  @IsNotEmpty()
+  gradoId: string;
+}
