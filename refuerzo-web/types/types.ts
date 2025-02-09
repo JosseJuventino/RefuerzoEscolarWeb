@@ -178,6 +178,10 @@ export interface Program {
   nombre: string;
 }
 
+export interface PartialProgram{
+  nombre: string;
+}
+
 export interface ProgramsResponse {
   statusCode: number;
   message: string;
