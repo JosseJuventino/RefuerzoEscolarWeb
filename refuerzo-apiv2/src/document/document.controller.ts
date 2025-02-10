@@ -16,7 +16,13 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { DocumentService } from './document.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
 import { UpdateDocumentDto } from './dto/update-document.dto';
-import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorators';
 import { Permission } from 'src/common/decorators/permission.decorators';
 import { Resources, Scopes } from 'nest_autorization';
@@ -31,7 +37,7 @@ export class DocumentController {
   constructor(private readonly documentService: DocumentService) {}
 
   @Post()
-  @Public()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Subir un documento PDF' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -65,15 +71,15 @@ export class DocumentController {
     return this.documentService.create(createDocumentDto, file);
   }
 
-  @Public()
   @Get()
+  @ApiBearerAuth()
   async findAll() {
     return this.documentService.findAll();
   }
 
   @Get('download/:id')
-  @Public()
   @ApiOperation({ summary: 'Descargar documento por ID' })
+  @ApiBearerAuth()
   async downloadDocument(@Param('id') id: string, @Res() res: Response) {
     const { document, filePath } =
       await this.documentService.getDocumentFile(id);
@@ -87,14 +93,15 @@ export class DocumentController {
     return res.sendFile(filePath);
   }
 
-  @Public()
   @Get(':id')
+  @ApiBearerAuth()
   async findOne(@Param('id') id: string) {
     return this.documentService.findOne(id);
   }
 
-  @Scopes('edit')
+  @Scopes('view', 'edit')
   @Put(':id')
+  @ApiBearerAuth()
   async update(
     @Param('id') id: string,
     @Body() updateDocumentDto: UpdateDocumentDto,
@@ -102,8 +109,9 @@ export class DocumentController {
     return this.documentService.update(id, updateDocumentDto);
   }
 
-  @Scopes('edit')
+  @Scopes('view', 'edit')
   @Delete(':id')
+  @ApiBearerAuth()
   async delete(@Param('id') id: string) {
     return this.documentService.delete(id);
   }
