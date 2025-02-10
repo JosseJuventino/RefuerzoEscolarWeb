@@ -9,7 +9,7 @@ import {
   UploadedFile,
   UseInterceptors,
   Res, // Nuevo import
-  NotFoundException, // Nuevo import  
+  NotFoundException, // Nuevo import
 } from '@nestjs/common';
 import { Response } from 'express'; // Nuevo import
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -93,7 +93,7 @@ export class DocumentController {
     return this.documentService.findOne(id);
   }
 
-  @Scopes('view', 'edit')
+  @Scopes('edit')
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -102,7 +102,7 @@ export class DocumentController {
     return this.documentService.update(id, updateDocumentDto);
   }
 
-  @Scopes('view', 'edit')
+  @Scopes('edit')
   @Delete(':id')
   async delete(@Param('id') id: string) {
     return this.documentService.delete(id);
