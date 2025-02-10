@@ -73,7 +73,7 @@ export class DocumentService {
       return {
         message: 'Documento subido correctamente',
         data: {
-          url: `${this.configService.get('NEXT_PUBLIC_API_URLV2')}/documents/${createDocumentDto.category}/${storedFilename}`,
+          url: `${this.configService.get('NEXT_PUBLIC_API_URLV2')}/api/uploads/documents/${createDocumentDto.category}/${storedFilename}`,
           documentId: newDocument._id.toString(),
         },
       };
