@@ -4,8 +4,8 @@ import { IsString, IsNotEmpty } from 'class-validator';
 
 export class CreateDocumentDto {
   @ApiProperty({
-    description: 'El nombre original del archivo',
-    example: 'documento.pdf',
+    description: 'Nombre personalizado para el documento (sin extensión)',
+    example: 'mi-documento-importante',
   })
   @IsString()
   @IsNotEmpty()
