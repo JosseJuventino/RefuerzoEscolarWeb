@@ -26,6 +26,7 @@ export class DocumentService {
     );
   }
 
+  // Modifica el método create en DocumentService
   async create(
     createDocumentDto: CreateDocumentDto,
     file: Express.Multer.File,
@@ -53,9 +54,16 @@ export class DocumentService {
     }
 
     try {
-      // Generar nombre único para el archivo
-      const fileExt = path.extname(file.originalname);
-      const storedFilename = `${uuidv4()}${fileExt}`;
+      // Sanitizar el nombre del archivo
+      let originalFilename = createDocumentDto.originalFilename;
+
+      // Asegurar que tenga extensión .pdf
+      if (!originalFilename.toLowerCase().endsWith('.pdf')) {
+        originalFilename += '.pdf';
+      }
+
+      // Generar nombre único para el archivo almacenado
+      const storedFilename = `${uuidv4()}.pdf`;
       const filePath = path.join(uploadsDir, storedFilename);
 
       // Guardar el archivo
@@ -63,7 +71,7 @@ export class DocumentService {
 
       // Crear registro en base de datos
       const newDocument = this.documentRepository.create({
-        originalFilename: file.originalname,
+        originalFilename: originalFilename, // Usamos el nombre personalizado
         storedFilename: storedFilename,
         category: createDocumentDto.category,
       });
@@ -75,6 +83,7 @@ export class DocumentService {
         data: {
           url: `${this.configService.get('NEXT_PUBLIC_API_URLV2')}/api/uploads/documents/${createDocumentDto.category}/${storedFilename}`,
           documentId: newDocument._id.toString(),
+          fileName: originalFilename, // Devolvemos el nombre formateado
         },
       };
     } catch (error) {
