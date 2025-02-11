@@ -626,10 +626,8 @@ export class UsersService {
     const encodedToken = encodeURIComponent(token);
 
     const expiresAt = new Date();
-    expiresAt.setUTCHours(expiresAt.getUTCHours() + 1);
-    expiresAt.setUTCMinutes(0);
-    expiresAt.setUTCSeconds(0);
-    expiresAt.setUTCMilliseconds(0);
+    expiresAt.setTime(Date.now() + 3600000);
+    console.log('Expiración calculada:', expiresAt.toISOString());
 
     console.log('Token generado:', token);
     console.log('Expiración UTC:', expiresAt.toISOString());
@@ -682,20 +680,23 @@ export class UsersService {
     newPassword: string,
   ): Promise<GeneralResponseDto<void>> {
     const decodedToken = decodeURIComponent(token).trim();
+
+    // Obtener fecha actual en UTC
+    const currentDate = new Date();
+    console.log('Fecha actual UTC:', currentDate.toISOString());
     console.log('Token recibido:', token);
     console.log('Token decodificado:', decodedToken);
-
-    const currentDate = new Date();
 
     const resetToken = await this.passwordResetTokenRepository.findOne({
       where: {
         token: decodedToken,
         used: false,
-        expiresAt: MoreThan(new Date()),
-      },
+        expiresAt: { $gt: currentDate }, 
+      } as any,
     });
 
-    console.log('Token encontrado:', resetToken); // Debug
+    console.log('Resultado de búsqueda:', resetToken);
+
     console.log('Fecha actual:', new Date().toISOString()); // Debug
 
     if (!resetToken) {
