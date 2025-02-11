@@ -9,6 +9,7 @@ import { EmailModule } from '../email/email.module';
 import { Postulante } from 'src/postulante/entities/postulante.entity';
 import { AlumnoModule } from 'src/alumno/alumno.module';
 import { PostulanteModule } from 'src/postulante/postulante.module';
+import { PasswordResetToken } from 'src/auth/entities/password-reset-token';
 
 @Module({
   controllers: [UsersController],
@@ -17,9 +18,10 @@ import { PostulanteModule } from 'src/postulante/postulante.module';
     CommonModule,
     RolesModule,
     TypeOrmModule.forFeature([User, Postulante]),
+    TypeOrmModule.forFeature([PasswordResetToken]),
     EmailModule,
-    forwardRef(() => AlumnoModule), // Usar forwardRef
-    forwardRef(() => PostulanteModule), // Usar forwardRef
+    forwardRef(() => AlumnoModule), 
+    forwardRef(() => PostulanteModule),
   ],
   exports: [TypeOrmModule, UsersService],
 })

@@ -21,6 +21,8 @@ import { Permission } from 'src/common/decorators/permission.decorators';
 import { Public } from 'src/common/decorators/public.decorators';
 import { Resources, Scopes } from 'nest_autorization';
 import { CreateNewRecomendadorDto } from './dto/create-recomendador.dto';
+import { RequestPasswordResetDto } from './dto/request-password-reset.dto.ts';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @ApiBasicAuth()
 @Permission('usuarios')
@@ -40,6 +42,33 @@ export class UsersController {
     @Body() createNewRecomendadorDto: CreateNewRecomendadorDto,
   ) {
     return this.usersService.createRecomendador(createNewRecomendadorDto);
+  }
+
+  @Post('request-password-reset')
+  @ApiOperation({
+    summary: 'Request password reset',
+    description: 'Request password reset',
+  })
+  @Public()
+  requestPasswordReset(
+    @Body() requestPasswordResetDto: RequestPasswordResetDto,
+  ) {
+    return this.usersService.requestPasswordReset(
+      requestPasswordResetDto.email,
+    );
+  }
+
+  @Post('reset-password')
+  @ApiOperation({
+    summary: 'Reset password',
+    description: 'Reset password',
+  })
+  @Public()
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.usersService.resetPassword(
+      resetPasswordDto.token,
+      resetPasswordDto.newPassword,
+    );
   }
 
   @Scopes('edit')
@@ -112,20 +141,25 @@ export class UsersController {
   @Patch('me/profile')
   @ApiOperation({
     summary: 'Actualizar perfil del usuario actual',
-    description: 'Actualiza imagen, teléfono y/o contraseña del usuario autenticado'
+    description:
+      'Actualiza imagen, teléfono y/o contraseña del usuario autenticado',
   })
   @ApiBearerAuth()
   async updateProfile(
     @Request() req,
-    @Body() updateProfileDto: UpdateProfileDto
+    @Body() updateProfileDto: UpdateProfileDto,
   ) {
     if (!req.user?.id) {
       throw new UnauthorizedException('Usuario no autenticado');
     }
-    return this.usersService.updateProfile(req.user.id, req.user.role, req.user.idDependingRole, updateProfileDto);
-  }  
-    
-    
+    return this.usersService.updateProfile(
+      req.user.id,
+      req.user.role,
+      req.user.idDependingRole,
+      updateProfileDto,
+    );
+  }
+
   @Scopes('view', 'edit')
   @ApiOperation({
     summary: 'Delete a user by id',
