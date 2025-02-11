@@ -629,7 +629,7 @@ export class UsersService {
     const resetToken = this.passwordResetTokenRepository.create({
       userId: user._id.toString(),
       token,
-      expiresAt: expiresAt.toISOString(), 
+      expiresAt: expiresAt,
       used: false,
     });
 
@@ -659,43 +659,52 @@ export class UsersService {
       )
       .build();
   }
-
   async resetPassword(
     token: string,
     newPassword: string,
   ): Promise<GeneralResponseDto<void>> {
+    // Decodificar y limpiar el token
     const decodedToken = decodeURIComponent(token).trim();
 
-    const resetToken = await this.passwordResetTokenRepository
-      .createQueryBuilder('token')
-      .where('token.token = :token', { token: decodedToken })
-      .andWhere('token.used = false')
-      .andWhere('token.expiresAt > CURRENT_TIMESTAMP') 
-      .getOne();
+    // Usar Date directamente en lugar de ISO string
+    const currentDate = new Date();
+
+    const resetToken = await this.passwordResetTokenRepository.findOne({
+      where: {
+        token: decodedToken,
+        used: false,
+        expiresAt: MoreThan(currentDate), // Usar Date directamente
+      },
+    });
+
+    console.log('Token encontrado:', resetToken); // Debug
+    console.log('Fecha actual:', new Date().toISOString()); // Debug
 
     if (!resetToken) {
-      console.log('Token inválido o expirado - recibido:', decodedToken);
-      throw new BadRequestException('Enlace inválido o expirado');
+      throw new BadRequestException('Token inválido o expirado');
     }
 
+    // Convertir userId a ObjectId
+    const userId = new ObjectId(resetToken.userId);
+
+    // Buscar usuario
     const user = await this.userRepository.findOne({
-      where: { _id: new ObjectId(resetToken.userId) },
+      where: { _id: userId } as any,
     });
 
     if (!user) {
-      console.error('Usuario no encontrado para el token:', resetToken);
-      throw new BadRequestException('Error al recuperar la cuenta');
+      throw new BadRequestException('Usuario no encontrado');
     }
 
+    // Actualizar contraseña
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(newPassword, salt);
     await this.userRepository.save(user);
 
+    // Marcar token como usado
     resetToken.used = true;
     await this.passwordResetTokenRepository.save(resetToken);
 
-    console.log(`Contraseña actualizada para usuario: ${user.email}`);
-    
     return new GeneralResponseBuilder<void>()
       .setStatusCode(200)
       .setMessage('Contraseña actualizada exitosamente')
