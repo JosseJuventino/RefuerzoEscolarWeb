@@ -609,68 +609,73 @@ export class UsersService {
     const user = await this.userRepository.findOne({ where: { email } });
 
     if (!user) {
-        return new GeneralResponseBuilder<void>()
-            .setStatusCode(404) 
-            .setMessage('El correo electrónico no está registrado en nuestro sistema')
-            .build();
+      return new GeneralResponseBuilder<void>()
+        .setStatusCode(404)
+        .setMessage(
+          'El correo electrónico no está registrado en nuestro sistema',
+        )
+        .build();
     }
 
     await this.passwordResetTokenRepository.delete({
-        userId: user._id.toString(),
-        used: false,
+      userId: user._id.toString(),
+      used: false,
     });
 
-    // Generar nuevo token
     const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 1);
+    expiresAt.setUTCHours(expiresAt.getUTCHours() + 1);
 
     const resetToken = this.passwordResetTokenRepository.create({
-        userId: user._id.toString(),
-        token,
-        expiresAt,
-        used: false,
+      userId: user._id.toString(),
+      token,
+      expiresAt: expiresAt.toISOString(), 
+      used: false,
     });
-    
+
     await this.passwordResetTokenRepository.save(resetToken);
 
     const resetLink = `https://refuerzo-mendoza.me/reset-password?token=${token}`;
+
     const sendEmailDto: SendEmailDto = {
-        to: [email],
-        replyTo: ['soporte@refuerzo-mendoza.me'],
-        subject: 'Recuperación de contraseña',
-        from: 'soporte@refuerzo-mendoza.me',
-        text: `Hola ${user.nombre},\n\nHaz solicitado un cambio de contraseña. Por favor utiliza este enlace para restablecerla: ${resetLink}`,
-        html: `Haz clic <a href="${resetLink}">aquí</a> para restablecer tu contraseña.`,
+      to: [email],
+      replyTo: ['soporte@refuerzo-mendoza.me'],
+      subject: 'Recuperación de contraseña',
+      from: 'soporte@refuerzo-mendoza.me',
+      text: `Hola ${user.nombre},\n\nHaz solicitado un cambio de contraseña. Por favor utiliza este enlace para restablecerla: ${resetLink}`,
+      html: `Haz clic <a href="${resetLink}">aquí</a> para restablecer tu contraseña.`,
     };
 
     try {
-        await this.emailService.sendEmail(sendEmailDto);
+      await this.emailService.sendEmail(sendEmailDto);
     } catch (error) {
-        console.error('Error enviando correo:', error);
-        throw new InternalServerErrorException('Error al enviar el correo de recuperación');
+      console.error('Error sending email:', error);
     }
 
     return new GeneralResponseBuilder<void>()
-        .setStatusCode(200)
-        .setMessage('Si el email está registrado, se ha enviado un enlace de recuperación')
-        .build();
-}
+      .setStatusCode(200)
+      .setMessage(
+        'Si el email está registrado, se ha enviado un enlace de recuperación',
+      )
+      .build();
+  }
 
   async resetPassword(
     token: string,
     newPassword: string,
   ): Promise<GeneralResponseDto<void>> {
-    const resetToken = await this.passwordResetTokenRepository.findOne({
-      where: {
-        token,
-        used: false,
-        expiresAt: MoreThan(new Date()), 
-      },
-    });
-  
+    const decodedToken = decodeURIComponent(token).trim();
+
+    const resetToken = await this.passwordResetTokenRepository
+      .createQueryBuilder('token')
+      .where('token.token = :token', { token: decodedToken })
+      .andWhere('token.used = false')
+      .andWhere('token.expiresAt > CURRENT_TIMESTAMP') 
+      .getOne();
+
     if (!resetToken) {
-      throw new BadRequestException('Token inválido o expirado');
+      console.log('Token inválido o expirado - recibido:', decodedToken);
+      throw new BadRequestException('Enlace inválido o expirado');
     }
 
     const user = await this.userRepository.findOne({
@@ -678,7 +683,8 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new BadRequestException('Usuario no encontrado');
+      console.error('Usuario no encontrado para el token:', resetToken);
+      throw new BadRequestException('Error al recuperar la cuenta');
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -688,6 +694,8 @@ export class UsersService {
     resetToken.used = true;
     await this.passwordResetTokenRepository.save(resetToken);
 
+    console.log(`Contraseña actualizada para usuario: ${user.email}`);
+    
     return new GeneralResponseBuilder<void>()
       .setStatusCode(200)
       .setMessage('Contraseña actualizada exitosamente')
