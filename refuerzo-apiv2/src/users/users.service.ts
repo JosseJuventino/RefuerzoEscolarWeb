@@ -6,23 +6,22 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { ObjectId } from 'mongodb';
 import { CreateNewRecomendadorDto } from './dto/create-recomendador.dto';
 import { SendEmailDto } from 'src/email/dto/send-email.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CrudHelper } from '../common/helper/crud.helper';
 import { User } from './entities/user.entity';
-import { Repository, FindManyOptions } from 'typeorm';
+import { Repository, FindManyOptions, MoreThan } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { GeneralResponseDto } from 'src/common/dto/general-response.dto';
 import { GeneralResponseBuilder } from 'src/common/helper/general-response.helper';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
-import { buildPaginationAndFilterOptions } from 'src/common/helper/pagination.helper';
 import { PaginationResponseBuilder } from 'src/common/helper/paginated-response.helper';
 import { PaginationResponseDto } from 'src/common/dto/pagination-response.dto';
 import { EmailService } from 'src/email/service/email.service';
 import { Role } from 'src/roles/entities/role.entity';
+import { PasswordResetToken } from 'src/auth/entities/password-reset-token';
 import * as crypto from 'crypto';
 
 import { recomendadorAccountCreatedTemplate } from 'src/email/templates/createRecomendatorTemplate';
@@ -33,12 +32,15 @@ import { alumnoAccountCreatedTemplate } from 'src/email/templates/createAlumnoTe
 import { AlumnoService } from '../alumno/service/alumno.service';
 import { CreateAlumnoDto } from 'src/alumno/dto/create-alumno.dto';
 import { PostulanteService } from 'src/postulante/service/postulante.service';
+import { ObjectId } from 'mongodb';
 
 @Injectable()
 export class UsersService {
   private readonly crudHelper: CrudHelper<User>;
   private readonly roleCrudHelper: CrudHelper<Role>;
   constructor(
+    @InjectRepository(PasswordResetToken)
+    private readonly passwordResetTokenRepository: Repository<PasswordResetToken>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Role)
@@ -599,6 +601,90 @@ export class UsersService {
 
     return new GeneralResponseBuilder<User>()
       .setMessage('Perfil actualizado exitosamente')
+      .build();
+  }
+
+  async requestPasswordReset(email: string): Promise<GeneralResponseDto<void>> {
+    const user = await this.userRepository.findOne({ where: { email } });
+
+    if (!user) {
+      return new GeneralResponseBuilder<void>()
+        .setStatusCode(200)
+        .setMessage('Si el email existe, se enviará un enlace de recuperación')
+        .build();
+    }
+
+    await this.passwordResetTokenRepository.delete({
+      userId: user._id.toString(),
+      used: false,
+    });
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1);
+
+    const resetToken = this.passwordResetTokenRepository.create({
+      userId: user._id.toString(),
+      token,
+      expiresAt,
+      used: false,
+    });
+
+    await this.passwordResetTokenRepository.save(resetToken);
+
+    const resetLink = `https://refuerzo-mendoza.com/reset-password?token=${token}`;
+
+    const sendEmailDto: SendEmailDto = {
+      to: [email],
+      replyTo: ['soporte@refuerzo-mendoza.me'],
+      subject: 'Recuperación de contraseña',
+      from: 'soporte@refuerzo-mendoza.me',
+      text: `Hola ${user.nombre},\n\n haz solicitado cambio de contraseña. Por favor inicia sesión y cambia tu contraseña.`,
+      html: `Haz clic <a href="${resetLink}">aquí</a> para restablecer tu contraseña.`,
+    };
+
+    await this.emailService.sendEmail(sendEmailDto);
+
+    return new GeneralResponseBuilder<void>()
+      .setStatusCode(200)
+      .setMessage('Enlace de recuperación enviado')
+      .build();
+  }
+
+  async resetPassword(
+    token: string,
+    newPassword: string,
+  ): Promise<GeneralResponseDto<void>> {
+    const resetToken = await this.passwordResetTokenRepository.findOne({
+      where: {
+        token,
+        used: false,
+        expiresAt: MoreThan(new Date()), 
+      },
+    });
+  
+    if (!resetToken) {
+      throw new BadRequestException('Token inválido o expirado');
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { _id: new ObjectId(resetToken.userId) },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await this.userRepository.save(user);
+
+    resetToken.used = true;
+    await this.passwordResetTokenRepository.save(resetToken);
+
+    return new GeneralResponseBuilder<void>()
+      .setStatusCode(200)
+      .setMessage('Contraseña actualizada exitosamente')
       .build();
   }
 }
