@@ -631,9 +631,10 @@ export class UsersService {
         expiresAt,
         used: false,
     });
+    
     await this.passwordResetTokenRepository.save(resetToken);
 
-    const resetLink = `https://refuerzo-mendoza.com/reset-password?token=${token}`;
+    const resetLink = `https://refuerzo-mendoza.me/reset-password?token=${token}`;
     const sendEmailDto: SendEmailDto = {
         to: [email],
         replyTo: ['soporte@refuerzo-mendoza.me'],
