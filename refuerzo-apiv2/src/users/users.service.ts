@@ -2,42 +2,57 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Inject,
+  forwardRef,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { ObjectId } from 'mongodb';
 import { CreateNewRecomendadorDto } from './dto/create-recomendador.dto';
 import { SendEmailDto } from 'src/email/dto/send-email.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CrudHelper } from '../common/helper/crud.helper';
 import { User } from './entities/user.entity';
-import { Repository, FindManyOptions } from 'typeorm';
+import { Repository, FindManyOptions, MoreThan } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { GeneralResponseDto } from 'src/common/dto/general-response.dto';
 import { GeneralResponseBuilder } from 'src/common/helper/general-response.helper';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
-import { buildPaginationAndFilterOptions } from 'src/common/helper/pagination.helper';
 import { PaginationResponseBuilder } from 'src/common/helper/paginated-response.helper';
 import { PaginationResponseDto } from 'src/common/dto/pagination-response.dto';
 import { EmailService } from 'src/email/service/email.service';
 import { Role } from 'src/roles/entities/role.entity';
+import { PasswordResetToken } from 'src/auth/entities/password-reset-token';
 import * as crypto from 'crypto';
 
 import { recomendadorAccountCreatedTemplate } from 'src/email/templates/createRecomendatorTemplate';
 import { CreateNewAlumnoDto } from './dto/create-alumno.dto';
 import { UpdateProfileDto } from './dto/updateProfile.dto';
+import { Postulante } from 'src/postulante/entities/postulante.entity';
+import { alumnoAccountCreatedTemplate } from 'src/email/templates/createAlumnoTemplate';
+import { AlumnoService } from '../alumno/service/alumno.service';
+import { CreateAlumnoDto } from 'src/alumno/dto/create-alumno.dto';
+import { PostulanteService } from 'src/postulante/service/postulante.service';
+import { ObjectId } from 'mongodb';
 
 @Injectable()
 export class UsersService {
   private readonly crudHelper: CrudHelper<User>;
   private readonly roleCrudHelper: CrudHelper<Role>;
   constructor(
+    @InjectRepository(PasswordResetToken)
+    private readonly passwordResetTokenRepository: Repository<PasswordResetToken>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
-
+    @InjectRepository(Postulante)
+    private readonly postulanteRepository: Repository<Postulante>,
+    @Inject(forwardRef(() => AlumnoService))
+    private readonly alumnoService: AlumnoService,
     private readonly emailService: EmailService,
+    @Inject(forwardRef(() => PostulanteService))
+    private readonly postulanteService: PostulanteService,
   ) {
     this.crudHelper = new CrudHelper<User>(this.userRepository, 'Users');
     this.roleCrudHelper = new CrudHelper<Role>(this.roleRepository, 'Roles');
@@ -116,7 +131,7 @@ export class UsersService {
     const sendEmailDto: SendEmailDto = {
       to: [createNewRecomendadorDto.email],
       replyTo: ['soporte@refuerzo-mendoza.me'],
-      subject: 'Cuenta de Postulante Creada',
+      subject: 'Cuenta de Recomendador Creada',
       from: 'soporte@refuerzo-mendoza.me',
       text: `Hola ${createNewRecomendadorDto.nombre},\n\nTu contraseña temporal es: ${temporaryPassword}\nPor favor inicia sesión y cambia tu contraseña.`,
       html: recomendadorAccountCreatedTemplate(
@@ -175,15 +190,24 @@ export class UsersService {
       idDependingRole: createNewAlumnoDto.idDependingRole,
     });
 
-    await this.crudHelper.create(newUser);
+    const savedUser = await this.userRepository.save(newUser);
+
+    // Crear un nuevo alumno asociado al usuario
+    const createNewAlumno: CreateAlumnoDto = {
+      userId: savedUser._id.toString(),
+      gradoId: createNewAlumnoDto.grado,
+      cursosId: [],
+    };
+
+    await this.alumnoService.create(createNewAlumno);
 
     const sendEmailDto: SendEmailDto = {
       to: [createNewAlumnoDto.email],
       replyTo: ['soporte@refuerzo-mendoza.me'],
-      subject: 'Cuenta de Recomendador Creada',
+      subject: 'Cuenta de Alumno Creada',
       from: 'soporte@refuerzo-mendoza.me',
       text: `Hola ${createNewAlumnoDto.nombre},\n\nTu contraseña temporal es: ${temporaryPassword}\nPor favor inicia sesión y cambia tu contraseña.`,
-      html: recomendadorAccountCreatedTemplate(
+      html: alumnoAccountCreatedTemplate(
         createNewAlumnoDto.nombre,
         temporaryPassword,
       ),
@@ -195,9 +219,11 @@ export class UsersService {
       console.error('Error sending email:', error);
     }
 
+    //
+
     return new GeneralResponseBuilder<User>()
       .setStatusCode(201)
-      .setMessage('Recomendador created successfully')
+      .setMessage('Alumno created successfully')
       .build();
   }
 
@@ -370,18 +396,33 @@ export class UsersService {
       totalPages = 1;
     }
 
-    const recomendadores = await Promise.all(
-      results.map(async (user) => {
-        return {
-          _id: user._id,
-          nombre: user.nombre,
-          email: user.email,
-          telefono: user.telefono,
-          image: user.image,
-          isActive: user.isActive,
-        };
-      }),
-    );
+    // 1. Obtener IDs de los recomendadores como strings
+    const recomendadorIds = results.map((user) => user._id.toString());
+
+    // 2. Buscar todos los postulantes relacionados (usando strings)
+    const postulantes = await this.postulanteRepository.find({
+      where: {
+        recomendador: { $in: recomendadorIds } as any,
+      },
+    });
+
+    // 3. Contar postulantes por recomendador
+    const postulantesCountMap = postulantes.reduce((map, postulante) => {
+      const key = postulante.recomendador; // Ya es string
+      map.set(key, (map.get(key) || 0) + 1);
+      return map;
+    }, new Map<string, number>());
+
+    // 4. Mapear resultados con el conteo
+    const recomendadores = results.map((user) => ({
+      _id: user._id,
+      nombre: user.nombre,
+      email: user.email,
+      telefono: user.telefono,
+      image: user.image,
+      isActive: user.isActive,
+      postulantesCount: postulantesCountMap.get(user._id.toString()) || 0,
+    }));
 
     return new PaginationResponseBuilder()
       .setMessage(
@@ -391,7 +432,7 @@ export class UsersService {
       .setSize(total)
       .setTotalPages(totalPages)
       .setPage(applyPagination ? paginationQuery.page : 1)
-      .setLimit(applyPagination ? paginationQuery.limit : total) // Si no hay paginación, devolver todos los registros
+      .setLimit(applyPagination ? paginationQuery.limit : total)
       .build();
   }
 
@@ -522,6 +563,8 @@ export class UsersService {
 
   async updateProfile(
     userId: string,
+    role: string,
+    idDependingRole: string,
     updateProfileDto: UpdateProfileDto,
   ): Promise<GeneralResponseDto<User>> {
     const user = await this.crudHelper.findByNameOrId(userId);
@@ -546,8 +589,108 @@ export class UsersService {
     updates.isActive = true;
     await this.crudHelper.update(user, updates);
 
+    const roles = ['recomendador', 'alumno'];
+
+    const actualRole = await this.roleCrudHelper.findByNameOrId(role);
+    if (!actualRole) {
+      throw new BadRequestException(`Role ${role} not found`);
+    }
+
+    if (actualRole.name === roles[1]) {
+      await this.postulanteService.updateIsUser(idDependingRole, true);
+    }
+
     return new GeneralResponseBuilder<User>()
       .setMessage('Perfil actualizado exitosamente')
+      .build();
+  }
+
+  async requestPasswordReset(email: string): Promise<GeneralResponseDto<void>> {
+    const user = await this.userRepository.findOne({ where: { email } });
+
+    if (!user) {
+        return new GeneralResponseBuilder<void>()
+            .setStatusCode(404) 
+            .setMessage('El correo electrónico no está registrado en nuestro sistema')
+            .build();
+    }
+
+    await this.passwordResetTokenRepository.delete({
+        userId: user._id.toString(),
+        used: false,
+    });
+
+    // Generar nuevo token
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1);
+
+    const resetToken = this.passwordResetTokenRepository.create({
+        userId: user._id.toString(),
+        token,
+        expiresAt,
+        used: false,
+    });
+    
+    await this.passwordResetTokenRepository.save(resetToken);
+
+    const resetLink = `https://refuerzo-mendoza.me/reset-password?token=${token}`;
+    const sendEmailDto: SendEmailDto = {
+        to: [email],
+        replyTo: ['soporte@refuerzo-mendoza.me'],
+        subject: 'Recuperación de contraseña',
+        from: 'soporte@refuerzo-mendoza.me',
+        text: `Hola ${user.nombre},\n\nHaz solicitado un cambio de contraseña. Por favor utiliza este enlace para restablecerla: ${resetLink}`,
+        html: `Haz clic <a href="${resetLink}">aquí</a> para restablecer tu contraseña.`,
+    };
+
+    try {
+        await this.emailService.sendEmail(sendEmailDto);
+    } catch (error) {
+        console.error('Error enviando correo:', error);
+        throw new InternalServerErrorException('Error al enviar el correo de recuperación');
+    }
+
+    return new GeneralResponseBuilder<void>()
+        .setStatusCode(200)
+        .setMessage('Si el email está registrado, se ha enviado un enlace de recuperación')
+        .build();
+}
+
+  async resetPassword(
+    token: string,
+    newPassword: string,
+  ): Promise<GeneralResponseDto<void>> {
+    const resetToken = await this.passwordResetTokenRepository.findOne({
+      where: {
+        token,
+        used: false,
+        expiresAt: MoreThan(new Date()), 
+      },
+    });
+  
+    if (!resetToken) {
+      throw new BadRequestException('Token inválido o expirado');
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { _id: new ObjectId(resetToken.userId) },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await this.userRepository.save(user);
+
+    resetToken.used = true;
+    await this.passwordResetTokenRepository.save(resetToken);
+
+    return new GeneralResponseBuilder<void>()
+      .setStatusCode(200)
+      .setMessage('Contraseña actualizada exitosamente')
       .build();
   }
 }

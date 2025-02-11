@@ -10,6 +10,8 @@ import { DeleteModal } from "@/components/Popups/DeleteModal";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getRecomendadores, addRecomendador, updateRecomendador } from "@/services/recomenders.service";
 import { deleteUser } from "@/services/user.service";
+import ListGridLayout from "@/components/Dashboard/ListGridLayout";
+import CardRecomendador from "@/components/CardViews/RecomendadorCard";
 
 
 const ContactInfo = ({ email, telefono }: { email: string; telefono: string }) => (
@@ -26,6 +28,8 @@ export default function RecomendadoresPage() {
   }>({ type: null, selected: null });
 
   const queryClient = useQueryClient();
+
+  const [isCardView, setIsCardView] = useState(false);
 
   const {
     data: recomendadores,
@@ -53,6 +57,7 @@ export default function RecomendadoresPage() {
       header: "Contacto",
       accessor: (row) => <ContactInfo email={row.email} telefono={row.telefono} />
     },
+    { header: "Recomendados", accessor: "postulantesCount" },
   ];
 
   const addRecomendadorMutation = useMutation({
@@ -93,24 +98,6 @@ export default function RecomendadoresPage() {
     closeModal();
   };
 
-  const handleShare = (recomendador: Recomendadores) => {
-    const subject = `Acceso a plataforma de recomendadores`;
-    const body = `Hola ${recomendador.nombre},\n\n` +
-      `Aquí están tus credenciales para acceder a la plataforma:\n` +
-      `Email: ${recomendador.email}\n` +
-      `Contraseña temporal: ${recomendador.password}\n\n` +
-      `Accede aquí para activar tu cuenta: ${window.location.origin}/activate/${recomendador._id}\n\n` +
-      `Saludos,\nEquipo de soporte`;
-    
-    const gmailUrl = `https://mail.google.com/mail/?view=cm` +
-      `&to=${encodeURIComponent(recomendador.email)}` +
-      `&su=${encodeURIComponent(subject)}` +
-      `&body=${encodeURIComponent(body)}` +
-      `&fs=1`;
-
-    // Abre en nueva pestaña
-    window.open(gmailUrl, '_blank');
-  };
 
   const closeModal = () => setModalState({ type: null, selected: null, });
 
@@ -134,22 +121,35 @@ export default function RecomendadoresPage() {
         ]}
       />
 
-      <div className="mt-4 bg-white rounded-lg shadow-md overflow-auto">
-        <Table
-          data={recomendadores ?? []}
-          columns={columns}
-          loading={false}
-          onEdit={(row) => setModalState({ type: 'edit', selected: row })}
-          onDelete={(id) => {
-            const selected = recomendadores?.find(r => r._id === id);
-            if (selected) {
-              setModalState({ type: 'delete', selected });
-            }
-          }}
-          hasShare={true}
-          handleShare={handleShare}
-        />
-      </div>
+      <ListGridLayout isCardView={isCardView} setIsCardView={setIsCardView} />
+
+      {isCardView ? (
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {recomendadores?.map((recomendador) => (
+            <CardRecomendador
+              key={recomendador._id}
+              recomendador={recomendador}
+              setModalState={setModalState}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="mt-4 overflow-auto bg-white rounded-lg shadow-md">
+          <Table
+            data={recomendadores ?? []}
+            columns={columns}
+            loading={false}
+            onEdit={(row) => setModalState({ type: 'edit', selected: row })}
+            onDelete={(id) => {
+              const selected = recomendadores?.find(r => r._id === id);
+              if (selected) {
+                setModalState({ type: 'delete', selected });
+              }
+            }}
+          />
+        </div>
+      )}
+
 
       <FormModal
         isOpen={modalState.type === 'add'}

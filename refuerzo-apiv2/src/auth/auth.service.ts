@@ -67,6 +67,7 @@ export class AuthService {
       role: user.role,
       name: user.nombre,
       image: user.image,
+      idDependingRole: user.idDependingRole || null,
     };
     const token = await this.jwtService.sign(payload);
 

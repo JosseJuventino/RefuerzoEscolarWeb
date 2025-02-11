@@ -2,6 +2,8 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { CreatePostulanteDto } from '../dto/create-postulante.dto';
 import { ObjectId } from 'mongodb';
@@ -20,23 +22,32 @@ import { User } from 'src/users/entities/user.entity';
 import { PostulanteResponseDto } from '../dto/postulante-response.dto';
 import { UsersService } from 'src/users/users.service';
 import { CreateNewAlumnoDto } from 'src/users/dto/create-alumno.dto';
+import { Grado } from 'src/grado/entities/grado.entity';
 
 @Injectable()
 export class PostulanteService {
   private readonly crudHelper: CrudHelper<Postulante>;
   private readonly userCrudHelper: CrudHelper<User>;
+  private readonly gradoCrudHelper: CrudHelper<Grado>;
   constructor(
     @InjectRepository(Postulante)
     private readonly postulanteRepository: Repository<Postulante>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly usersService: UsersService, // Inyectar UsersService
+    @Inject(forwardRef(() => UsersService)) // <-- Añade forwardRef
+    private readonly usersService: UsersService,
+    @InjectRepository(Grado)
+    private readonly gradoRepository: Repository<Grado>,
   ) {
     this.crudHelper = new CrudHelper<Postulante>(
       this.postulanteRepository,
       'Postulantes',
     );
     this.userCrudHelper = new CrudHelper<User>(this.userRepository, 'Users');
+    this.gradoCrudHelper = new CrudHelper<Grado>(
+      this.gradoRepository,
+      'Grados',
+    );
   }
   async create(
     recomendadorId: ObjectId,
@@ -55,7 +66,7 @@ export class PostulanteService {
 
     const newPostulante = this.postulanteRepository.create({
       ...createPostulanteDto,
-      recomendador: recomendadorId,
+      recomendador: recomendadorId.toString(),
     });
 
     const savedPostulante = await this.postulanteRepository.save(newPostulante);
@@ -67,6 +78,7 @@ export class PostulanteService {
       image: createPostulanteDto.imagen,
       telefono: createPostulanteDto.telefono, // Asumiendo que el contacto tiene un campo telefono
       idDependingRole: savedPostulante._id.toString(), // Usar el _id generado
+      grado: createPostulanteDto.grado.toString(), // Asumiendo que el contacto tiene un campo grado
     };
 
     // Crear el usuario usando UsersService
@@ -143,7 +155,7 @@ export class PostulanteService {
       totalPages = 1;
     }
 
-    //Enriqueces los postulantes con la informacion del recomendador
+    //Enriqueces los postulantes con la informacion del recomendador y grado
     const postulantesWithRecomendador = await Promise.all(
       results.map(async (postulante) => {
         const recomendador = await this.userCrudHelper.findByNameOrId(
@@ -151,6 +163,13 @@ export class PostulanteService {
           false,
           false,
         );
+
+        const grado = await this.gradoCrudHelper.findByNameOrId(
+          postulante.grado.toString(),
+          false,
+          false,
+        );
+
         return {
           _id: postulante._id,
           nombre: postulante.nombre,
@@ -158,7 +177,7 @@ export class PostulanteService {
           direccion: postulante.direccion,
           telefono: postulante.telefono,
           email: postulante.email,
-          grado: postulante.grado,
+          grado: grado.nombre,
           isUser: postulante.isUser,
           recomendador: {
             nombreCompleto: recomendador.nombre,
@@ -262,6 +281,17 @@ export class PostulanteService {
     const Postulante = await this.crudHelper.findByNameOrId(id);
 
     await this.crudHelper.update(Postulante, updatePostulanteDto);
+    return new GeneralResponseBuilder<Postulante>()
+      .setMessage('Postulante updated successfully')
+      .build();
+  }
+
+  async updateIsUser(
+    id: string,
+    isUser: boolean,
+  ): Promise<GeneralResponseDto<Postulante>> {
+    const postulante = await this.crudHelper.findByNameOrId(id);
+    await this.crudHelper.update(postulante, { isUser }); // Actualiza el campo isUser
     return new GeneralResponseBuilder<Postulante>()
       .setMessage('Postulante updated successfully')
       .build();

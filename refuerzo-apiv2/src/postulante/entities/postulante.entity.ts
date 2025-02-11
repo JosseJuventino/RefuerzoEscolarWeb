@@ -37,7 +37,7 @@ export class Postulante {
   isUser: boolean;
 
   @Column()
-  recomendador: ObjectId;
+  recomendador: string;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

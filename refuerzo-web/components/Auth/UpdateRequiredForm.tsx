@@ -15,6 +15,9 @@ import { uploadImage } from "@/services/images.service";
 import { activeProfile } from "@/services/user.service";
 import { PhoneField } from "../Fields/PhoneField";
 import { useCamera } from "@/hooks/useCamera";
+import toast from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
+
 
 interface UpdateRequiredFormProps {
     username: string;
@@ -40,20 +43,18 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
     });
 
 
-    
-
     useEffect(() => {
         setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
     }, []);
 
-     const { cameraActive, startCamera, stopCamera, videoRef, canvasRef, handleTakePhoto, handleFileChange, handleRetakePhoto } = useCamera(isMobile, setPreview, formData);
+    const { cameraActive, startCamera, stopCamera, videoRef, canvasRef, handleTakePhoto, handleFileChange, handleRetakePhoto } = useCamera(isMobile, setPreview, formData);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
 
     const handleLogout = () => clearAuth('/');
 
-   
+
 
     useEffect(() => {
         formData.current.telefono = `+503${telefono}`;
@@ -63,7 +64,13 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
         formData.current.password = password;
     }, [password]);
 
-    const handleNext = () => setStep(step + 1);
+    const handleNext = () => {
+        if (!formData.current.imagen) {
+            toast.error("Debes subir una imagen de perfil");
+            return;
+        }
+        setStep(step + 1);
+    };
     const handlePrevious = () => setStep(step - 1);
 
     const validatePassword = (password: string): number => {
@@ -79,7 +86,7 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
     };
 
     const handleTelefonoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value.replace(/\D/g, ''); 
+        const value = e.target.value.replace(/\D/g, '');
         if (value.length <= 8) {
             setTelefono(value);
         }
@@ -110,6 +117,17 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
     }, [stopCamera]);
 
     const handleFinish = async () => {
+
+        if (telefono.length !== 8) {
+            toast.error("El teléfono debe tener 8 dígitos");
+            return;
+        }
+
+        if (passwordStrength < 1) {
+            toast.error("La contraseña debe tener al menos 8 caracteres con combinación de letras y números");
+            return;
+        }
+
         try {
             const imageFile = base64ToFile(formData.current.imagen, username);
 
@@ -142,6 +160,17 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
+            <Toaster
+                position="top-center"
+                toastOptions={{
+                    duration: 5000,
+                    style: {
+                        background: "#fff",
+                        color: "#363636",
+                        boxShadow: "0 3px 10px rgba(0, 0, 0, 0.1)",
+                    },
+                }}
+            />
             <div className="w-full max-w-lg space-y-8">
                 <div className="text-center">
                     <h1 className="text-4xl font-bold text-gray-800 mb-2">Completa tu perfil, <span className="text-blue_principal">{username}</span></h1>
@@ -208,10 +237,10 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
                                     : "Hubo un error al activar tu cuenta. Por favor, inténtalo más tarde."}
                             </p>
                             <button
-                                onClick={handleLogout} 
+                                onClick={handleLogout}
                                 className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg font-medium transition-all shadow-sm"
                             >
-                                {activationStatus === "success" ? "Ingresar con mis credenciales": "Volver a intentar"}
+                                {activationStatus === "success" ? "Ingresar con mis credenciales" : "Volver a intentar"}
                             </button>
                         </div>
                     </div>
