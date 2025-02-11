@@ -623,19 +623,37 @@ export class UsersService {
     });
 
     const token = crypto.randomBytes(32).toString('hex');
+    const encodedToken = encodeURIComponent(token);
+
     const expiresAt = new Date();
     expiresAt.setUTCHours(expiresAt.getUTCHours() + 1);
+    expiresAt.setUTCMinutes(0);
+    expiresAt.setUTCSeconds(0);
+    expiresAt.setUTCMilliseconds(0);
 
-    const resetToken = this.passwordResetTokenRepository.create({
-      userId: user._id.toString(),
-      token,
-      expiresAt: expiresAt,
-      used: false,
-    });
+    console.log('Token generado:', token);
+    console.log('Expiración UTC:', expiresAt.toISOString());
 
-    await this.passwordResetTokenRepository.save(resetToken);
+    await this.passwordResetTokenRepository.manager.transaction(
+      async (manager) => {
+        await manager.delete(PasswordResetToken, {
+          userId: user._id.toString(),
+          used: false,
+        });
 
-    const resetLink = `https://refuerzo-mendoza.me/reset-password?token=${token}`;
+        const newToken = manager.create(PasswordResetToken, {
+          userId: user._id.toString(),
+          token,
+          expiresAt,
+          used: false,
+        });
+
+        await manager.save(newToken);
+        console.log('Token guardado:', newToken);
+      },
+    );
+
+    const resetLink = `https://refuerzo-mendoza.me/reset-password?token=${encodedToken}`;
 
     const sendEmailDto: SendEmailDto = {
       to: [email],
@@ -663,17 +681,17 @@ export class UsersService {
     token: string,
     newPassword: string,
   ): Promise<GeneralResponseDto<void>> {
-    // Decodificar y limpiar el token
     const decodedToken = decodeURIComponent(token).trim();
+    console.log('Token recibido:', token);
+    console.log('Token decodificado:', decodedToken);
 
-    // Usar Date directamente en lugar de ISO string
     const currentDate = new Date();
 
     const resetToken = await this.passwordResetTokenRepository.findOne({
       where: {
         token: decodedToken,
         used: false,
-        expiresAt: MoreThan(currentDate), // Usar Date directamente
+        expiresAt: MoreThan(new Date()),
       },
     });
 
@@ -681,11 +699,12 @@ export class UsersService {
     console.log('Fecha actual:', new Date().toISOString()); // Debug
 
     if (!resetToken) {
+      const tokensExistentes = await this.passwordResetTokenRepository.find();
+      console.log('Tokens en BD:', tokensExistentes);
       throw new BadRequestException('Token inválido o expirado');
     }
 
-    // Convertir userId a ObjectId
-    const userId = new ObjectId(resetToken.userId);
+    const userId = new ObjectId(resetToken.userId.toString());
 
     // Buscar usuario
     const user = await this.userRepository.findOne({
