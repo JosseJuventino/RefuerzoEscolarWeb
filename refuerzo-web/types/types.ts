@@ -17,6 +17,11 @@ export interface PartialPostulant {
   createdAt?: string;
 }
 
+export interface RequestPassResponse {
+  statusCode: number;
+  message: string;
+}
+
 export interface CompletePostulant {
   _id: string;
   nombre: string;
