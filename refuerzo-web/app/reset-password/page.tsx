@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { resetPassword } from "@/services/user.service";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
 
-const ResetPasswordPage = () => {
+const ResetPasswordContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -37,7 +37,7 @@ const ResetPasswordPage = () => {
       await resetPassword(token, newPassword);
       toast.success("¡Contraseña actualizada correctamente!");
       setTimeout(() => router.push("/login"), 2000);
-    } catch{
+    } catch {
       toast.error("Error al actualizar la contraseña. El enlace puede haber expirado");
     } finally {
       setLoading(false);
@@ -102,4 +102,12 @@ const ResetPasswordPage = () => {
   );
 };
 
+const ResetPasswordPage = () => (
+  <Suspense fallback={<div>Cargando...</div>}>
+    <ResetPasswordContent />
+  </Suspense>
+);
+
 export default ResetPasswordPage;
+
+export const dynamic = 'force-dynamic'; 
