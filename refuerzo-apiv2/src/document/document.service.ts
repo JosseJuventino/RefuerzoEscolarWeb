@@ -133,7 +133,7 @@ export class DocumentService {
     return this.documentRepository.save(document);
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string): Promise<string> {
     const document = await this.findOne(id);
 
     // Eliminar archivo físico
@@ -152,5 +152,7 @@ export class DocumentService {
     }
 
     await this.documentRepository.remove(document);
+
+    return 'Documento eliminado correctamente';
   }
 }
