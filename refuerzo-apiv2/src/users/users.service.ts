@@ -681,7 +681,6 @@ export class UsersService {
   ): Promise<GeneralResponseDto<void>> {
     const decodedToken = decodeURIComponent(token).trim();
 
-    // Obtener fecha actual en UTC
     const currentDate = new Date();
     console.log('Fecha actual UTC:', currentDate.toISOString());
     console.log('Token recibido:', token);
@@ -697,7 +696,7 @@ export class UsersService {
 
     console.log('Resultado de búsqueda:', resetToken);
 
-    console.log('Fecha actual:', new Date().toISOString()); // Debug
+    console.log('Fecha actual:', new Date().toISOString()); 
 
     if (!resetToken) {
       const tokensExistentes = await this.passwordResetTokenRepository.find();
