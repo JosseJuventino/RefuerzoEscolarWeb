@@ -17,7 +17,7 @@ const ResetPasswordContent = () => {
   useEffect(() => {
     if (!token) {
       toast.error("Token inválido o enlace expirado");
-      router.push("/login");
+      router.push("/");
     }
   }, [token, router]);
 
@@ -36,7 +36,7 @@ const ResetPasswordContent = () => {
       
       await resetPassword(token, newPassword);
       toast.success("¡Contraseña actualizada correctamente!");
-      setTimeout(() => router.push("/login"), 2000);
+      setTimeout(() => router.push("/"), 2000);
     } catch {
       toast.error("Error al actualizar la contraseña. El enlace puede haber expirado");
     } finally {
