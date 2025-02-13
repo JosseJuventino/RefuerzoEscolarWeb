@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { ShowPasswordIcon, HidePasswordIcon } from "@/utils/Icons";
 import { AuthService } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/authStore";
@@ -39,19 +39,7 @@ const LoginForm: React.FC = () => {
     checkAuth();
   }, [router]);
 
-  const handleReCaptchaVerify = useCallback(async () => {
-    if (!executeRecaptcha) {
-      console.log('Execute recaptcha not yet available');
-      return;
-    }
 
-    const token = await executeRecaptcha('recover-password');
-    console.log(token);
-}, [executeRecaptcha]);
-
-  useEffect(() => {
-    handleReCaptchaVerify();
-  }, [handleReCaptchaVerify]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,8 +68,13 @@ const LoginForm: React.FC = () => {
 
 
     try {
+      if (!executeRecaptcha) {
+        throw new Error("reCAPTCHA no está disponible.");
+      }
 
-      const token = "kskjdsd"
+
+      const token = await executeRecaptcha("forgot_password");
+
       const response: RequestPassResponse = await requestPasswordReset(resetEmail, token);
 
       if (response && response.statusCode === 404) {
@@ -201,6 +194,12 @@ const LoginForm: React.FC = () => {
             ¿Olvidaste tu contraseña?
           </button>
         </div>
+
+        <p className="text-xs text-gray-500 mt-2 text-center">
+          <span>Este sitio está protegido por reCAPTCHA y se aplican la </span>
+          <a href="https://policies.google.com/privacy" className="text-blue_principal" target="_blank">Política de privacidad</a> y los
+          <a href="https://policies.google.com/terms" className="text-blue_principal" target="_blank">Términos de servicio</a> de Google.
+        </p>
       </form>
 
       {/* Popup de recuperación de contraseña */}
@@ -229,7 +228,9 @@ const LoginForm: React.FC = () => {
                     required
                   />
                 </div>
-                <button onClick={handleReCaptchaVerify}>Verify recaptcha</button>
+
+
+
                 <div className="flex justify-end gap-4">
                   <button
                     type="button"
@@ -245,7 +246,10 @@ const LoginForm: React.FC = () => {
                   >
                     {resetLoading ? "Enviando..." : "Enviar enlace"}
                   </button>
+
+
                 </div>
+
               </form>
             </>
 
