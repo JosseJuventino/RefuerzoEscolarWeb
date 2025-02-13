@@ -22,7 +22,6 @@ export const UploadButton = ({isMobile, fileInputRef, handleFileChange, startCam
                 onChange={handleFileChange}
                 className="hidden"
                 ref={fileInputRef}
-                capture={isMobile ? "environment" : undefined}
             />
         </label>
 

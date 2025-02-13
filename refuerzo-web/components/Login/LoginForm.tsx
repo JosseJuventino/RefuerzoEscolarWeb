@@ -78,7 +78,6 @@ const LoginForm: React.FC = () => {
 
       const response: RequestPassResponse = await requestPasswordReset(resetEmail, token);
 
-      console.log(response);
 
       if (response && response.statusCode === 404) {
         toast.error(response.message);
@@ -201,7 +200,7 @@ const LoginForm: React.FC = () => {
         <p className="text-xs text-gray-500 mt-2 text-center">
           <span>Este sitio está protegido por reCAPTCHA y se aplican la </span>
           <a href="https://policies.google.com/privacy" className="text-blue_principal" target="_blank">Política de privacidad</a> y los
-          <a href="https://policies.google.com/terms" className="text-blue_principal" target="_blank">Términos de servicio</a> de Google.
+          <a href="https://policies.google.com/terms" className="text-blue_principal" target="_blank"> Términos de servicio</a> de Google.
         </p>
       </form>
 

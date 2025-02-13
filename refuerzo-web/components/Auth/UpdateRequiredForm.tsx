@@ -51,10 +51,7 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-
     const handleLogout = () => clearAuth('/');
-
-
 
     useEffect(() => {
         formData.current.telefono = `+503${telefono}`;

@@ -25,28 +25,40 @@ export const useCamera = (
   }, []);
 
   const startCamera = useCallback(async () => {
-    try {
-      setCameraActive(true);
-      abortControllerRef.current = new AbortController();
+    if (isMobile) {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.capture = "environment";
+      input.onchange = (e: Event) => {
+        const target = e.target as HTMLInputElement;
+        handleFileChange({ target } as React.ChangeEvent<HTMLInputElement>);
+      };
+      input.click();
+    } else {
+      try {
+        setCameraActive(true);
+        abortControllerRef.current = new AbortController();
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: isMobile ? "environment" : "user",
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-      });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: isMobile ? "environment" : "user",
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+        });
 
-      mediaStreamRef.current = stream;
+        mediaStreamRef.current = stream;
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+        }
+      } catch (error) {
+        console.error("Error al iniciar cámara:", error);
+        setCameraActive(false);
+        stopCamera();
       }
-    } catch (error) {
-      console.error("Error al iniciar cámara:", error);
-      setCameraActive(false);
-      stopCamera();
     }
   }, [isMobile, stopCamera]);
 
@@ -100,6 +112,6 @@ export const useCamera = (
     videoRef,
     canvasRef,
     handleRetakePhoto,
-    handleFileChange
+    handleFileChange,
   };
 };
