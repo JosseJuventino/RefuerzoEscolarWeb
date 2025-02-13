@@ -627,10 +627,7 @@ export class UsersService {
 
     const expiresAt = new Date();
     expiresAt.setTime(Date.now() + 3600000);
-    console.log('Expiración calculada:', expiresAt.toISOString());
 
-    console.log('Token generado:', token);
-    console.log('Expiración UTC:', expiresAt.toISOString());
 
     await this.passwordResetTokenRepository.manager.transaction(
       async (manager) => {
@@ -647,7 +644,7 @@ export class UsersService {
         });
 
         await manager.save(newToken);
-        console.log('Token guardado:', newToken);
+
       },
     );
 
@@ -682,9 +679,6 @@ export class UsersService {
     const decodedToken = decodeURIComponent(token).trim();
 
     const currentDate = new Date();
-    console.log('Fecha actual UTC:', currentDate.toISOString());
-    console.log('Token recibido:', token);
-    console.log('Token decodificado:', decodedToken);
 
     const resetToken = await this.passwordResetTokenRepository.findOne({
       where: {
@@ -694,13 +688,9 @@ export class UsersService {
       } as any,
     });
 
-    console.log('Resultado de búsqueda:', resetToken);
-
-    console.log('Fecha actual:', new Date().toISOString()); 
 
     if (!resetToken) {
       const tokensExistentes = await this.passwordResetTokenRepository.find();
-      console.log('Tokens en BD:', tokensExistentes);
       throw new BadRequestException('Token inválido o expirado');
     }
 
