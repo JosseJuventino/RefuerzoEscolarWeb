@@ -5,6 +5,8 @@ import {
   Inject,
   forwardRef,
   InternalServerErrorException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { CreateNewRecomendadorDto } from './dto/create-recomendador.dto';
@@ -606,71 +608,81 @@ export class UsersService {
   }
 
   async requestPasswordReset(email: string): Promise<GeneralResponseDto<void>> {
-    const user = await this.userRepository.findOne({ where: { email } });
+    try {
+      const user = await this.userRepository.findOne({ where: { email } });
 
-    if (!user) {
+      if (!user) {
+        return new GeneralResponseBuilder<void>()
+          .setStatusCode(404)
+          .setMessage(
+            'El correo electrónico no está registrado en nuestro sistema',
+          )
+          .build();
+      }
+
+      await this.passwordResetTokenRepository.delete({
+        userId: user._id.toString(),
+        used: false,
+      });
+
+      const token = crypto.randomBytes(32).toString('hex');
+      const encodedToken = encodeURIComponent(token);
+
+      const expiresAt = new Date();
+      expiresAt.setTime(Date.now() + 3600000);
+
+      await this.passwordResetTokenRepository.manager.transaction(
+        async (manager) => {
+          await manager.delete(PasswordResetToken, {
+            userId: user._id.toString(),
+            used: false,
+          });
+
+          const newToken = manager.create(PasswordResetToken, {
+            userId: user._id.toString(),
+            token,
+            expiresAt,
+            used: false,
+          });
+
+          await manager.save(newToken);
+        },
+      );
+
+      const resetLink = `https://refuerzo-mendoza.me/reset-password?token=${encodedToken}`;
+
+      const sendEmailDto: SendEmailDto = {
+        to: [email],
+        replyTo: ['soporte@refuerzo-mendoza.me'],
+        subject: 'Recuperación de contraseña',
+        from: 'soporte@refuerzo-mendoza.me',
+        text: `Hola ${user.nombre},\n\nHaz solicitado un cambio de contraseña. Por favor utiliza este enlace para restablecerla: ${resetLink}`,
+        html: `Haz clic <a href="${resetLink}">aquí</a> para restablecer tu contraseña.`,
+      };
+
+      try {
+        await this.emailService.sendEmail(sendEmailDto);
+      } catch (error) {
+        console.error('Error sending email:', error);
+        throw new HttpException(
+          'Error enviando el correo de recuperación',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
       return new GeneralResponseBuilder<void>()
-        .setStatusCode(404)
+        .setStatusCode(200)
         .setMessage(
-          'El correo electrónico no está registrado en nuestro sistema',
+          'Si el email está registrado, se ha enviado un enlace de recuperación',
         )
         .build();
-    }
-
-    await this.passwordResetTokenRepository.delete({
-      userId: user._id.toString(),
-      used: false,
-    });
-
-    const token = crypto.randomBytes(32).toString('hex');
-    const encodedToken = encodeURIComponent(token);
-
-    const expiresAt = new Date();
-    expiresAt.setTime(Date.now() + 3600000);
-
-
-    await this.passwordResetTokenRepository.manager.transaction(
-      async (manager) => {
-        await manager.delete(PasswordResetToken, {
-          userId: user._id.toString(),
-          used: false,
-        });
-
-        const newToken = manager.create(PasswordResetToken, {
-          userId: user._id.toString(),
-          token,
-          expiresAt,
-          used: false,
-        });
-
-        await manager.save(newToken);
-
-      },
-    );
-
-    const resetLink = `https://refuerzo-mendoza.me/reset-password?token=${encodedToken}`;
-
-    const sendEmailDto: SendEmailDto = {
-      to: [email],
-      replyTo: ['soporte@refuerzo-mendoza.me'],
-      subject: 'Recuperación de contraseña',
-      from: 'soporte@refuerzo-mendoza.me',
-      text: `Hola ${user.nombre},\n\nHaz solicitado un cambio de contraseña. Por favor utiliza este enlace para restablecerla: ${resetLink}`,
-      html: `Haz clic <a href="${resetLink}">aquí</a> para restablecer tu contraseña.`,
-    };
-
-    try {
-      await this.emailService.sendEmail(sendEmailDto);
     } catch (error) {
-      console.error('Error sending email:', error);
+      console.error('Error en requestPasswordReset:', error); // Depuración
+      throw new HttpException(
+        'Error en la solicitud de recuperación de contraseña',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    return new GeneralResponseBuilder<void>()
-      .setStatusCode(200)
-      .setMessage(
-        'Si el email está registrado, se ha enviado un enlace de recuperación',
-      )
-      .build();
   }
   async resetPassword(
     token: string,
@@ -684,10 +696,9 @@ export class UsersService {
       where: {
         token: decodedToken,
         used: false,
-        expiresAt: { $gt: currentDate }, 
+        expiresAt: { $gt: currentDate },
       } as any,
     });
-
 
     if (!resetToken) {
       const tokensExistentes = await this.passwordResetTokenRepository.find();

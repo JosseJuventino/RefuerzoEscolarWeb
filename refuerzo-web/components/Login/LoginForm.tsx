@@ -74,8 +74,11 @@ const LoginForm: React.FC = () => {
 
 
       const token = await executeRecaptcha("forgot_password");
+      console.log("Token de reCAPTCHA generado:", token);
 
       const response: RequestPassResponse = await requestPasswordReset(resetEmail, token);
+
+      console.log(response);
 
       if (response && response.statusCode === 404) {
         toast.error(response.message);

@@ -9,6 +9,8 @@ import {
   Query,
   Scope,
   Request,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { UnauthorizedException } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -50,10 +52,6 @@ export class UsersController {
   }
 
   @Post('request-password-reset')
-  @ApiOperation({
-    summary: 'Request password reset',
-    description: 'Request password reset',
-  })
   @Public()
   @Throttle({ default: { limit: 3, ttl: 60 } })
   async requestPasswordReset(
@@ -61,9 +59,16 @@ export class UsersController {
   ) {
     const { email, token } = requestPasswordResetDto;
 
-    await this.recaptchaService.verifyRecaptcha(token);
-
-    return this.usersService.requestPasswordReset(email);
+    try {
+      await this.recaptchaService.verifyRecaptcha(token);
+      return this.usersService.requestPasswordReset(email);
+    } catch (error) {
+      console.error('Error en requestPasswordReset:', error);
+      throw new HttpException(
+        'Error en la solicitud de recuperación de contraseña',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Post('reset-password')
