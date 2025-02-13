@@ -6,6 +6,10 @@ export class RecaptchaService {
   private readonly recaptchaSecret: string = process.env.RECAPTCHA_SECRET_KEY;
 
   async verifyRecaptcha(token: string): Promise<boolean> {
+    if (!token) {
+      throw new HttpException('Token de reCAPTCHA no proporcionado', HttpStatus.BAD_REQUEST);
+    }
+
     try {
       const response = await axios.post(
         `https://www.google.com/recaptcha/api/siteverify?secret=${this.recaptchaSecret}&response=${token}`
@@ -19,7 +23,8 @@ export class RecaptchaService {
 
       return true;
     } catch (error) {
-      throw new HttpException('Error verifying reCAPTCHA', HttpStatus.INTERNAL_SERVER_ERROR);
+      console.error("Error en verifyRecaptcha:", error); // Depuración
+      throw new HttpException('Error verificando reCAPTCHA', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }
