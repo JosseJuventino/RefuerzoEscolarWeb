@@ -13,8 +13,8 @@ export const deleteUser = async (id: string): Promise<void> => {
   await api.delete(`/users/${id}`);
 }
 
-export const requestPasswordReset = async (email: string): Promise<RequestPassResponse> => {
-  const response = await api.post<RequestPassResponse>('/users/request-password-reset', { email });
+export const requestPasswordReset = async (email: string, token : string): Promise<RequestPassResponse> => {
+  const response = await api.post<RequestPassResponse>('/users/request-password-reset', { email, token });
   return response.data;
 }
 

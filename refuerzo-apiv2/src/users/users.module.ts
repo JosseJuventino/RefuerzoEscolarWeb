@@ -10,6 +10,8 @@ import { Postulante } from 'src/postulante/entities/postulante.entity';
 import { AlumnoModule } from 'src/alumno/alumno.module';
 import { PostulanteModule } from 'src/postulante/postulante.module';
 import { PasswordResetToken } from 'src/auth/entities/password-reset-token';
+import { RecaptchaService } from './recaptcha.service';
+import { RecaptchaModule } from './recaptcha.module';
 
 @Module({
   controllers: [UsersController],
@@ -20,6 +22,7 @@ import { PasswordResetToken } from 'src/auth/entities/password-reset-token';
     TypeOrmModule.forFeature([User, Postulante]),
     TypeOrmModule.forFeature([PasswordResetToken]),
     EmailModule,
+    RecaptchaModule,
     forwardRef(() => AlumnoModule), 
     forwardRef(() => PostulanteModule),
   ],

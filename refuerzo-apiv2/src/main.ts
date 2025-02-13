@@ -4,13 +4,13 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filter/http-exception.filter';
 import { ConfigService } from '@nestjs/config';
+import { ThrottlerExceptionFilter } from './users/ThrottlerExceptionFilter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
   app.enableCors({
-    // Configuración de CORS para permitir de las siguientes URL
     origin: [
       'http://localhost:3000',
       'http://66.70.189.110',
@@ -54,6 +54,7 @@ async function bootstrap() {
     }),
   );
   app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(new ThrottlerExceptionFilter());
 
   // Inicia la aplicación en el puerto especificado
   await app.listen(port);

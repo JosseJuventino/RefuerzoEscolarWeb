@@ -23,13 +23,18 @@ import { Resources, Scopes } from 'nest_autorization';
 import { CreateNewRecomendadorDto } from './dto/create-recomendador.dto';
 import { RequestPasswordResetDto } from './dto/request-password-reset.dto.ts';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { RecaptchaService } from './recaptcha.service';
+import { Throttle } from '@nestjs/throttler';
 
 @ApiBasicAuth()
 @Permission('usuarios')
 @Resources('usuarios')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly recaptchaService: RecaptchaService,
+  ) {}
 
   @Scopes('view', 'edit')
   @Post('recomendador')
@@ -50,12 +55,15 @@ export class UsersController {
     description: 'Request password reset',
   })
   @Public()
-  requestPasswordReset(
+  @Throttle({ default: { limit: 3, ttl: 60 } })
+  async requestPasswordReset(
     @Body() requestPasswordResetDto: RequestPasswordResetDto,
   ) {
-    return this.usersService.requestPasswordReset(
-      requestPasswordResetDto.email,
-    );
+    const { email, token } = requestPasswordResetDto;
+
+    await this.recaptchaService.verifyRecaptcha(token);
+
+    return this.usersService.requestPasswordReset(email);
   }
 
   @Post('reset-password')
