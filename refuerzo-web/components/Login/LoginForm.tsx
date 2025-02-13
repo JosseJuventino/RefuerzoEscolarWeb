@@ -78,7 +78,6 @@ const LoginForm: React.FC = () => {
 
       const response: RequestPassResponse = await requestPasswordReset(resetEmail, token);
 
-      console.log(response);
 
       if (response && response.statusCode === 404) {
         toast.error(response.message);
