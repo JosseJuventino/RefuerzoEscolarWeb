@@ -2,8 +2,8 @@
 import type { Metadata } from 'next';
 import { NextUIProvider } from '@nextui-org/react';
 import './globals.css';
-
 import ClientProviders from '@/components/ClientProvider';
+import { GoogleReCaptchaProvider } from '@google-recaptcha/react';
 
 export const metadata: Metadata = {
   title: 'Refuerzo Escolar Web',
@@ -24,7 +24,7 @@ export default function RootLayout({
       <body>
         <NextUIProvider>
           <ClientProviders>
-            {children}
+              {children}
           </ClientProviders>
         </NextUIProvider>
       </body>

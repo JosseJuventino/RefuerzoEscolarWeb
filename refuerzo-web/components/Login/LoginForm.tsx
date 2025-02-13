@@ -10,6 +10,7 @@ import { requestPasswordReset } from "@/services/user.service";
 import { RequestPassResponse } from "@/types/types";
 import toast from "react-hot-toast";
 import { Toaster } from "react-hot-toast";
+import { GoogleReCaptchaCheckbox, GoogleReCaptchaProvider } from '@google-recaptcha/react';
 
 const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -21,6 +22,7 @@ const LoginForm: React.FC = () => {
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
 
+  console.log(process.env.NEXT_PUBLIC_SITE_KEY_RECAPTCHA)
   const router = useRouter();
 
   useEffect(() => {
@@ -59,8 +61,11 @@ const LoginForm: React.FC = () => {
     setError("");
     setResetLoading(true);
 
+
     try {
-      const response: RequestPassResponse = await requestPasswordReset(resetEmail);
+
+      const token = "kskjdsd"
+      const response: RequestPassResponse = await requestPasswordReset(resetEmail, token);
 
       if (response && response.statusCode === 404) {
         toast.error(response.message);
@@ -207,7 +212,16 @@ const LoginForm: React.FC = () => {
                     required
                   />
                 </div>
-
+                <GoogleReCaptchaProvider
+                  type="v2-checkbox"
+                  siteKey={process.env.NEXT_PUBLIC_SITE_KEY_RECAPTCHA || ''}
+                >
+                  <GoogleReCaptchaCheckbox
+                    onChange={(token) => {
+                      console.log(token);
+                    }}
+                  />
+                </GoogleReCaptchaProvider>
                 <div className="flex justify-end gap-4">
                   <button
                     type="button"
