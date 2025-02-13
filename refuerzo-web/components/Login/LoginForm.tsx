@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ShowPasswordIcon, HidePasswordIcon } from "@/utils/Icons";
 import { AuthService } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/authStore";
@@ -10,7 +10,10 @@ import { requestPasswordReset } from "@/services/user.service";
 import { RequestPassResponse } from "@/types/types";
 import toast from "react-hot-toast";
 import { Toaster } from "react-hot-toast";
-import { GoogleReCaptchaCheckbox, GoogleReCaptchaProvider } from '@google-recaptcha/react';
+import {
+  useGoogleReCaptcha
+} from 'react-google-recaptcha-v3';
+
 
 const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -22,8 +25,8 @@ const LoginForm: React.FC = () => {
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
 
-  console.log(process.env.NEXT_PUBLIC_SITE_KEY_RECAPTCHA)
   const router = useRouter();
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -35,6 +38,20 @@ const LoginForm: React.FC = () => {
 
     checkAuth();
   }, [router]);
+
+  const handleReCaptchaVerify = useCallback(async () => {
+    if (!executeRecaptcha) {
+      console.log('Execute recaptcha not yet available');
+      return;
+    }
+
+    const token = await executeRecaptcha('recover-password');
+    console.log(token);
+}, [executeRecaptcha]);
+
+  useEffect(() => {
+    handleReCaptchaVerify();
+  }, [handleReCaptchaVerify]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -212,16 +229,7 @@ const LoginForm: React.FC = () => {
                     required
                   />
                 </div>
-                <GoogleReCaptchaProvider
-                  type="v2-checkbox"
-                  siteKey={process.env.NEXT_PUBLIC_SITE_KEY_RECAPTCHA || ''}
-                >
-                  <GoogleReCaptchaCheckbox
-                    onChange={(token) => {
-                      console.log(token);
-                    }}
-                  />
-                </GoogleReCaptchaProvider>
+                <button onClick={handleReCaptchaVerify}>Verify recaptcha</button>
                 <div className="flex justify-end gap-4">
                   <button
                     type="button"

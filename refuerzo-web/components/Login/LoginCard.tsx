@@ -2,6 +2,9 @@
 
 import Illustration from "./Ilustration";
 import LoginForm from "./LoginForm";
+import {
+  GoogleReCaptchaProvider,
+} from 'react-google-recaptcha-v3';
 
 const LoginCard: React.FC = () => {
   return (
@@ -9,7 +12,13 @@ const LoginCard: React.FC = () => {
       <div className="w-full max-w-3xl bg-white rounded-lg shadow-lg overflow-hidden">
         <div className="flex flex-col md:flex-row">
           <Illustration />
-          <LoginForm />
+          <GoogleReCaptchaProvider
+            language="es"
+            reCaptchaKey={process.env.NEXT_PUBLIC_SITE_KEY_RECAPTCHA || ''}
+            scriptProps={{ async: true }}
+          >
+            <LoginForm />
+          </GoogleReCaptchaProvider>
         </div>
       </div>
     </div>
