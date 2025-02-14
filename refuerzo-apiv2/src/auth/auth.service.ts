@@ -181,5 +181,18 @@ export class AuthService {
     }
   }
 
+  async getAuditLogsByUser(userId: string): Promise<GeneralResponseDto<LoginAudit[]>> {
+    const logs = await this.loginAuditRepository.find({
+      //where user id is equal to the user id and expired is not defined and not true
+      where: { userId, expired: undefined },
+      order: { createdAt: 'DESC' },
+    });
+  
+    return new GeneralResponseBuilder<LoginAudit[]>()
+      .setStatusCode(200)
+      .setMessage('Logs de auditoría obtenidos exitosamente')
+      .setData(logs)
+      .build();
+  }
 
 }
