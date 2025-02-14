@@ -22,6 +22,9 @@ export class Document {
   @Column()
   category: string;
 
+  @Column()
+  url: string
+
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 

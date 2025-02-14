@@ -7,13 +7,16 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('Image')
+@Entity('Images')
 export class Image {
   @ObjectIdColumn()
   _id: ObjectId;
 
   @Column()
   originalFilename: string;
+
+  @Column()
+  storedFilename: string;
 
   @Column()
   optimizedFilename: string;
@@ -23,6 +26,9 @@ export class Image {
 
   @Column()
   category: string;
+
+  @Column()
+  url: string;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
