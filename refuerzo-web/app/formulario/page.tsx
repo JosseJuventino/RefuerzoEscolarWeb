@@ -230,8 +230,8 @@ export default function RegistrationForm() {
                             validation={{
                                 required: "El número de contacto es requerido",
                                 pattern: {
-                                    value: /^[0-9]{10}$/,
-                                    message: "Número inválido (10 dígitos requeridos)",
+                                    value: /^[0-9]{8}$/,
+                                    message: "Número inválido (8 dígitos requeridos)",
                                 },
                             }}
                             trigger={trigger}
