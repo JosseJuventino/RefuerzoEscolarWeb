@@ -8,21 +8,36 @@ import {
   Delete,
   UploadedFile,
   UseInterceptors,
+  Res,
+  NotFoundException,
+  Logger,
   Req,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImageService } from './images.service';
 import { CreateImageDto } from './dto/create-image.dto';
 import { UpdateImageDto } from './dto/update-image.dto';
-import { ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+  ApiBearerAuth,
+  ApiParam,
+} from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorators';
 import { Permission } from 'src/common/decorators/permission.decorators';
 import { Resources, Scopes } from 'nest_autorization';
+import * as fs from 'fs';
 
 @Controller('images')
-@Permission('blog')
-@Resources('blog')
+@ApiTags('Images')
+@Permission('document')
+@Resources('document')
 export class ImageController {
+  private readonly logger = new Logger(ImageController.name);
+
   constructor(private readonly imageService: ImageService) {}
 
   @Post()
@@ -31,7 +46,7 @@ export class ImageController {
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: 'Datos para subir una imagen',
-    type: CreateImageDto, // Usar el DTO directamente para Swagger
+    type: CreateImageDto,
     schema: {
       type: 'object',
       properties: {
@@ -42,11 +57,11 @@ export class ImageController {
         },
         originalFilename: {
           type: 'string',
-          description: 'El nombre original del archivo',
+          description: 'Nombre original de la imagen',
         },
         category: {
           type: 'string',
-          description: 'La categoría de la imagen',
+          description: 'Categoría de la imagen',
         },
       },
     },
@@ -55,40 +70,71 @@ export class ImageController {
   @UseInterceptors(FileInterceptor('file'))
   async create(
     @Body() createImageDto: CreateImageDto,
-    @UploadedFile() file,
+    @UploadedFile() file: Express.Multer.File,
     @Req() req: Request,
   ) {
-    return this.imageService.create(
-      createImageDto,
-      file,
-      req.headers['origin'],
+    this.logger.log(
+      `POST /images - Subiendo imagen: ${createImageDto.originalFilename}`,
     );
+    return this.imageService.create(createImageDto, file);
   }
 
-  @Public()
   @Get()
+  @ApiBearerAuth()
+  @Scopes('view')
+  @ApiOperation({ summary: 'Obtener todas las imágenes' })
   async findAll() {
+    this.logger.log(`GET /images - Obteniendo todas las imágenes`);
     return this.imageService.findAll();
   }
 
-  @Public()
+  @Get('download/:id')
+  @ApiBearerAuth()
+  @Scopes('view')
+  @ApiOperation({ summary: 'Descargar imagen por ID' })
+  @ApiParam({ name: 'id', description: 'ID de la imagen' })
+  async downloadImage(@Param('id') id: string, @Res() res: Response) {
+    this.logger.log(`GET /images/download/${id} - Descargando imagen`);
+    const { image, filePath } = await this.imageService.getImageFile(id);
+
+    res.setHeader('Content-Type', 'image/webp');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${image.originalFilename}"`,
+    );
+
+    return res.sendFile(filePath);
+  }
+
   @Get(':id')
+  @Public()
+  @ApiOperation({ summary: 'Obtener una imagen por su ID' })
+  @ApiParam({ name: 'id', description: 'ID de la imagen' })
   async findOne(@Param('id') id: string) {
+    this.logger.log(`GET /images/${id} - Obteniendo imagen`);
     return this.imageService.findOne(id);
   }
 
-  @Scopes('view', 'edit')
   @Put(':id')
+  @ApiBearerAuth()
+  @Scopes('view', 'edit')
+  @ApiOperation({ summary: 'Actualizar una imagen por su ID' })
+  @ApiParam({ name: 'id', description: 'ID de la imagen' })
   async update(
     @Param('id') id: string,
     @Body() updateImageDto: UpdateImageDto,
   ) {
+    this.logger.log(`PUT /images/${id} - Actualizando imagen`);
     return this.imageService.update(id, updateImageDto);
   }
 
-  @Scopes('view', 'edit')
   @Delete(':id')
+  @ApiBearerAuth()
+  @Scopes('view', 'edit')
+  @ApiOperation({ summary: 'Eliminar una imagen por su ID' })
+  @ApiParam({ name: 'id', description: 'ID de la imagen' })
   async delete(@Param('id') id: string) {
+    this.logger.log(`DELETE /images/${id} - Eliminando imagen`);
     return this.imageService.delete(id);
   }
 }

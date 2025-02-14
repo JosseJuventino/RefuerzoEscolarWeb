@@ -18,6 +18,8 @@ import { GradoModule } from './grado/grado.module';
 import { ProgramaModule } from './programa/programa.module';
 import { AlumnoModule } from './alumno/alumno.module';
 import { DocumentsModule } from './document/document.module';
+import { SeccionModule } from './seccion/seccion.module';
+import { PublicacionModule } from './publicacion/publicacion.module';
 
 @Module({
   imports: [
@@ -43,6 +45,8 @@ import { DocumentsModule } from './document/document.module';
     ProgramaModule,
     AlumnoModule,
     DocumentsModule,
+    SeccionModule,
+    PublicacionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
