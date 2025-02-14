@@ -7,6 +7,7 @@ import { AuthService } from "@/services/auth.service";
 import { useAuth } from "@/hooks/useAuth";
 import UpdateRequiredForm from "@/components/Auth/UpdateRequiredForm";
 import { Loading } from "@/components/Loading";
+import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -16,7 +17,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     const { user } = useAuth();
     const router = useRouter();
     const [isChecking, setIsChecking] = useState(true);
-    
+
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -32,8 +33,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
     if (isChecking) {
         return <Loading />;
-    }  
-    
+    }
+
 
     if (user && !user.isActive) {
         return <UpdateRequiredForm username={user.nombreCompleto} />
@@ -45,7 +46,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Sidenav user={user} />
             </div>
             <main className="flex-grow md:overflow-y-auto z-40 bg-gray-50">
-                {children}
+                <GoogleReCaptchaProvider
+                    language="es"
+                    reCaptchaKey={process.env.NEXT_PUBLIC_SITE_KEY_RECAPTCHA || ''}
+                    scriptProps={{ async: true }}
+                >
+                    {children}
+                </GoogleReCaptchaProvider>
             </main>
         </div>
     );

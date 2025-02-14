@@ -17,6 +17,17 @@ export interface PartialPostulant {
   createdAt?: string;
 }
 
+export interface LoginAttempt {
+  _id: string;
+  userId: string;
+  email: string;
+  device: string;
+  browser: string;
+  country: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface RequestPassResponse {
   statusCode: number;
   message: string;
@@ -68,10 +79,18 @@ export interface Usuario {
   password: string;
 }
 
+export interface UserEdited{
+  _id: string;
+  nombres: string;
+  imagen: string;
+  email: string;
+}
+
+
 export interface ActivateAccountRequirements {
-  image: string;
+  image?: string;
   telefono: string;
-  password: string;
+  password?: string;
 }
 
 export interface Recomendadores {
@@ -183,7 +202,7 @@ export interface Program {
   nombre: string;
 }
 
-export interface PartialProgram{
+export interface PartialProgram {
   nombre: string;
 }
 

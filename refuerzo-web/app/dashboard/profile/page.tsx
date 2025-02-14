@@ -3,34 +3,41 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthStore } from "@/stores/authStore";
-import { 
-  UserCircle, 
-  Edit, 
-  LogOut, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  User, 
-  Lock, 
-  CheckCircle, 
-  Loader,
+import { getLoginAttempt } from "@/services/auditory.service";
+import {
+  UserCircle,
+  Edit,
+  LogOut,
+  Mail,
+  Phone,
+  MapPin,
+  User,
+  Lock,
   Activity,
-  Key
+  Key,
+  Monitor,
+  Smartphone,
+  Chrome,
+  Globe,
+  Calendar,
 } from "lucide-react";
 
 import toast from "react-hot-toast";
 import PageHeader from "@/components/Dashboard/PageHeader";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
+import { requestPasswordReset } from "@/services/user.service";
+import { LoginAttempt, RequestPassResponse } from "@/types/types";
+import ForgotPasswordModal from "@/components/Popups/ForgotPasswordModal";
+import { useQuery } from "@tanstack/react-query";
+import { formatRelativeTime } from "@/utils/formatRelativeTime";
 
-
-
-// Componente de Ítem de Información
-const InfoItem = ({ 
-  icon: Icon, 
-  label, 
-  value, 
-  editable = false, 
-  onEdit 
-}: { 
+const InfoItem = ({
+  icon: Icon,
+  label,
+  value,
+  editable = false,
+  onEdit
+}: {
   icon: React.ElementType;
   label: string;
   value: string | React.ReactNode;
@@ -48,7 +55,7 @@ const InfoItem = ({
       </p>
     </div>
     {editable && (
-      <button 
+      <button
         onClick={onEdit}
         className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-blue_principal"
       >
@@ -58,37 +65,15 @@ const InfoItem = ({
   </div>
 );
 
-// Componente de Sección de Seguridad
-const SecuritySection = () => (
-  <div className="p-2">
-    <h2 className="text-2xl font-bold text-blue_principal mb-6 flex items-center gap-2">
-      <Lock className="w-6 h-6 " />
-      Seguridad y Privacidad
-    </h2>
-    
-    <div className="space-y-4">
-      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-        <div className="flex items-center gap-3">
-          <Key className="w-5 h-5 text-blue_principal" />
-          <div>
-            <p className="font-medium">Cambiar Contraseña</p>
-            <p className="text-sm text-gray-500">Actualiza tu contraseña regularmente para mayor seguridad</p>
-          </div>
-        </div>
-        <button className="px-4 py-2 bg-white border border-blue_principal text-blue_principal rounded-lg hover:bg-blue-50">
-          Cambiar
-        </button>
-      </div>
-    </div>
-  </div>
-);
 
-// Componente principal
 export default function ProfilePage() {
   const { user } = useAuth();
   const { clearAuth } = useAuthStore();
-  const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [showForgotPasswordPopup, setShowForgotPasswordPopup] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
   const handleLogout = () => {
     toast.loading("Cerrando sesión...");
@@ -96,27 +81,45 @@ export default function ProfilePage() {
       clearAuth('/');
       toast.success("Sesión cerrada con éxito");
     }, 1500);
+
+
   };
-  const handleSaveProfile = async () => {
-    const savePromise = new Promise((resolve, reject) => {
-      setIsLoading(true);
-      setTimeout(async () => {
-        try {
-    
-          setIsEditing(false);
-          resolve("Perfil actualizado correctamente");
-        } catch {
-          reject("Error al actualizar el perfil");
-        } finally {
-          setIsLoading(false);
-        }
-      }, 1500);
-    });
-    toast.promise(savePromise, {
-      loading: <b>Guardando cambios...</b>,
-      success: <b>Perfil actualizado correctamente</b>,
-      error: <b>Error al actualizar el perfil</b>,
-    });
+
+  const {
+    data: logins,
+  } = useQuery<LoginAttempt[], Error>({
+    queryKey: ["postulants"],
+    queryFn: getLoginAttempt,
+  });
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetLoading(true);
+
+
+    try {
+      if (!executeRecaptcha) {
+        throw new Error("reCAPTCHA no está disponible.");
+      }
+
+
+      const token = await executeRecaptcha("forgot_password");
+      console.log("Token de reCAPTCHA generado:", token);
+
+      const response: RequestPassResponse = await requestPasswordReset(resetEmail, token);
+
+
+      if (response && response.statusCode === 404) {
+        toast.error(response.message);
+      } else {
+        toast.success("Enlace de recuperación enviado correctamente, revisa tu correo.");
+        setShowForgotPasswordPopup(false);
+      }
+    } catch {
+      toast.error("Error al enviar el enlace de recuperación");
+    } finally {
+      setResetLoading(false);
+    }
   };
 
 
@@ -125,18 +128,6 @@ export default function ProfilePage() {
       <PageHeader
         title="Mi Perfil"
         buttons={[
-          {
-            label: isEditing ? "Guardar Cambios" : "Editar Perfil",
-            icon: isEditing ? 
-              (isLoading ? <Loader className="animate-spin" /> : <CheckCircle size={18} />) : 
-              <Edit size={18} />,
-            onClick: isEditing ? handleSaveProfile : () => setIsEditing(true),
-            className: `px-4 py-2 rounded-lg shadow-md transition-all ${
-              isEditing 
-                ? "bg-green-100 text-green-600 hover:bg-green-200" 
-                : "bg-white text-blue_principal border border-blue_principal hover:bg-blue-50"
-            }`,
-          },
           {
             label: "Cerrar Sesión",
             icon: <LogOut size={18} />,
@@ -161,12 +152,6 @@ export default function ProfilePage() {
                   <UserCircle className="w-20 h-20 text-gray-400" />
                 </div>
               )}
-              <button
-                onClick={() => toast("Función de edición de foto en desarrollo", { icon: '🛠️' })}
-                className="absolute bottom-0 right-0 bg-blue_principal p-2 rounded-full shadow-md hover:bg-blue-700 transition-colors"
-              >
-                <Edit className="w-5 h-5 text-white" />
-              </button>
             </div>
 
             <div className="text-center md:text-left">
@@ -181,57 +166,110 @@ export default function ProfilePage() {
           </div>
 
           <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InfoItem 
-              icon={User} 
-              label="Nombre completo" 
+            <InfoItem
+              icon={User}
+              label="Nombre completo"
               value={user?.nombreCompleto}
-              editable
-              onEdit={() => setIsEditing(true)}
             />
-            <InfoItem 
-              icon={Mail} 
-              label="Correo electrónico" 
+            <InfoItem
+              icon={Mail}
+              label="Correo electrónico"
               value={user?.email}
             />
-            <InfoItem 
-              icon={Phone} 
-              label="Teléfono" 
+            <InfoItem
+              icon={Phone}
+              label="Teléfono"
               value="75135462"
-              editable
-              onEdit={() => setIsEditing(true)}
             />
-            <InfoItem 
-              icon={MapPin} 
-              label="Dirección" 
+            <InfoItem
+              icon={MapPin}
+              label="Dirección"
               value="Col Brisas del Mar"
-              editable
-              onEdit={() => setIsEditing(true)}
             />
           </div>
         </div>
 
-        {/* Componentes de Secciones */}
-        <SecuritySection />
+        <div className="p-2">
+          <h2 className="text-2xl font-bold text-blue_principal mb-6 flex items-center gap-2">
+            <Lock className="w-6 h-6 " />
+            Seguridad y Privacidad
+          </h2>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+              <div className="flex items-center gap-3">
+                <Key className="w-5 h-5 text-blue_principal" />
+                <div>
+                  <p className="font-medium">Cambiar Contraseña</p>
+                  <p className="text-sm text-gray-500">Actualiza tu contraseña regularmente para mayor seguridad</p>
+                </div>
+              </div>
+              <button onClick={() => setShowForgotPasswordPopup(true)} className="px-4 py-2 bg-white border border-blue_principal text-blue_principal rounded-lg hover:bg-blue-50">
+                Cambiar
+              </button>
+            </div>
+          </div>
+        </div>
 
         <div className="p-2">
           <h2 className="text-2xl font-bold text-blue_principal mb-6 flex items-center gap-2">
             <Activity className="w-6 h-6" />
             Actividad Reciente
           </h2>
-          
+
           <div className="space-y-4">
-            <div className="p-4 bg-gray-50 rounded-xl">
-              <p className="font-medium">Último inicio de sesión</p>
-              <p className="text-sm text-gray-500">25 de Julio, 2023 - 14:30 desde Chrome, Windows</p>
-            </div>
-            
-            <div className="p-4 bg-gray-50 rounded-xl">
-              <p className="font-medium">Dispositivos activos</p>
-              <p className="text-sm text-gray-500">2 dispositivos conectados</p>
-            </div>
+            {logins?.length === 0 ? (
+              <div className="p-4 bg-gray-50 rounded-xl text-gray-500 italic">
+                No hay registros de intentos de inicio de sesión
+              </div>
+            ) : (
+              logins?.map((login) => (
+                <div key={login._id} className="p-4 bg-gray-50 rounded-xl">
+                  <div className="flex items-center gap-4">
+                    <div className="p-2 bg-white rounded-lg shadow-sm">
+                      {login.device.toLowerCase().includes('desktop') ? (
+                        <Monitor className="w-5 h-5 text-blue_principal" />
+                      ) : (
+                        <Smartphone className="w-5 h-5 text-blue_principal" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        {login.browser === 'Chrome' ? (
+                          <Chrome className="w-4 h-4 text-blue_principal" />
+                        ) : (
+                          <Globe className="w-4 h-4 text-blue_principal" />
+                        )}
+                        <span className="font-medium">{login.browser}</span>
+                        <span className="text-gray-500">•</span>
+                        <span className="text-sm text-gray-500">{login.device}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <Globe className="w-4 h-4" />
+                        <span>{login.country}</span>
+                        <span>•</span>
+                        <Calendar className="w-4 h-4" />
+                        <span title={new Date(login.createdAt).toLocaleDateString('es-ES', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}>
+                          {formatRelativeTime(login.createdAt)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
+      {showForgotPasswordPopup && (
+        <ForgotPasswordModal handleForgotPassword={handleForgotPassword} resetEmail={resetEmail} resetLoading={resetLoading} setResetEmail={setResetEmail} setShowForgotPasswordPopup={setShowForgotPasswordPopup} />
+      )}
     </div>
   );
 }
