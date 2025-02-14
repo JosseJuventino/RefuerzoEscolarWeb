@@ -9,6 +9,7 @@ import { Estudiante, Column } from '@/types/types';
 import CardStudent from '@/components/CardViews/StudentCard';
 import ListGridLayout from "@/components/Dashboard/ListGridLayout";
 import { DeleteModal } from "@/components/Popups/DeleteModal";
+import { Loading } from "@/components/Loading";
 
 export default function Page() {
   const [isCardView, setIsCardView] = useState(false);
@@ -82,7 +83,7 @@ export default function Page() {
     },
   ]
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <Loading />;
 
   if (isError) {
     return <div>Error: {error?.message}</div>;
