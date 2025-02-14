@@ -13,6 +13,10 @@ import { Tokens } from './entities/token.entity';
 import { CreateTokensDto } from './dto/create-tokens.dto';
 import { PageverifyDto } from './dto/pageverify.dto';
 import { PermisionOptions, Role } from 'src/roles/entities/role.entity';
+import { LoginAudit } from './entities/loginAudith.entity';
+import { GeoLocationService } from './geolocation.service';
+import { UAParser } from 'ua-parser-js';
+import { ObjectId } from 'typeorm';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +24,9 @@ export class AuthService {
   private readonly authcrudHelper: CrudHelper<Tokens>;
   private readonly rolecrudHelper: CrudHelper<Role>;
   constructor(
+    @InjectRepository(LoginAudit)
+    private readonly loginAuditRepository: Repository<LoginAudit>,
+    private readonly geoLocationService: GeoLocationService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Role)
@@ -36,7 +43,7 @@ export class AuthService {
     this.rolecrudHelper = new CrudHelper<Role>(this.roleRepository, 'Roles');
   }
 
-  async login(authDto: AuthDto): Promise<GeneralResponseDto<auth>> {
+  async login(authDto: AuthDto, ipAddress: string, userAgent: string): Promise<GeneralResponseDto<auth>> {
     const user = await this.UsercrudHelper.findOne(
       {
         where: { email: authDto.email },
@@ -117,6 +124,24 @@ export class AuthService {
       {},
     );
 
+    const location = this.geoLocationService.getLocation(ipAddress);
+    const parser = new UAParser(userAgent);
+    const result = parser.getResult();
+    const device = result.device.type || 'Desktop'; // Móvil, Tablet, etc.
+    const browser = result.browser.name || 'Unknown'; // Navegador
+
+    await this.logLoginAttempt(
+      user._id.toString(),
+      user.email,
+      ipAddress,
+      userAgent,
+      device,
+      browser,
+      location.country,
+      location.region,
+    );
+
+
     return (
       new GeneralResponseBuilder<auth>()
         .setStatusCode(200)
@@ -126,4 +151,43 @@ export class AuthService {
         .build()
     );
   }
+
+  private async logLoginAttempt(
+    userId: string,
+    email: string,
+    ipAddress: string,
+    userAgent: string,
+    device: string,
+    browser: string,
+    country: string,
+    region: string,
+  ): Promise<void> {
+    const newLog = this.loginAuditRepository.create({
+      userId,
+      email,
+      ipAddress,
+      userAgent,
+      device,
+      browser,
+      country,
+      region,
+    });
+
+    await this.loginAuditRepository.save(newLog);
+
+    const userLogs = await this.loginAuditRepository.find({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+    });
+
+    if (userLogs.length > 3) {
+      const logsToDelete = userLogs.slice(3);
+      for (const log of logsToDelete) {
+        log.expired = true;
+        await this.loginAuditRepository.save(log);
+      }
+    }
+  }
+
+
 }
