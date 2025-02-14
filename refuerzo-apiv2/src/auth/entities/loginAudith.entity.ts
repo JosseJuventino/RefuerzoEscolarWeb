@@ -22,12 +22,6 @@ export class LoginAudit {
   email: string;
 
   @Column()
-  ipAddress: string;
-
-  @Column()
-  userAgent: string;
-
-  @Column()
   device: string;
 
   @Column()
@@ -35,9 +29,6 @@ export class LoginAudit {
 
   @Column({ nullable: true })
   country: string;
-
-  @Column({ nullable: true })
-  region: string;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -127,18 +127,16 @@ export class AuthService {
     const location = this.geoLocationService.getLocation(ipAddress);
     const parser = new UAParser(userAgent);
     const result = parser.getResult();
-    const device = result.device.type || 'Desktop'; // Móvil, Tablet, etc.
-    const browser = result.browser.name || 'Unknown'; // Navegador
+    const device = result.device.type || 'Desktop'; 
+    const browser = result.browser.name || 'Unknown'; 
 
     await this.logLoginAttempt(
       user._id.toString(),
       user.email,
-      ipAddress,
-      userAgent,
       device,
       browser,
       location.country,
-      location.region,
+
     );
 
 
@@ -155,22 +153,16 @@ export class AuthService {
   private async logLoginAttempt(
     userId: string,
     email: string,
-    ipAddress: string,
-    userAgent: string,
     device: string,
     browser: string,
     country: string,
-    region: string,
   ): Promise<void> {
     const newLog = this.loginAuditRepository.create({
       userId,
       email,
-      ipAddress,
-      userAgent,
       device,
       browser,
       country,
-      region,
     });
 
     await this.loginAuditRepository.save(newLog);

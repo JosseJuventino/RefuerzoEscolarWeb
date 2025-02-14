@@ -23,8 +23,8 @@ export class AuthController {
   @Post('login')
   @Public()
   login(@Body() authDto: AuthDto, @Req() req: Request) {
-    const ipAddress = req.ip || req.connection.remoteAddress; // Obtener la dirección IP
-    const userAgent = req.headers['user-agent'] || 'Unknown'; // Obtener el User-Agent
+    const ipAddress = req.ip || req.connection.remoteAddress; 
+    const userAgent = req.headers['user-agent'] || 'Unknown'; 
     return this.authService.login(authDto, ipAddress, userAgent);
   }
 }
