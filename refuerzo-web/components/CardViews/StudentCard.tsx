@@ -1,5 +1,5 @@
 import { Estudiante } from "@/types/types";
-import { Mail, Phone, Trash2, Edit2, Repeat2Icon } from "lucide-react";
+import { Mail, Phone, Trash2, Repeat2Icon } from "lucide-react";
 
 interface EstudianteCardProps {
     alumno: Estudiante;

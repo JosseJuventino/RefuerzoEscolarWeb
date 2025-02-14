@@ -11,12 +11,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RolesModule } from 'src/roles/roles.module';
 import { AuthGuard } from './auth.guard';
 import { APP_GUARD } from '@nestjs/core';
+import { LoginAudit } from './entities/loginAudith.entity';
+import { GeoLocationModule } from './geolocation.module';
 
 @Module({
   imports: [
     CommonModule,
     UsersModule,
     RolesModule,
+    GeoLocationModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -26,7 +29,7 @@ import { APP_GUARD } from '@nestjs/core';
         signOptions: { expiresIn: '2h' },
       }),
     }),
-    TypeOrmModule.forFeature([Tokens]),
+    TypeOrmModule.forFeature([Tokens, LoginAudit]),
   ],
   controllers: [AuthController],
   providers: [
