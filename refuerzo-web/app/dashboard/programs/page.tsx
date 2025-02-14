@@ -5,7 +5,7 @@ import PageHeader from "@/components/Dashboard/PageHeader";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getPrograms, addProgram, deleteProgram } from "@/services/programs.service";
+import { getPrograms, addProgram, deleteProgram, updateProgram } from "@/services/programs.service";
 import { Loading } from "@/components/Loading";
 import ProgramCard from "@/components/CardViews/ProgramCard";
 import ListGridLayout from "@/components/Dashboard/ListGridLayout";
@@ -42,9 +42,15 @@ export default function Page() {
         },
     });
 
-
     const deleteProgramMutation = useMutation({
         mutationFn: deleteProgram,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['programas'] });
+        },
+    });
+
+    const updateProgramMutation = useMutation({
+        mutationFn: updateProgram,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['programas'] });
         },
@@ -60,7 +66,7 @@ export default function Page() {
         return <div>Error: {error?.message}</div>;
     }
 
-    
+
     const handleAdd = async (Newprograma: PartialProgram) => {
         await addProgramMutation.mutateAsync(Newprograma);
         closeModal();
@@ -71,6 +77,11 @@ export default function Page() {
         await deleteProgramMutation.mutateAsync(modalState.selected._id);
         closeModal();
     };
+
+    const handleEdit = async (programa: Program) => {
+        await updateProgramMutation.mutateAsync(programa);
+        closeModal();
+    }
 
 
     const closeModal = () => setModalState({ type: null, selected: null, });
@@ -106,8 +117,8 @@ export default function Page() {
                             data={program ?? []}
                             loading={isLoading}
                             columns={columns}
-                            hasEdit={false}
-                            onEdit={(row) => console.log("Editar: ", row)}
+                            hasEdit={true}
+                            onEdit={(row) => setModalState({ type: 'edit', selected: row })}
                             onDelete={(id) => {
                                 const selected = program?.find(r => r._id === id);
                                 if (selected) setModalState({ type: 'delete', selected });
@@ -123,6 +134,15 @@ export default function Page() {
                 onClose={closeModal}
                 onSubmit={handleAdd}
             />
+
+            <ProgramModal
+                isOpen={modalState.type === 'edit'}
+                title="Editar Programa"
+                onClose={closeModal}
+                onSubmit={handleEdit}
+                initialData={modalState.selected!}
+            />
+
 
             <DeleteModal<Program>
                 isOpen={modalState.type === 'delete'}

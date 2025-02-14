@@ -1,5 +1,5 @@
 import { Estudiante } from "@/types/types";
-import { Mail, Phone, Trash2, Edit2 } from "lucide-react";
+import { Mail, Phone, Trash2, Edit2, Repeat2Icon } from "lucide-react";
 
 interface EstudianteCardProps {
     alumno: Estudiante;
@@ -43,10 +43,11 @@ export default function CardStudent({ alumno, setModalState }: EstudianteCardPro
                     </button>
 
                     <button
-                        onClick={() => setModalState({ type: 'edit', selected: alumno, })}
-                        className="text-blue-500 hover:text-blue-700 hover:b    g-blue-50 rounded-lg p-1.5"
+                        className="flex items-center justify-center w-8 h-8 text-yellow-500 hover:text-yellow-700 focus:outline-none"
+                        onClick={() => { }}
+                        aria-label="Mover"
                     >
-                        <Edit2 className="w-5 h-5" />
+                        <Repeat2Icon size={22} />
                     </button>
                 </div>
             </div>

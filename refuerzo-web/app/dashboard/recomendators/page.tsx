@@ -12,6 +12,7 @@ import { getRecomendadores, addRecomendador, updateRecomendador } from "@/servic
 import { deleteUser } from "@/services/user.service";
 import ListGridLayout from "@/components/Dashboard/ListGridLayout";
 import CardRecomendador from "@/components/CardViews/RecomendadorCard";
+import { Loading } from "@/components/Loading";
 
 
 const ContactInfo = ({ email, telefono }: { email: string; telefono: string }) => (
@@ -101,7 +102,7 @@ export default function RecomendadoresPage() {
 
   const closeModal = () => setModalState({ type: null, selected: null, });
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <Loading />;
 
   if (isError) {
     return <div>Error: {error?.message}</div>;
