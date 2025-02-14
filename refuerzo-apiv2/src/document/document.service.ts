@@ -69,11 +69,14 @@ export class DocumentService {
       // Guardar el archivo
       fs.writeFileSync(filePath, file.buffer);
 
+      const DocumentUrl = `${this.configService.get('NEXT_PUBLIC_API_URLV2')}/uploads/documents/${createDocumentDto.category}/${storedFilename}`;
+
       // Crear registro en base de datos
       const newDocument = this.documentRepository.create({
         originalFilename: originalFilename, // Usamos el nombre personalizado
         storedFilename: storedFilename,
         category: createDocumentDto.category,
+        url: DocumentUrl,
       });
 
       await this.documentRepository.save(newDocument);
@@ -81,7 +84,7 @@ export class DocumentService {
       return {
         message: 'Documento subido correctamente',
         data: {
-          url: `${this.configService.get('NEXT_PUBLIC_API_URLV2')}/uploads/documents/${createDocumentDto.category}/${storedFilename}`,
+          url: DocumentUrl,
           documentId: newDocument._id.toString(),
           fileName: originalFilename, // Devolvemos el nombre formateado
         },
