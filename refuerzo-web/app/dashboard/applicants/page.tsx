@@ -12,6 +12,7 @@ import { formatDate } from "@/utils/utils";
 import { DeleteModal } from "@/components/Popups/DeleteModal";
 import CardPostulante from "@/components/CardViews/PostulantCard";
 import ListGridLayout from "@/components/Dashboard/ListGridLayout";
+import { Loading } from "@/components/Loading";
 
 
 export default function Applicants() {
@@ -63,7 +64,7 @@ export default function Applicants() {
             {postulante.recomendador?.nombreCompleto || 'N/A'}
         </span>
     );
-    
+
     const columns: Column<CompletePostulant>[] = [
         {
             header: "Imagen",
@@ -100,7 +101,7 @@ export default function Applicants() {
 
     ];
 
-    if (isLoading) return <div>Loading...</div>;
+    if (isLoading) return <Loading />;
 
     if (isError) {
         return <div>Error: {error?.message}</div>;
