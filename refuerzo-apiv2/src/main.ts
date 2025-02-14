@@ -8,8 +8,14 @@ import { ThrottlerExceptionFilter } from './users/ThrottlerExceptionFilter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  const expressInstance = app.getHttpAdapter().getInstance();
+  
   const configService = app.get(ConfigService);
 
+  //add trust proxy
+  expressInstance.set('trust proxy', true);
+  
   app.enableCors({
     origin: [
       'http://localhost:3000',
