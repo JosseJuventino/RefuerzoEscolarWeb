@@ -10,7 +10,7 @@ import { Tooltip as ReactTooltip } from "react-tooltip";
 type Course = {
     _id: string;
     name: string;
-    professors: string[];  // Cambiado a array de strings
+    professors: string[]; 
     backgroundImage: string;
     novedades: {
         _id: number;

@@ -43,4 +43,14 @@ export class CreateSeccionDto {
   @IsArray()
   @IsOptional()
   readonly alumnos: string[];
+
+  @ApiProperty({
+    description: 'Imagen de fondo de la sección',
+    example: 'https://example.com/image.jpg',
+    required: false,
+  })
+  @IsString()
+  @IsString()
+  @IsOptional()
+  readonly backgroundImage?: string; 
 }

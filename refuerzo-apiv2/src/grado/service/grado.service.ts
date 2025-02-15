@@ -59,6 +59,7 @@ export class GradoService {
       gradoId: savedGrado._id.toString(),
       encargados: [],
       alumnos: [],
+      backgroundImage: '',
     });
 
     return new GeneralResponseBuilder<Grado>()
