@@ -17,7 +17,7 @@ import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { buildPaginationAndFilterOptions } from 'src/common/helper/pagination.helper';
 import { PaginationResponseBuilder } from 'src/common/helper/paginated-response.helper';
 import { PaginationResponseDto } from 'src/common/dto/pagination-response.dto';
-import { CONFIGURABLE_MODULE_ID } from '@nestjs/common/module-utils/constants';
+import { SeccionService } from 'src/seccion/service/seccion.service';
 
 @Injectable()
 export class GradoService {
@@ -26,6 +26,7 @@ export class GradoService {
   constructor(
     @InjectRepository(Grado)
     private readonly gradoRepository: Repository<Grado>,
+    private readonly seccionService: SeccionService,
   ) {
     this.crudHelper = new CrudHelper<Grado>(this.gradoRepository, 'Grados');
   }
@@ -40,7 +41,7 @@ export class GradoService {
     );
     if (findGrado) {
       throw new ConflictException(
-        `Grado with username ${createGradoDto.nombre} already exists`,
+        `Grado with name ${createGradoDto.nombre} already exists`,
       );
     }
 
@@ -51,6 +52,15 @@ export class GradoService {
 
     // Guardar el grado en la base de datos para obtener su _id
     const savedGrado = await this.gradoRepository.save(newGrado);
+
+    // Crear una sección por defecto para el grado
+    await this.seccionService.create({
+      nombre: `Matematicas - ${savedGrado.nombre}`,
+      gradoId: savedGrado._id.toString(),
+      encargados: [],
+      alumnos: [],
+      backgroundImage: '',
+    });
 
     return new GeneralResponseBuilder<Grado>()
       .setStatusCode(201)
@@ -148,9 +158,28 @@ export class GradoService {
     id: string,
     updateGradoDto: UpdateGradoDto,
   ): Promise<GeneralResponseDto<Grado>> {
-    const Grado = await this.crudHelper.findByNameOrId(id);
+    const existingGrado = await this.crudHelper.findByNameOrId(id);
+    const oldNombre = existingGrado.nombre;
 
-    await this.crudHelper.update(Grado, updateGradoDto);
+    // Actualizar el Grado
+    await this.crudHelper.update(existingGrado, updateGradoDto);
+
+    // Si se modificó el nombre del grado
+    if (updateGradoDto.nombre && updateGradoDto.nombre !== oldNombre) {
+      // Obtener todas las secciones relacionadas
+      const secciones = await this.seccionService.findAllByGradoId(id);
+
+      // Actualizar cada sección
+      for (const seccion of secciones) {
+        // Extraer el tema (parte antes del " - ") y combinar con el nuevo nombre del grado
+        const [tema] = seccion.nombre.split(' - '); // Divide el nombre en el primer " - "
+        const newSeccionNombre = `${tema} - ${updateGradoDto.nombre}`; // Usa el tema y el nuevo nombre
+        await this.seccionService.update(seccion._id.toString(), {
+          nombre: newSeccionNombre,
+        });
+      }
+    }
+
     return new GeneralResponseBuilder<Grado>()
       .setMessage('Grado updated successfully')
       .build();
@@ -159,6 +188,8 @@ export class GradoService {
   async remove(id: string): Promise<GeneralResponseDto<Grado>> {
     const Grado = await this.crudHelper.findByNameOrId(id);
     await this.crudHelper.delete(Grado, true);
+    await this.seccionService.deleteByGradoId(id);
+
     return new GeneralResponseBuilder<Grado>()
       .setMessage('Grado deleted successfully')
       .build();
