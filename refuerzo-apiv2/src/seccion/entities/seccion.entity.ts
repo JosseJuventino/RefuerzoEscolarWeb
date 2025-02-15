@@ -21,6 +21,9 @@ export class Seccion {
   gradoId: string;
 
   @Column()
+  backgroundImage: string;
+
+  @Column()
   encargados: string[];
 
   @Column()
