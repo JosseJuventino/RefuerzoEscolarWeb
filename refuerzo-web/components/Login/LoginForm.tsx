@@ -10,7 +10,6 @@ import { requestPasswordReset } from "@/services/user.service";
 import { RequestPassResponse } from "@/types/types";
 import { toast } from "@pheralb/toast";
 import ForgotPasswordModal from "../Popups/ForgotPasswordModal";
-import { Toaster } from "react-hot-toast";
 import {
   useGoogleReCaptcha
 } from 'react-google-recaptcha-v3';
@@ -196,7 +195,7 @@ const LoginForm: React.FC = () => {
 
       {/* Popup de recuperación de contraseña */}
       {showForgotPasswordPopup && (
-        <ForgotPasswordModal handleForgotPassword={handleForgotPassword} resetEmail={resetEmail} resetLoading={resetLoading} setResetEmail={setResetEmail} setShowForgotPasswordPopup={setShowForgotPasswordPopup} /> 
+        <ForgotPasswordModal handleForgotPassword={handleForgotPassword} resetEmail={resetEmail} resetLoading={resetLoading} setResetEmail={setResetEmail} setShowForgotPasswordPopup={setShowForgotPasswordPopup} hasLogin={false} /> 
       )}
     </div>
   );
