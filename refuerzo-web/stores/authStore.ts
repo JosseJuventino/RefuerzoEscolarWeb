@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { UserInfo } from '@/types/types';
-
 interface AuthStore {
   token: string | null;
   user: UserInfo | null;

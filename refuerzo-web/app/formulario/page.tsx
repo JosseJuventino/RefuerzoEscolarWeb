@@ -13,7 +13,7 @@ import { getPrograms } from "@/services/programs.service";
 import { getGrades } from "@/services/grades.service";
 import SelectField from "@/components/Fields/SelectField";
 import { useForm, SubmitHandler, } from "react-hook-form";
-import toast, { Toaster } from "react-hot-toast";
+import { toast } from "@pheralb/toast";
 import { AuthService } from "@/services/auth.service";
 import { Loading } from "@/components/Loading";
 import { Grade, Image, Program } from "@/types/types";
@@ -129,14 +129,14 @@ export default function RegistrationForm() {
             console.log(response);
             router.push("/dashboard/postulantes/sucess");
         } catch {
-            toast.error("Error al enviar el formulario");
+            toast.error({text: "Error al enviar la aplicación"});
         }
     };
 
     useEffect(() => {
         if (Object.keys(errors).length > 0) {
-            Object.values(errors).forEach((error) => {
-                toast.error(error?.message || "Error de validación");
+            Object.values(errors).forEach(() => {
+                toast.error({ text: "Ha ocurrido un error" });
             });
         }
     }, [errors]);
@@ -158,7 +158,6 @@ export default function RegistrationForm() {
 
     return (
         <main className="w-full h-full bg-gray-50">
-            <Toaster position="top-right" />
             <div className="max-w-[600px] mx-auto p-8 md:p-4">
                 <Header />
 
