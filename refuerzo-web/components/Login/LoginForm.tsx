@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import Image from "next/image";
 import { requestPasswordReset } from "@/services/user.service";
 import { RequestPassResponse } from "@/types/types";
-import toast from "react-hot-toast";
+import { toast } from "@pheralb/toast";
 import ForgotPasswordModal from "../Popups/ForgotPasswordModal";
 import { Toaster } from "react-hot-toast";
 import {
@@ -81,9 +81,9 @@ const LoginForm: React.FC = () => {
 
 
       if (response && response.statusCode === 404) {
-        toast.error(response.message);
+        toast.error({text: 'Ha ocurrido un error', description: response.message});
       } else {
-        toast.success("Enlace de recuperación enviado correctamente, revisa tu correo.");
+        toast.success({text: 'Enlace de recuperación enviado. Revisa tu correo electrónico.'});
         setShowForgotPasswordPopup(false);
       }
     } catch {
@@ -95,17 +95,6 @@ const LoginForm: React.FC = () => {
 
   return (
     <div className="w-full md:w-1/2 p-6 md:p-8">
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 5000,
-          style: {
-            background: "#fff",
-            color: "#363636",
-            boxShadow: "0 3px 10px rgba(0, 0, 0, 0.1)",
-          },
-        }}
-      />
       <Image src="/LogoColorido.svg" alt="Logo" className="w-24" width={96} height={96} />
       <h2 className="text-2xl font-bold mb-6 text-blue_principal">Iniciar Sesión</h2>
 

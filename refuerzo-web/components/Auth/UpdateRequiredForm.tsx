@@ -15,8 +15,7 @@ import { uploadImage } from "@/services/images.service";
 import { activeProfile } from "@/services/user.service";
 import { PhoneField } from "../Fields/PhoneField";
 import { useCamera } from "@/hooks/useCamera";
-import toast from "react-hot-toast";
-import { Toaster } from "react-hot-toast";
+import { toast } from "@pheralb/toast";
 
 
 interface UpdateRequiredFormProps {
@@ -63,8 +62,7 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
 
     const handleNext = () => {
         if (!formData.current.imagen) {
-            toast.error("Debes subir una imagen de perfil");
-            return;
+            toast.error({ text: "Debes subir una imagen de perfil" });
         }
         setStep(step + 1);
     };
@@ -116,12 +114,12 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
     const handleFinish = async () => {
 
         if (telefono.length !== 8) {
-            toast.error("El teléfono debe tener 8 dígitos");
+            toast.error({ text: "El número de teléfono debe tener 8 dígitos" });
             return;
         }
 
         if (passwordStrength < 1) {
-            toast.error("La contraseña debe tener al menos 8 caracteres con combinación de letras y números");
+            toast.error({ text: "La contraseña debe tener al menos 8 caracteres, una letra y un número" });
             return;
         }
 
@@ -157,17 +155,6 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
-            <Toaster
-                position="top-center"
-                toastOptions={{
-                    duration: 5000,
-                    style: {
-                        background: "#fff",
-                        color: "#363636",
-                        boxShadow: "0 3px 10px rgba(0, 0, 0, 0.1)",
-                    },
-                }}
-            />
             <div className="w-full max-w-lg space-y-8">
                 <div className="text-center">
                     <h1 className="text-4xl font-bold text-gray-800 mb-2">Completa tu perfil, <span className="text-blue_principal">{username}</span></h1>

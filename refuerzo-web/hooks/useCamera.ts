@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 import { useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "@pheralb/toast";
 
 export const useCamera = (
   isMobile: boolean,
@@ -89,7 +89,7 @@ export const useCamera = (
       if (!file) return;
 
       if (!file.type.startsWith("image/")) {
-        toast.error("El archivo debe ser una imagen");
+        toast.error({ text: "El archivo seleccionado no es una imagen" });
         return;
       }
 
