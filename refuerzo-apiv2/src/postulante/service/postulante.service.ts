@@ -23,6 +23,8 @@ import { PostulanteResponseDto } from '../dto/postulante-response.dto';
 import { UsersService } from 'src/users/users.service';
 import { CreateNewAlumnoDto } from 'src/users/dto/create-alumno.dto';
 import { Grado } from 'src/grado/entities/grado.entity';
+import { AlumnoService } from 'src/alumno/service/alumno.service';
+import { CreateAlumnoDto } from 'src/alumno/dto/create-alumno.dto';
 
 @Injectable()
 export class PostulanteService {
@@ -38,6 +40,8 @@ export class PostulanteService {
     private readonly usersService: UsersService,
     @InjectRepository(Grado)
     private readonly gradoRepository: Repository<Grado>,
+    @Inject(forwardRef(() => AlumnoService))
+    private readonly alumnoService: AlumnoService,
   ) {
     this.crudHelper = new CrudHelper<Postulante>(
       this.postulanteRepository,
@@ -286,12 +290,38 @@ export class PostulanteService {
       .build();
   }
 
+  async createNewAlumno(
+    id: string,
+    user_Id: string,
+    nameUser: string,
+    imageUser: string,
+    isUser: boolean,
+  ): Promise<GeneralResponseDto<Postulante>> {
+    const postulante = await this.crudHelper.findByNameOrId(id);
+    await this.crudHelper.update(postulante, { isUser }); // Actualiza el campo isUser
+
+    // Crear un nuevo alumno asociado al usuario
+    const createNewAlumno: CreateAlumnoDto = {
+      userId: user_Id,
+      gradoId: postulante.grado.toString(),
+      nombre: nameUser,
+      image: imageUser,
+    };
+
+    await this.alumnoService.create(createNewAlumno);
+
+    return new GeneralResponseBuilder<Postulante>()
+      .setMessage('Alumno created and postulante updated successfully')
+      .build();
+  }
+
   async updateIsUser(
     id: string,
     isUser: boolean,
   ): Promise<GeneralResponseDto<Postulante>> {
     const postulante = await this.crudHelper.findByNameOrId(id);
     await this.crudHelper.update(postulante, { isUser }); // Actualiza el campo isUser
+
     return new GeneralResponseBuilder<Postulante>()
       .setMessage('Postulante updated successfully')
       .build();

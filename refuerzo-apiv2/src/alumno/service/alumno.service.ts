@@ -24,6 +24,8 @@ import { User } from 'src/users/entities/user.entity';
 import { Grado } from 'src/grado/entities/grado.entity';
 import { UsersService } from 'src/users/users.service';
 import { PostulanteService } from 'src/postulante/service/postulante.service';
+import { SeccionService } from 'src/seccion/service/seccion.service';
+import { UpdateAlumnoByUserDto } from '../dto/update-alumnoByUser.dto';
 
 @Injectable()
 export class AlumnoService {
@@ -40,6 +42,8 @@ export class AlumnoService {
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
     private readonly postulanteService: PostulanteService,
+    @Inject(forwardRef(() => SeccionService))
+    private readonly seccionService: SeccionService,
   ) {
     this.crudHelper = new CrudHelper<Alumno>(this.alumnoRepository, 'Alumnos');
     this.userCrudHelper = new CrudHelper<User>(this.userRepository, 'Users');
@@ -62,14 +66,21 @@ export class AlumnoService {
     const newAlumno = this.alumnoRepository.create({
       userId: createAlumnoDto.userId,
       gradoId: createAlumnoDto.gradoId,
-      cursosId: createAlumnoDto.cursosId || [],
+      nombre: createAlumnoDto.nombre,
+      image: createAlumnoDto.image,
     });
 
     await this.crudHelper.create(newAlumno);
 
+    // Agregar alumno a las secciones con el mismo gradoId
+    await this.seccionService.addAlumnoToSeccionesByGradoId(
+      newAlumno.gradoId,
+      newAlumno._id.toString(),
+    );
+
     return new GeneralResponseBuilder<Alumno>()
       .setStatusCode(201)
-      .setMessage('Alumno created successfully')
+      .setMessage('Alumno creado exitosamente')
       .build();
   }
 
@@ -144,7 +155,7 @@ export class AlumnoService {
     // Buscar usuarios y grados en lote
     const users = await this.userRepository.find({
       where: { _id: { $in: userIds } } as any,
-      select: ['_id', 'nombre', 'email', 'telefono', 'image'],
+      select: ['_id', 'email', 'telefono'],
     });
 
     const grados = await this.gradoRepository.find({
@@ -157,10 +168,8 @@ export class AlumnoService {
     users.forEach((user) => {
       const userId = user._id.toString();
       userMap.set(userId, {
-        nombre: user.nombre,
         email: user.email,
         telefono: user.telefono,
-        image: user.image,
       });
     });
 
@@ -200,7 +209,7 @@ export class AlumnoService {
     // Obtener usuario relacionado
     const user = await this.userRepository.findOne({
       where: { _id: new ObjectId(findAlumno.userId) },
-      select: ['nombre', 'email', 'telefono', 'image'],
+      select: ['email', 'telefono'],
     });
 
     if (!user) {
@@ -226,10 +235,8 @@ export class AlumnoService {
     const populatedAlumno = {
       ...rest,
       user: {
-        nombre: user.nombre,
         email: user.email,
         telefono: user.telefono,
-        image: user.image,
       },
       grado: grado.nombre,
     };
@@ -252,9 +259,20 @@ export class AlumnoService {
       .build();
   }
 
+  async updateByUserId(
+    userId: string,
+    updateAlumnoByUserDto: UpdateAlumnoByUserDto,
+  ): Promise<GeneralResponseDto<Alumno>> {
+    const Alumno = await this.crudHelper.findByIdOrUserId(userId, false, false);
+
+    await this.crudHelper.update(Alumno, updateAlumnoByUserDto);
+    return new GeneralResponseBuilder<Alumno>()
+      .setMessage('Alumno updated successfully')
+      .build();
+  }
+
   async remove(id: string): Promise<GeneralResponseDto<Alumno>> {
     const Alumno = await this.crudHelper.findByNameOrId(id);
-    await this.crudHelper.delete(Alumno, true);
 
     const user = await this.userCrudHelper.findByNameOrId(Alumno.userId);
 
@@ -263,6 +281,8 @@ export class AlumnoService {
 
     // Eliminar el usuario
     await this.usersService.remove(Alumno.userId);
+
+    await this.crudHelper.delete(Alumno, true);
 
     return new GeneralResponseBuilder<Alumno>()
       .setMessage('Alumno deleted successfully')

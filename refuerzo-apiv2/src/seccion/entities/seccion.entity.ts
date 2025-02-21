@@ -26,7 +26,7 @@ export class Seccion {
   @Column()
   encargados: string[];
 
-  @Column()
+  @Column({ default: [] })
   alumnos: string[];
 
   @CreateDateColumn()
