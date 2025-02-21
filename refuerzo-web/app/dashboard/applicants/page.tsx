@@ -114,7 +114,7 @@ export default function Applicants() {
     }
 
     return (
-        <div className="p-10">
+        <div className="p-7">
             <PageHeader
                 title="Postulaciones"
                 buttons={[
@@ -125,7 +125,6 @@ export default function Applicants() {
                         className: "text-blue_principal bg-white font-medium px-4 py-2 rounded-lg shadow transition-transform hover:scale-105"
                     },
                 ]}
-
             />
 
             <ListGridLayout isCardView={isCardView} setIsCardView={setIsCardView} />
@@ -141,7 +140,7 @@ export default function Applicants() {
                     ))}
                 </div>
             ) : (
-                <div className="mt-4 overflow-auto bg-white rounded-lg shadow-md">
+                <div className="mt-2 md:mt-4">
                     <Table
                         data={postulants ?? []}
                         loading={isLoading}
@@ -155,8 +154,6 @@ export default function Applicants() {
                     />
                 </div>
             )}
-
-
 
             <DeleteModal<CompletePostulant>
                 isOpen={modalState.type === 'delete'}
@@ -180,6 +177,16 @@ export default function Applicants() {
                     onClose={() => setIsSharePopupOpen(false)}
                 />
             )}
+
+            <div className="fixed bottom-4 right-4 md:hidden z-50">
+                <button
+                    onClick={handleShareForm}
+                    className="bg-blue_principal text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-transform hover:scale-105 flex items-center justify-center"
+                >
+                    <Share2 size={24} />
+                    <span className="sr-only">Compartir formulario</span>
+                </button>
+            </div>
 
         </div>
     );

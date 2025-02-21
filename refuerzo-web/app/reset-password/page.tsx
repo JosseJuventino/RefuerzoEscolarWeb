@@ -3,8 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { resetPassword } from "@/services/user.service";
-import { Toaster } from "react-hot-toast";
-import toast from "react-hot-toast";
+import { toast } from "@pheralb/toast";
 
 const ResetPasswordContent = () => {
   const router = useRouter();
@@ -16,7 +15,7 @@ const ResetPasswordContent = () => {
 
   useEffect(() => {
     if (!token) {
-      toast.error("Token inválido o enlace expirado");
+      toast.error({text: "Token inválido"});
       router.push("/");
     }
   }, [token, router]);
@@ -26,7 +25,7 @@ const ResetPasswordContent = () => {
     setLoading(true);
 
     if (newPassword !== confirmPassword) {
-      toast.error("Las contraseñas no coinciden");
+      toast.error({text: "Las contraseñas no coinciden"});
       setLoading(false);
       return;
     }
@@ -35,10 +34,10 @@ const ResetPasswordContent = () => {
       if (!token) throw new Error("Token inválido");
       
       await resetPassword(token, newPassword);
-      toast.success("¡Contraseña actualizada correctamente!");
+      toast.success({text: "Contraseña actualizada con éxito"});
       setTimeout(() => router.push("/"), 2000);
     } catch {
-      toast.error("Error al actualizar la contraseña. El enlace puede haber expirado");
+      toast.error({text: "Ha ocurrido un error"});
     } finally {
       setLoading(false);
     }
@@ -46,7 +45,6 @@ const ResetPasswordContent = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Toaster position="top-center" />
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">

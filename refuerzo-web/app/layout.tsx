@@ -1,8 +1,14 @@
-// app/layout.tsx (Server Component por defecto)
 import type { Metadata } from 'next';
 import { NextUIProvider } from '@nextui-org/react';
 import './globals.css';
 import ClientProviders from '@/components/ClientProvider';
+import { Toaster } from "@pheralb/toast";
+import type { Viewport } from 'next'
+
+
+export const viewport: Viewport = {
+  themeColor: '#003C71',
+}
 
 export const metadata: Metadata = {
   title: 'Refuerzo Escolar Web',
@@ -24,6 +30,7 @@ export default function RootLayout({
         <NextUIProvider>
           <ClientProviders>
             {children}
+            <Toaster theme="light" />
           </ClientProviders>
         </NextUIProvider>
       </body>

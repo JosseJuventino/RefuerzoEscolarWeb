@@ -221,6 +221,10 @@ export interface Grade {
   nombre: string;
 }
 
+export interface PartialGrade {
+  nombre: string;
+}
+
 export interface GradeResponse {
   statusCode: number;
   message: string;
@@ -229,4 +233,25 @@ export interface GradeResponse {
   totalPages: number;
   page: number;
   limit: number;
+}
+
+export interface Course {
+  _id: string,
+  nombre: string,
+  gradoId: string,
+  backgroundImage: string,
+  encargados: string[],
+  alumnos: string[]
+  createdAt: string,
+  updatedAt: string
+}
+
+export interface CourseResponse {
+  statusCode: number,
+  message: string
+  data: Course[],
+  size: number,
+  totalPages: number,
+  page: number,
+  limit: number
 }

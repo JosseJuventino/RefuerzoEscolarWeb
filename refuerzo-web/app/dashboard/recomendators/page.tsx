@@ -135,7 +135,7 @@ export default function RecomendadoresPage() {
           ))}
         </div>
       ) : (
-        <div className="mt-4 overflow-auto bg-white rounded-lg shadow-md">
+        <div className="mt-4">
           <Table
             data={recomendadores ?? []}
             columns={columns}

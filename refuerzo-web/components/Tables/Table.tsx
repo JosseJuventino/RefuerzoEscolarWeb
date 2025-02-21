@@ -1,6 +1,7 @@
 import React from "react";
 import { Edit2, Trash2, Repeat2Icon } from "lucide-react";
 import { TableProps } from "@/types/types";
+import { MobileAccordionView } from "./AccordionItem"; // Ajusta la ruta según tu estructura
 
 const Table = <T extends { _id: string }>({
   data,
@@ -8,7 +9,7 @@ const Table = <T extends { _id: string }>({
   columns,
   onEdit,
   onDelete,
-  handleMove = () => { },
+  handleMove = () => {},
   hasMove = false,
   hasEdit = true,
 }: TableProps<T>) => {
@@ -23,7 +24,7 @@ const Table = <T extends { _id: string }>({
   return (
     <div className="w-full">
       <div className="overflow-x-auto hidden sm:block">
-        <table className="min-w-full bg-white rounded-lg overflow-hidden shadow">
+        <table className="min-w-full bg-white rounded-lg overflow-hidden">
           <thead className="bg-blue_principal text-white">
             <tr>
               {columns.map((col, index) => (
@@ -70,9 +71,7 @@ const Table = <T extends { _id: string }>({
                           <Trash2 size={20} />
                         </button>
                       )}
-
-                      {
-                        hasMove &&
+                      {hasMove && (
                         <button
                           className="flex items-center justify-center w-8 h-8 text-yellow-500 hover:text-yellow-700 focus:outline-none"
                           onClick={() => handleMove(row)}
@@ -80,7 +79,7 @@ const Table = <T extends { _id: string }>({
                         >
                           <Repeat2Icon size={22} />
                         </button>
-                      }
+                      )}
                     </div>
                   </td>
                 )}
@@ -90,52 +89,15 @@ const Table = <T extends { _id: string }>({
         </table>
       </div>
 
-      <div className="block sm:hidden mt-6">
-        {data.map((row) => (
-          <div
-            key={row._id}
-            className="bg-white shadow-md rounded-lg mb-4 overflow-hidden"
-          >
-            <div className="p-4 border-b">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-semibold text-blue_logo">Registro</h3>
-                <div className="flex space-x-2">
-                  {onEdit && (
-                    <button
-                      className="flex items-center justify-center w-8 h-8 text-blue-500 hover:text-blue-700 focus:outline-none"
-                      onClick={() => onEdit(row)}
-                      aria-label="Editar"
-                    >
-                      <Edit2 size={20} />
-                    </button>
-                  )}
-                  {onDelete && (
-                    <button
-                      className="flex items-center justify-center w-8 h-8 text-red-500 hover:text-red-700 focus:outline-none"
-                      onClick={() => onDelete(row._id)}
-                      aria-label="Eliminar"
-                    >
-                      <Trash2 size={20} />
-                    </button>
-                  )}
-                </div>
-              </div>
-              <div className="space-y-1">
-                {columns.map((col, index) => (
-                  <div key={index}>
-                    <span className="font-medium text-gray-700">
-                      {col.header}:
-                    </span>{" "}
-                    {typeof col.accessor === "function"
-                      ? col.accessor(row)
-                      : (row[col.accessor] as React.ReactNode)}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <MobileAccordionView
+        data={data}
+        columns={columns}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        hasEdit={hasEdit}
+        hasMove={hasMove}
+        handleMove={handleMove}
+      />
     </div>
   );
 };

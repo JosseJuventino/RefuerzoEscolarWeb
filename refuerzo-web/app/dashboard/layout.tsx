@@ -45,7 +45,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="w-full flex-none md:w-64">
                 <Sidenav user={user} />
             </div>
-            <main className="flex-grow md:overflow-y-auto z-40 bg-gray-50">
+            <main className="flex-grow md:overflow-y-auto mt-20 md:mt-0 z-40 bg-gray-50">
                 <GoogleReCaptchaProvider
                     language="es"
                     reCaptchaKey={process.env.NEXT_PUBLIC_SITE_KEY_RECAPTCHA || ''}

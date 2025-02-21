@@ -16,9 +16,11 @@ interface PageHeaderProps {
 
 const PageHeader: React.FC<PageHeaderProps> = ({ title, buttons = [] }) => {
   return (
-    <div className="flex items-center justify-between mb-6">
-      <h1 className="text-4xl font-bold text-blue_principal">{title}</h1>
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col md:flex-row items-center justify-between mb-6">
+      <h1 className="text-4xl font-bold text-blue_principal mb-4 md:mb-0 text-center md:text-left">
+        {title}
+      </h1>
+      <div className="hidden md:flex items-center gap-4">
         {buttons.map((button, index) => (
           <button
             key={index}
@@ -26,7 +28,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({ title, buttons = [] }) => {
             className={`flex items-center gap-2 ${button.className || ""}`}
           >
             {button.icon && React.cloneElement(button.icon, { size: 20 })}
-            {button.label}
+            <span className="hidden md:inline">{button.label}</span>
           </button>
         ))}
       </div>

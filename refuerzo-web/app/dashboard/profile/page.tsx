@@ -22,7 +22,7 @@ import {
   Calendar,
 } from "lucide-react";
 
-import toast from "react-hot-toast";
+import { toast } from "@pheralb/toast";
 import PageHeader from "@/components/Dashboard/PageHeader";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { requestPasswordReset } from "@/services/user.service";
@@ -76,13 +76,19 @@ export default function ProfilePage() {
   const { executeRecaptcha } = useGoogleReCaptcha();
 
   const handleLogout = () => {
-    toast.loading("Cerrando sesión...");
-    setTimeout(() => {
-      clearAuth('/');
-      toast.success("Sesión cerrada con éxito");
-    }, 1500);
-
-
+    toast.loading({
+      text: "Cerrando sesión...",
+      options: {
+        promise: new Promise(() => {
+          setTimeout(() => {
+            clearAuth('/');
+          }, 1500);
+        }),
+        success: "Sesión cerrada con éxito!",
+        error: "Error al cerrar sesión",
+        autoDismiss: true
+      }
+    });
   };
 
   const {
@@ -92,8 +98,7 @@ export default function ProfilePage() {
     queryFn: getLoginAttempt,
   });
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleForgotPassword = async () => {
     setResetLoading(true);
 
 
@@ -106,17 +111,27 @@ export default function ProfilePage() {
       const token = await executeRecaptcha("forgot_password");
       console.log("Token de reCAPTCHA generado:", token);
 
-      const response: RequestPassResponse = await requestPasswordReset(resetEmail, token);
+      if (user?.email !== undefined) {
+        const response: RequestPassResponse = await requestPasswordReset(user.email, token);
 
-
-      if (response && response.statusCode === 404) {
-        toast.error(response.message);
-      } else {
-        toast.success("Enlace de recuperación enviado correctamente, revisa tu correo.");
-        setShowForgotPasswordPopup(false);
+        if (response && response.statusCode === 404) {
+          toast.error({
+            text: 'Ha ocurrido un error',
+            description: response.message
+          })
+        } else {
+          toast.success({
+            text: 'Enlace de recuperación enviado',
+          })
+          setShowForgotPasswordPopup(false);
+        }
       }
+
+
     } catch {
-      toast.error("Error al enviar el enlace de recuperación");
+      toast.error({
+        text: 'Ha ocurrido un error'
+      })
     } finally {
       setResetLoading(false);
     }
@@ -204,7 +219,7 @@ export default function ProfilePage() {
                   <p className="text-sm text-gray-500">Actualiza tu contraseña regularmente para mayor seguridad</p>
                 </div>
               </div>
-              <button onClick={() => setShowForgotPasswordPopup(true)} className="px-4 py-2 bg-white border border-blue_principal text-blue_principal rounded-lg hover:bg-blue-50">
+              <button onClick={() => handleForgotPassword()} className="px-4 py-2 bg-white border border-blue_principal text-blue_principal rounded-lg hover:bg-blue-50">
                 Cambiar
               </button>
             </div>
@@ -268,7 +283,7 @@ export default function ProfilePage() {
         </div>
       </div>
       {showForgotPasswordPopup && (
-        <ForgotPasswordModal handleForgotPassword={handleForgotPassword} resetEmail={resetEmail} resetLoading={resetLoading} setResetEmail={setResetEmail} setShowForgotPasswordPopup={setShowForgotPasswordPopup} />
+        <ForgotPasswordModal hasLogin={true} handleForgotPassword={handleForgotPassword} resetEmail={resetEmail} resetLoading={resetLoading} setResetEmail={setResetEmail} setShowForgotPasswordPopup={setShowForgotPasswordPopup} />
       )}
     </div>
   );
