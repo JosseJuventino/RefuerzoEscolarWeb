@@ -112,7 +112,7 @@ export default function Page() {
                 </div>
             ) :
                 (
-                    <div className="mt-4 overflow-auto bg-white rounded-lg shadow-md">
+                    <div className="mt-4 ">
                         <Table
                             data={program ?? []}
                             loading={isLoading}
