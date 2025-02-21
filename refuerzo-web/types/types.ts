@@ -79,13 +79,12 @@ export interface Usuario {
   password: string;
 }
 
-export interface UserEdited{
+export interface UserEdited {
   _id: string;
   nombres: string;
   imagen: string;
   email: string;
 }
-
 
 export interface ActivateAccountRequirements {
   image?: string;
@@ -236,22 +235,28 @@ export interface GradeResponse {
 }
 
 export interface Course {
-  _id: string,
-  nombre: string,
-  gradoId: string,
-  backgroundImage: string,
-  encargados: string[],
-  alumnos: string[]
-  createdAt: string,
-  updatedAt: string
+  _id: string;
+  nombre: string;
+  gradoId: string;
+  backgroundImage: string;
+  encargados: {
+    _id: string;
+    nombre: string;
+    image: string;
+    email: string;
+    telefono: string;
+  }[];
+  alumnos: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CourseResponse {
-  statusCode: number,
-  message: string
-  data: Course[],
-  size: number,
-  totalPages: number,
-  page: number,
-  limit: number
+  statusCode: number;
+  message: string;
+  data: Course[];
+  size: number;
+  totalPages: number;
+  page: number;
+  limit: number;
 }
