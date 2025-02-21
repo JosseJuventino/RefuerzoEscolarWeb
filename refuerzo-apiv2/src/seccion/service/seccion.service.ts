@@ -28,6 +28,7 @@ import { Alumno } from 'src/alumno/entities/alumno.entity';
 export class SeccionService {
   private readonly crudHelper: CrudHelper<Seccion>;
   private readonly userCrudHelper: CrudHelper<User>;
+  private readonly alumnoCrudHelper: CrudHelper<Alumno>;
 
   constructor(
     @InjectRepository(Seccion)
@@ -47,6 +48,10 @@ export class SeccionService {
       'Secciones',
     );
     this.userCrudHelper = new CrudHelper<User>(this.UserRepository, 'Users');
+    this.alumnoCrudHelper = new CrudHelper<Alumno>(
+      this.alumnoRepository,
+      'Alumnos',
+    );
   }
 
   async create(
@@ -230,11 +235,33 @@ export class SeccionService {
       );
     }
 
+    //populate alumnos (si existen)
+    let alumnos = [];
+    if (findSeccion.alumnos && findSeccion.alumnos.length > 0) {
+      alumnos = await Promise.all(
+        findSeccion.alumnos.map(async (alumnoId) => {
+          const alumno = await this.alumnoCrudHelper.findByNameOrId(
+            alumnoId.toString(),
+            false,
+            false,
+          );
+          return alumno
+            ? {
+                _id: alumno._id,
+                nombre: alumno.nombre,
+                image: alumno.image,
+              }
+            : null;
+        }),
+      );
+    }
+
     // Crear el objeto de respuesta con las publicaciones y los encargados populados
     const seccionWithDetails = {
       ...findSeccion,
       publicaciones,
       encargados: encargados.filter((encargado) => encargado !== null), // Filtramos encargados nulos
+      alumnos: alumnos.filter((alumno) => alumno !== null), // Filtramos alumnos nulos
     };
 
     return new GeneralResponseBuilder<Seccion>()
