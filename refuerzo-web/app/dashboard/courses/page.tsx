@@ -125,7 +125,7 @@ export default function CoursesPage() {
                     ))}
                 </div>
             ) : (
-                <div className="mt-4 overflow-auto bg-white rounded-lg shadow-md">
+                <div className="mt-4  bg-white rounded-lg shadow-md">
                     <Table
                         data={cursos ?? []}
                         columns={columns}

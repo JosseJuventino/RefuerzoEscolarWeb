@@ -221,6 +221,10 @@ export interface Grade {
   nombre: string;
 }
 
+export interface PartialGrade {
+  nombre: string;
+}
+
 export interface GradeResponse {
   statusCode: number;
   message: string;
