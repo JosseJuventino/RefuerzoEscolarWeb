@@ -188,12 +188,6 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
               isActive={pathName === "/dashboard/recomendators"}
             />
             <NavItem
-              link="/dashboard/programs"
-              icon={LucideSquareUserRound}
-              label="Programas"
-              isActive={pathName === "/dashboard/programs"}
-            />
-            <NavItem
               link="/dashboard/advanced-options"
               icon={Settings}
               label="Opciones avanzadas"
@@ -281,12 +275,6 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
                   icon={UsersRoundIcon}
                   label="Recomendadores"
                   isActive={pathName === "/dashboard/recomendators"}
-                />
-                <NavItem
-                  link="/dashboard/programs"
-                  icon={LucideSquareUserRound}
-                  label="Programas"
-                  isActive={pathName === "/dashboard/programs"}
                 />
                 <NavItem
                   link="/dashboard/advanced-options"
