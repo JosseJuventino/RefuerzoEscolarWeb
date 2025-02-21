@@ -23,5 +23,10 @@ export class CreateAlumnoDto {
   @ApiProperty()
   @IsString()
   @IsOptional()
-  cursosId: string[];
+  nombre: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  image: string;
 }

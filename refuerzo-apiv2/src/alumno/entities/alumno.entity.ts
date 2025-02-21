@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb';
 import {
+  Collection,
   Column,
   CreateDateColumn,
   Entity,
@@ -13,11 +14,14 @@ export class Alumno {
   _id: ObjectId;
 
   @Column()
+  nombre: string;
+
+  @Column()
+  image: string;
+
+  @Column()
   userId: string;
 
   @Column()
   gradoId: string;
-
-  @Column()
-  cursosId: string[];
 }

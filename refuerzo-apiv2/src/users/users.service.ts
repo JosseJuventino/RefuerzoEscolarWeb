@@ -194,15 +194,6 @@ export class UsersService {
 
     const savedUser = await this.userRepository.save(newUser);
 
-    // Crear un nuevo alumno asociado al usuario
-    const createNewAlumno: CreateAlumnoDto = {
-      userId: savedUser._id.toString(),
-      gradoId: createNewAlumnoDto.grado,
-      cursosId: [],
-    };
-
-    await this.alumnoService.create(createNewAlumno);
-
     const sendEmailDto: SendEmailDto = {
       to: [createNewAlumnoDto.email],
       replyTo: ['soporte@refuerzo-mendoza.me'],
@@ -298,6 +289,7 @@ export class UsersService {
     const users = await Promise.all(
       results.map(async (user) => {
         return {
+          _id: user._id,
           nombre: user.nombre,
           email: user.email,
           telefono: user.telefono,
@@ -546,6 +538,20 @@ export class UsersService {
       userUpdate.password = hashedPassword;
     }
     await this.crudHelper.update(user, userUpdate);
+
+    const role = await this.roleCrudHelper.findByNameOrId(updateUserDto.role);
+
+    //Actualizar el nombre e imagen en la tabla de alumno si tiene el rol de alumno, usar UpdateByUserId
+
+    const alumnoUpdate = {
+      nombre: updateUserDto.nombre,
+      image: updateUserDto.image,
+    };
+
+    if (role.name === 'alumno') {
+      await this.alumnoService.updateByUserId(id, alumnoUpdate);
+    }
+
     return new GeneralResponseBuilder<User>()
       .setMessage('User updated successfully')
       .build();
@@ -599,7 +605,13 @@ export class UsersService {
     }
 
     if (actualRole.name === roles[1]) {
-      await this.postulanteService.updateIsUser(idDependingRole, true);
+      await this.postulanteService.createNewAlumno(
+        idDependingRole,
+        userId,
+        user.nombre,
+        user.image,
+        true,
+      );
     }
 
     return new GeneralResponseBuilder<User>()

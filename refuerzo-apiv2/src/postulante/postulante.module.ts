@@ -7,6 +7,7 @@ import { Postulante } from './entities/postulante.entity';
 import { User } from 'src/users/entities/user.entity';
 import { UsersModule } from 'src/users/users.module'; // Importar UsersModule
 import { Grado } from 'src/grado/entities/grado.entity';
+import { AlumnoModule } from 'src/alumno/alumno.module'; // Importar AlumnoModule
 
 @Module({
   controllers: [PostulanteController],
@@ -15,6 +16,7 @@ import { Grado } from 'src/grado/entities/grado.entity';
     CommonModule,
     TypeOrmModule.forFeature([Postulante, User, Grado]),
     forwardRef(() => UsersModule), // Usar forwardRef
+    forwardRef(() => AlumnoModule), // Usar forwardRef
   ],
   exports: [TypeOrmModule, PostulanteService],
 })

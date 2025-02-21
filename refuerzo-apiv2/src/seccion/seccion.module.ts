@@ -7,6 +7,9 @@ import { Seccion } from './entities/seccion.entity';
 import { GradoModule } from 'src/grado/grado.module'; // Importar GradoModule
 import { Grado } from 'src/grado/entities/grado.entity';
 import { PublicacionModule } from 'src/publicacion/publicacion.module'; // Importar PublicacionModule
+import { Alumno } from 'src/alumno/entities/alumno.entity';
+import { User } from 'src/users/entities/user.entity';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   controllers: [SeccionController],
@@ -15,7 +18,8 @@ import { PublicacionModule } from 'src/publicacion/publicacion.module'; // Impor
     CommonModule,
     forwardRef(() => GradoModule), // Usar forwardRef si GradoModule depende de SeccionModule
     forwardRef(() => PublicacionModule), // Importar PublicacionModule para usar PublicacionRepository
-    TypeOrmModule.forFeature([Seccion, Grado]),
+    forwardRef(() => UsersModule), // Usar forwardRef si UsersModule depende de SeccionModule
+    TypeOrmModule.forFeature([Seccion, Grado, Alumno]),
   ],
   exports: [TypeOrmModule, SeccionService], // Exportar SeccionService si es necesario
 })
