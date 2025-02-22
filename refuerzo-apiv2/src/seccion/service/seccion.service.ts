@@ -200,6 +200,7 @@ export class SeccionService {
           gradoId: grado.nombre,
           backgroundImage: seccion.backgroundImage,
           encargados: encargados.filter((encargado) => encargado !== null), // Filtra cualquier encargado nulo
+          slug: seccion.slug,
         };
       }),
     );
@@ -242,7 +243,8 @@ export class SeccionService {
                 nombre: encargado.nombre,
                 image: encargado.image,
                 email: encargado.email,
-                telefono: encargado.telefono,
+              telefono: encargado.telefono,
+                
               }
             : null;
         }),
@@ -320,7 +322,7 @@ export class SeccionService {
 
     if (updateSeccionDto.nombre && updateSeccionDto.nombre !== Seccion.nombre) {
       const newSlug = this.generateSlug(updateSeccionDto.nombre);
-
+  
       // Verificar si el nuevo slug ya existe
       const existingSeccion = await this.SeccionRepository.findOne({
         where: { slug: newSlug },
@@ -330,14 +332,11 @@ export class SeccionService {
           `Ya existe una sección con el slug "${newSlug}"`,
         );
       }
-
-      internalUpdateData.slug = newSlug;
+  
+      internalUpdateData.slug = newSlug; // Asignar el nuevo slug
     }
 
-    const updateData: DeepPartial<Seccion> = {
-      ...updateSeccionDto,
-    };
-    await this.crudHelper.update(Seccion, updateData);
+    await this.crudHelper.update(Seccion, internalUpdateData);
     return new GeneralResponseBuilder<Seccion>()
       .setMessage('Seccion updated successfully')
       .build();
