@@ -8,7 +8,7 @@ import { ObjectId } from 'mongodb';
 import { UpdateSeccionDto } from '../dto/update-seccion.dto';
 import { CrudHelper } from '../../common/helper/crud.helper';
 import { Seccion } from '../entities/seccion.entity';
-import { Repository, FindManyOptions, DeepPartial } from 'typeorm';
+import { Repository, FindManyOptions, DeepPartial, In } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { GeneralResponseDto } from 'src/common/dto/general-response.dto';
 import { GeneralResponseBuilder } from 'src/common/helper/general-response.helper';
@@ -22,10 +22,14 @@ import { Grado } from 'src/grado/entities/grado.entity';
 import { Publicacion } from 'src/publicacion/entities/publicacion.entity';
 import { PublicacionService } from 'src/publicacion/service/publicacion.service';
 import { InternalUpdateSeccionDto } from '../dto/Internal-update-seccion.dto';
+import { User } from 'src/users/entities/user.entity';
+import { Alumno } from 'src/alumno/entities/alumno.entity';
 
 @Injectable()
 export class SeccionService {
   private readonly crudHelper: CrudHelper<Seccion>;
+  private readonly userCrudHelper: CrudHelper<User>;
+  private readonly alumnoCrudHelper: CrudHelper<Alumno>;
 
   constructor(
     @InjectRepository(Seccion)
@@ -35,10 +39,19 @@ export class SeccionService {
     @InjectRepository(Publicacion)
     private readonly PublicacionRepository: Repository<Publicacion>,
     private readonly publicacionService: PublicacionService,
+    @InjectRepository(User)
+    private readonly UserRepository: Repository<User>,
+    @InjectRepository(Alumno)
+    private readonly alumnoRepository: Repository<Alumno>,
   ) {
     this.crudHelper = new CrudHelper<Seccion>(
       this.SeccionRepository,
       'Secciones',
+    );
+    this.userCrudHelper = new CrudHelper<User>(this.UserRepository, 'Users');
+    this.alumnoCrudHelper = new CrudHelper<Alumno>(
+      this.alumnoRepository,
+      'Alumnos',
     );
   }
 
@@ -153,9 +166,47 @@ export class SeccionService {
       totalPages = 1;
     }
 
+    const seccionWithEncargados = await Promise.all(
+      results.map(async (seccion) => {
+        let encargados = [];
+        if (seccion.encargados && seccion.encargados.length > 0) {
+          encargados = await Promise.all(
+            seccion.encargados.map(async (encargadoId) => {
+              const encargado = await this.userCrudHelper.findByNameOrId(
+                encargadoId.toString(),
+                false,
+                false,
+              );
+              return encargado
+                ? {
+                    _id: encargado._id,
+                    nombre: encargado.nombre,
+                    image: encargado.image,
+                    email: encargado.email,
+                    telefono: encargado.telefono,
+                  }
+                : null;
+            }),
+          );
+        }
+
+        const grado = await this.GradoRepository.findOne({
+          where: { _id: new ObjectId(seccion.gradoId) },
+        });
+
+        return {
+          _id: seccion._id,
+          nombre: seccion.nombre,
+          gradoId: grado.nombre,
+          backgroundImage: seccion.backgroundImage,
+          encargados: encargados.filter((encargado) => encargado !== null), // Filtra cualquier encargado nulo
+        };
+      }),
+    );
+
     return new PaginationResponseBuilder()
       .setMessage(`Seccions retrieved successfully. Total pages: ${totalPages}`)
-      .setData(results)
+      .setData(seccionWithEncargados)
       .setSize(total)
       .setTotalPages(totalPages)
       .setPage(applyPagination ? paginationQuery.page : 1)
@@ -164,6 +215,7 @@ export class SeccionService {
   }
 
   async findOne(id: string): Promise<GeneralResponseDto<Seccion>> {
+    // Buscar la sección por ID
     const findSeccion = await this.crudHelper.findByNameOrId(id);
     if (!findSeccion) {
       throw new BadRequestException(`Seccion with id ${id} not found`);
@@ -174,15 +226,61 @@ export class SeccionService {
       where: { seccionId: findSeccion._id.toString() },
     });
 
-    // Agregar las publicaciones al objeto de respuesta
-    const seccionWithPublicaciones = {
+    // Populate encargados (si existen)
+    let encargados = [];
+    if (findSeccion.encargados && findSeccion.encargados.length > 0) {
+      encargados = await Promise.all(
+        findSeccion.encargados.map(async (encargadoId) => {
+          const encargado = await this.userCrudHelper.findByNameOrId(
+            encargadoId.toString(),
+            false,
+            false,
+          );
+          return encargado
+            ? {
+                _id: encargado._id,
+                nombre: encargado.nombre,
+                image: encargado.image,
+                email: encargado.email,
+                telefono: encargado.telefono,
+              }
+            : null;
+        }),
+      );
+    }
+
+    //populate alumnos (si existen)
+    let alumnos = [];
+    if (findSeccion.alumnos && findSeccion.alumnos.length > 0) {
+      alumnos = await Promise.all(
+        findSeccion.alumnos.map(async (alumnoId) => {
+          const alumno = await this.alumnoCrudHelper.findByNameOrId(
+            alumnoId.toString(),
+            false,
+            false,
+          );
+          return alumno
+            ? {
+                _id: alumno._id,
+                nombre: alumno.nombre,
+                image: alumno.image,
+              }
+            : null;
+        }),
+      );
+    }
+
+    // Crear el objeto de respuesta con las publicaciones y los encargados populados
+    const seccionWithDetails = {
       ...findSeccion,
       publicaciones,
+      encargados: encargados.filter((encargado) => encargado !== null), // Filtramos encargados nulos
+      alumnos: alumnos.filter((alumno) => alumno !== null), // Filtramos alumnos nulos
     };
 
     return new GeneralResponseBuilder<Seccion>()
       .setMessage('Seccion retrieved successfully')
-      .setData(seccionWithPublicaciones)
+      .setData(seccionWithDetails)
       .build();
   }
 
@@ -276,5 +374,18 @@ export class SeccionService {
 
     // Eliminar todas las secciones del grado
     await this.SeccionRepository.delete({ gradoId });
+  }
+
+  async addAlumnoToSeccionesByGradoId(
+    gradoId: string,
+    alumnoId: string,
+  ): Promise<void> {
+    const secciones = await this.findAllByGradoId(gradoId);
+    for (const seccion of secciones) {
+      if (!seccion.alumnos.includes(alumnoId)) {
+        seccion.alumnos.push(alumnoId);
+        await this.SeccionRepository.save(seccion);
+      }
+    }
   }
 }
