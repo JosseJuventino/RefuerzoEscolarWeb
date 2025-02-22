@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  NotFoundException,
 } from '@nestjs/common';
 import { SeccionService } from '../service/seccion.service';
 import { CreateSeccionDto } from '../dto/create-seccion.dto';
@@ -67,6 +68,23 @@ export class SeccionController {
   update(@Param('id') id: string, @Body() updateSeccionDto: UpdateSeccionDto) {
     return this.SeccionService.update(id, updateSeccionDto);
   }
+
+
+  @Scopes('view')
+  @ApiOperation({
+    summary: 'Get a Seccion by slug',
+    description: 'Get a Seccion by slug',
+  })
+  @ApiBearerAuth()
+  @Get('slug/:slug')
+  async findOneBySlug(@Param('slug') slug: string) {
+    const seccion = await this.SeccionService.findOneBySlug(slug);
+    if (!seccion) {
+      throw new NotFoundException(`Sección con slug "${slug}" no encontrada`);
+    }
+    return seccion;
+  }
+
 
   @Scopes('view', 'edit')
   @ApiOperation({

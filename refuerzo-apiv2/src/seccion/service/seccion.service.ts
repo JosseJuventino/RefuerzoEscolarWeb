@@ -21,6 +21,7 @@ import { CONFIGURABLE_MODULE_ID } from '@nestjs/common/module-utils/constants';
 import { Grado } from 'src/grado/entities/grado.entity';
 import { Publicacion } from 'src/publicacion/entities/publicacion.entity';
 import { PublicacionService } from 'src/publicacion/service/publicacion.service';
+import { InternalUpdateSeccionDto } from '../dto/Internal-update-seccion.dto';
 import { User } from 'src/users/entities/user.entity';
 import { Alumno } from 'src/alumno/entities/alumno.entity';
 
@@ -54,6 +55,16 @@ export class SeccionService {
     );
   }
 
+  private generateSlug(name: string): string {
+    return name
+      .toLowerCase() // Convertir a minúsculas
+      .normalize('NFD') // Normalizar caracteres (eliminar acentos)
+      .replace(/[\u0300-\u036f]/g, '') // Eliminar diacríticos
+      .replace(/[^a-z0-9-]/g, '-') // Reemplazar caracteres no alfanuméricos con guiones
+      .replace(/-+/g, '-') // Eliminar múltiples guiones consecutivos
+      .replace(/^-|-$/g, ''); // Eliminar guiones al inicio y al final
+  }
+
   async create(
     createSeccionDto: CreateSeccionDto,
   ): Promise<GeneralResponseDto<Seccion>> {
@@ -78,9 +89,12 @@ export class SeccionService {
       );
     }
 
+    const slug = this.generateSlug(createSeccionDto.nombre);
+
     const newSeccion = this.SeccionRepository.create({
       ...createSeccionDto,
-      gradoId: createSeccionDto.gradoId,
+      gradoId: createSeccionDto.gradoId, // Almacenar como ObjectId
+      slug: slug,
     });
 
     const savedSeccion = await this.SeccionRepository.save(newSeccion);
@@ -186,6 +200,7 @@ export class SeccionService {
           gradoId: grado.nombre,
           backgroundImage: seccion.backgroundImage,
           encargados: encargados.filter((encargado) => encargado !== null), // Filtra cualquier encargado nulo
+          slug: seccion.slug,
         };
       }),
     );
@@ -228,7 +243,8 @@ export class SeccionService {
                 nombre: encargado.nombre,
                 image: encargado.image,
                 email: encargado.email,
-                telefono: encargado.telefono,
+              telefono: encargado.telefono,
+                
               }
             : null;
         }),
@@ -270,16 +286,57 @@ export class SeccionService {
       .build();
   }
 
+  async findOneBySlug(slug: string): Promise<GeneralResponseDto<Seccion>> {
+    const seccion = await this.SeccionRepository.findOne({ where: { slug } });
+
+    if (!seccion) {
+      throw new BadRequestException(`Sección con slug "${slug}" no encontrada`);
+    }
+
+    // Obtener las publicaciones asociadas a la sección
+    const publicaciones = await this.PublicacionRepository.find({
+      where: { seccionId: seccion._id.toString() },
+    });
+
+    // Agregar las publicaciones al objeto de respuesta
+    const seccionWithPublicaciones = {
+      ...seccion,
+      publicaciones,
+    };
+
+    return new GeneralResponseBuilder<Seccion>()
+      .setMessage('Sección encontrada exitosamente')
+      .setData(seccionWithPublicaciones)
+      .build();
+  }
+
   async update(
     id: string,
     updateSeccionDto: UpdateSeccionDto,
   ): Promise<GeneralResponseDto<Seccion>> {
     const Seccion = await this.crudHelper.findByNameOrId(id);
 
-    const updateData: DeepPartial<Seccion> = {
+    const internalUpdateData: InternalUpdateSeccionDto = {
       ...updateSeccionDto,
     };
-    await this.crudHelper.update(Seccion, updateData);
+
+    if (updateSeccionDto.nombre && updateSeccionDto.nombre !== Seccion.nombre) {
+      const newSlug = this.generateSlug(updateSeccionDto.nombre);
+  
+      // Verificar si el nuevo slug ya existe
+      const existingSeccion = await this.SeccionRepository.findOne({
+        where: { slug: newSlug },
+      });
+      if (existingSeccion && existingSeccion._id.toString() !== id) {
+        throw new ConflictException(
+          `Ya existe una sección con el slug "${newSlug}"`,
+        );
+      }
+  
+      internalUpdateData.slug = newSlug; // Asignar el nuevo slug
+    }
+
+    await this.crudHelper.update(Seccion, internalUpdateData);
     return new GeneralResponseBuilder<Seccion>()
       .setMessage('Seccion updated successfully')
       .build();
