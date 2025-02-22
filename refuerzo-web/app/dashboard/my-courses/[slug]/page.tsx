@@ -1,37 +1,31 @@
 "use client"
 import { FileText, ClipboardList, ChevronDown, ChevronUp } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FaRegFilePdf } from "react-icons/fa6";
-import data from '@/data/tablondata.json';
-
-interface Course {
-  name: string;
-  professor: string;
-  schedule: string;
-}
-
-interface Novedad {
-  id: number;
-  professor: string;
-  message: string;
-  date: string;
-  description?: string;
-  files: string[];
-}
-
-interface TablonData {
-  course: Course;
-  novedades: Novedad[];
-}
+import { useParams } from 'next/navigation';
+import { getCourseBySlug } from '@/services/courses.service';
+import { Course } from '@/types/types';
+import { formatRelativeTime } from '@/utils/formatRelativeTime';
 
 export default function Tablon() {
-  const { course, novedades } = data as TablonData;
+  const [course, setCourse] = useState<Course | null>(null);
+  const { slug } = useParams();
 
   const [openId, setOpenId] = useState<number | null>(null);
 
   const handleToggle = (id: number) => {
     setOpenId((prev) => (prev === id ? null : id));
   };
+
+  const fetchCourseBySlug = async () => {
+    const course = await getCourseBySlug(slug as string);
+    setCourse(course);
+  };
+
+  useEffect(() => {
+    fetchCourseBySlug();
+  });
+
 
   const getIconByMessage = (message: string) => {
     if (message.includes('anuncio')) {
@@ -45,37 +39,44 @@ export default function Tablon() {
 
   return (
     <div>
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">{course.name}</h1>
-        <p className="mt-2 text-gray-700">
-          <span className="font-semibold">Profesor: </span>
-          {course.professor}
-        </p>
-        <p className="mt-1 text-gray-700">
-          <span className="font-semibold">Horario: </span>
-          {course.schedule}
-        </p>
+      <div
+        className="relative h-52 cursor-pointer rounded-xl bg-center shadow-lg overflow-hidden hover:shadow-xl transition-shadow group"
+        style={{
+          backgroundImage: `url(${course?.backgroundImage})`,
+          backgroundSize: '120%',
+          backgroundPosition: 'center',
+          transition: 'background-size 0.3s ease'
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-4 flex flex-col justify-end">
+          <div className="transform transition-transform group-hover:translate-y-1">
+            <h3 className="text-3xl font-bold text-white mb-2 drop-shadow-md">
+              {course?.nombre}
+            </h3>
+          </div>
+        </div>
       </div>
 
       <div>
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4 ml-4">
+        <h2 className="text-2xl mt-10 text-blue_principal font-semibold mb-4">
           Novedades
         </h2>
         <ul className="space-y-4">
-          {novedades.map((novedad) => (
-            <li key={novedad.id} className="bg-white shadow rounded-lg">
+          {course?.publicaciones?.map((novedad) => (
+            <li key={novedad.seccionId} className="bg-white shadow rounded-lg">
               <div
                 className="p-4 flex items-center space-x-4 cursor-pointer"
                 onClick={() => handleToggle(novedad.id)}
               >
-                <div className="p-2 rounded-full">{getIconByMessage(novedad.message)}</div>
+                <div className="p-2 rounded-full">{getIconByMessage(novedad.categoria)}</div>
 
                 <div className="flex-1">
-                  <p className="text-gray-900 font-medium">
-                    <span className="font-bold">{novedad.professor}</span>{" "}
-                    {novedad.message}
+                  <p className="text-gray-900 flex flex-row gap-3 items-center">
+                    <span>{novedad.titulo}</span>{" "}
+                    <span className='text-gray-400'>
+                      {formatRelativeTime(course.createdAt)}
+                    </span>
                   </p>
-                  <p className="text-gray-500 text-sm">{novedad.date}</p>
                 </div>
 
                 <div>
@@ -90,7 +91,7 @@ export default function Tablon() {
               {openId === novedad.id && (
                 <div className="p-4 border-t border-gray-200">
                   <p className="text-gray-700 mb-2">
-                    {novedad.description || "Sin descripción disponible."}
+                    {novedad.descripcion || "Sin descripción disponible."}
                   </p>
 
                   {novedad.files.length > 0 ? (
@@ -98,13 +99,13 @@ export default function Tablon() {
                       {novedad.files.map((file, index) => (
                         <a
                           key={index}
-                          href={`/uploads/${file}`}
+                          href={`${file.url}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-blue-600 bg-gray-100 hover:bg-blue-100 px-4 py-2 rounded-lg border border-gray-300 shadow-sm"
                         >
                           <FaRegFilePdf className="w-4 h-4 text-gray-500" />
-                          {file}
+                          {file.originalFileName}
                         </a>
                       ))}
                     </div>

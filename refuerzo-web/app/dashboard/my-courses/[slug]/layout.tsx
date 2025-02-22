@@ -11,10 +11,10 @@ export default function CourseLayout({ children }: { children: React.ReactNode }
   const slug = params.slug as string;
 
   const tabs = [
-    { id: 1, name: 'Tablón', href: `/dashboard/courses/${slug}` },
-    { id: 3, name: 'Personas', href: `/dashboard/courses/${slug}/personas` },
-    { id: 4, name: 'Registrar asistencia', href: `/dashboard/courses/${slug}/asistencia` },
-    { id: 5, name: 'Historial de asistencia', href: `/dashboard/courses/${slug}/historial` },
+    { id: 1, name: 'Tablón', href: `/dashboard/my-courses/${slug}` },
+    { id: 3, name: 'Personas', href: `/dashboard/my-courses/${slug}/personas` },
+    { id: 4, name: 'Registrar asistencia', href: `/dashboard/my-courses/${slug}/asistencia` },
+    { id: 5, name: 'Historial de asistencia', href: `/dashboard/my-courses/${slug}/historial` },
   ];
 
   const currentTabId = tabs.find((tab) => pathname === tab.href)?.id || 1;
@@ -24,7 +24,7 @@ export default function CourseLayout({ children }: { children: React.ReactNode }
       <CourseNavbar tabs={tabs} currentTabId={currentTabId} />
       
       <main className="py-6">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 md:mt-16 mt-36">{children}</div>
+        <div className="sm:px-6 lg:px-8 md:mt-16 mt-36">{children}</div>
       </main>
     </div>
   );

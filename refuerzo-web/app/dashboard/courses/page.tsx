@@ -10,10 +10,12 @@ import { getCourses } from "@/services/courses.service";
 import { useQuery } from "@tanstack/react-query";
 import { Loading } from "@/components/Loading";
 import ServerErrorPage from "@/app/error";
+import Link from "next/link";
 
 
 const CourseCard = ({ course }: { course: Course }) => (
-    <div
+    <Link
+        href={`/dashboard/my-courses/${course.slug}`}
         className="relative cursor-pointer rounded-xl bg-center shadow-lg overflow-hidden hover:shadow-xl transition-shadow h-48 group"
         style={{ 
             backgroundImage: `url(${course.backgroundImage})`,
@@ -42,14 +44,14 @@ const CourseCard = ({ course }: { course: Course }) => (
                 </div>
             </div>
         </div>
-    </div>
+    </Link>
 );
 
 const columns: Column<Course>[] = [
     {
         header: "Curso",
         accessor: (course) => (
-            <div className="flex items-center gap-3 group">
+            <Link href={`/dashboard/my-courses/${course.slug}`} className="flex items-center gap-3 group">
                 <div
                     className="w-8 h-8 rounded-lg bg-cover bg-center shadow-sm"
                     style={{ backgroundImage: `url(${course.backgroundImage})` }}
@@ -57,7 +59,7 @@ const columns: Column<Course>[] = [
                 <span className="font-medium text-gray-800 group-hover:text-blue-600 transition-colors">
                     {course.nombre}
                 </span>
-            </div>
+            </Link>
         ),
     },
     {
@@ -103,6 +105,8 @@ export default function CoursesPage() {
         queryKey: ["cursos"],
         queryFn: getCourses,
     });
+
+
 
     
     if (isLoading) return <Loading />

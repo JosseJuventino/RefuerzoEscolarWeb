@@ -234,6 +234,21 @@ export interface GradeResponse {
   limit: number;
 }
 
+export interface Publicacion {
+  id: number;
+  descripcion: string,
+  categoria: string,
+  files: 
+    {
+      id: string,
+      originalFileName: string,
+      url: string,
+      tipo: string
+    }[],
+  seccionId: string
+  titulo: string
+}
+
 export interface Course {
   _id: string;
   nombre: string;
@@ -247,14 +262,16 @@ export interface Course {
     telefono: string;
   }[];
   alumnos: string[];
+  slug: string;
   createdAt: string;
   updatedAt: string;
+  publicaciones?: Publicacion[];
 }
 
 export interface CourseResponse {
   statusCode: number;
   message: string;
-  data: Course[];
+  data: Course[] | Course;
   size: number;
   totalPages: number;
   page: number;
