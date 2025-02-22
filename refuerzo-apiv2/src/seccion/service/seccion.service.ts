@@ -21,6 +21,7 @@ import { CONFIGURABLE_MODULE_ID } from '@nestjs/common/module-utils/constants';
 import { Grado } from 'src/grado/entities/grado.entity';
 import { Publicacion } from 'src/publicacion/entities/publicacion.entity';
 import { PublicacionService } from 'src/publicacion/service/publicacion.service';
+import { InternalUpdateSeccionDto } from '../dto/Internal-update-seccion.dto';
 
 @Injectable()
 export class SeccionService {
@@ -39,6 +40,16 @@ export class SeccionService {
       this.SeccionRepository,
       'Secciones',
     );
+  }
+
+  private generateSlug(name: string): string {
+    return name
+      .toLowerCase() // Convertir a minúsculas
+      .normalize('NFD') // Normalizar caracteres (eliminar acentos)
+      .replace(/[\u0300-\u036f]/g, '') // Eliminar diacríticos
+      .replace(/[^a-z0-9-]/g, '-') // Reemplazar caracteres no alfanuméricos con guiones
+      .replace(/-+/g, '-') // Eliminar múltiples guiones consecutivos
+      .replace(/^-|-$/g, ''); // Eliminar guiones al inicio y al final
   }
 
   async create(
@@ -65,9 +76,12 @@ export class SeccionService {
       );
     }
 
+    const slug = this.generateSlug(createSeccionDto.nombre);
+
     const newSeccion = this.SeccionRepository.create({
       ...createSeccionDto,
       gradoId: createSeccionDto.gradoId, // Almacenar como ObjectId
+      slug: slug,
     });
 
     const savedSeccion = await this.SeccionRepository.save(newSeccion);
@@ -172,11 +186,55 @@ export class SeccionService {
       .build();
   }
 
+  async findOneBySlug(slug: string): Promise<GeneralResponseDto<Seccion>> {
+    const seccion = await this.SeccionRepository.findOne({ where: { slug } });
+
+    if (!seccion) {
+      throw new BadRequestException(`Sección con slug "${slug}" no encontrada`);
+    }
+
+    // Obtener las publicaciones asociadas a la sección
+    const publicaciones = await this.PublicacionRepository.find({
+      where: { seccionId: seccion._id.toString() },
+    });
+
+    // Agregar las publicaciones al objeto de respuesta
+    const seccionWithPublicaciones = {
+      ...seccion,
+      publicaciones,
+    };
+
+    return new GeneralResponseBuilder<Seccion>()
+      .setMessage('Sección encontrada exitosamente')
+      .setData(seccionWithPublicaciones)
+      .build();
+  }
+
   async update(
     id: string,
     updateSeccionDto: UpdateSeccionDto,
   ): Promise<GeneralResponseDto<Seccion>> {
     const Seccion = await this.crudHelper.findByNameOrId(id);
+
+    const internalUpdateData: InternalUpdateSeccionDto = {
+      ...updateSeccionDto,
+    };
+
+    if (updateSeccionDto.nombre && updateSeccionDto.nombre !== Seccion.nombre) {
+      const newSlug = this.generateSlug(updateSeccionDto.nombre);
+
+      // Verificar si el nuevo slug ya existe
+      const existingSeccion = await this.SeccionRepository.findOne({
+        where: { slug: newSlug },
+      });
+      if (existingSeccion && existingSeccion._id.toString() !== id) {
+        throw new ConflictException(
+          `Ya existe una sección con el slug "${newSlug}"`,
+        );
+      }
+
+      internalUpdateData.slug = newSlug;
+    }
 
     const updateData: DeepPartial<Seccion> = {
       ...updateSeccionDto,
