@@ -277,3 +277,17 @@ export interface CourseResponse {
   page: number;
   limit: number;
 }
+
+export interface File {
+  id: string;
+  originalFileName: string;
+  url: string;
+  tipo: string;
+}
+
+export interface Publicacion {
+  descripcion: string;
+  categoria: string;
+  files: File[];
+  seccionId: string;
+}

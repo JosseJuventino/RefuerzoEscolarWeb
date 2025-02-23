@@ -129,14 +129,17 @@ export default function Tablon() {
         </div>
       </div>
 
-      {/* Sección de novedades */}
       <div className="pb-10">
         <div className="flex items-center justify-between mb-10">
-          <h2 className="text-3xl font-bold text-blue_principal relative">
-            <span className="relative z-10 pl-2">Últimas novedades</span>
-
+          <h2 className="text-3xl font-bold text-blue_principal flex flex-col gap-1 relative">
+            <span className="relative z-10">Últimas publicaciones</span>
+            <span className="text-gray-500 text-sm">{course?.publicaciones?.length} publicaciones</span>
           </h2>
-          <span className="text-gray-500 text-sm">{course?.publicaciones?.length} publicaciones</span>
+          
+          <button className="text-blue_principal bg-white font-medium px-4 py-2 rounded-lg shadow transition-transform hover:scale-105">
+            Agregar publicación
+          </button>
+
         </div>
 
         <div className="space-y-8">
@@ -214,6 +217,8 @@ export default function Tablon() {
         onClose={closeModal}
         onSubmit={handleEdit}
       />
+
+      
     </div>
   );
 }
