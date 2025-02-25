@@ -17,7 +17,6 @@ import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { buildPaginationAndFilterOptions } from 'src/common/helper/pagination.helper';
 import { PaginationResponseBuilder } from 'src/common/helper/paginated-response.helper';
 import { PaginationResponseDto } from 'src/common/dto/pagination-response.dto';
-import { CONFIGURABLE_MODULE_ID } from '@nestjs/common/module-utils/constants';
 import { Grado } from 'src/grado/entities/grado.entity';
 import { Publicacion } from 'src/publicacion/entities/publicacion.entity';
 import { PublicacionService } from 'src/publicacion/service/publicacion.service';
@@ -293,20 +292,73 @@ export class SeccionService {
       throw new BadRequestException(`Sección con slug "${slug}" no encontrada`);
     }
 
-    // Obtener las publicaciones asociadas a la sección
     const publicaciones = await this.PublicacionRepository.find({
       where: { seccionId: seccion._id.toString() },
     });
 
-    // Agregar las publicaciones al objeto de respuesta
-    const seccionWithPublicaciones = {
+    const grado = await this.GradoRepository.findOne({
+      where: { _id: new ObjectId(seccion.gradoId) },
+    });
+
+   
+    // Populate encargados (si existen)
+    let encargados = [];
+    if (seccion.encargados && seccion.encargados.length > 0) {
+      encargados = await Promise.all(
+        seccion.encargados.map(async (encargadoId) => {
+          const encargado = await this.userCrudHelper.findByNameOrId(
+            encargadoId.toString(),
+            false,
+            false,
+          );
+          return encargado
+            ? {
+                _id: encargado._id,
+                nombre: encargado.nombre,
+                image: encargado.image,
+                email: encargado.email,
+              telefono: encargado.telefono,
+                
+              }
+            : null;
+        }),
+      );
+    }
+
+
+
+    //populate alumnos (si existen)
+    let alumnos = [];
+    if (seccion.alumnos && seccion.alumnos.length > 0) {
+      alumnos = await Promise.all(
+        seccion.alumnos.map(async (alumnoId) => {
+          const alumno = await this.alumnoCrudHelper.findByNameOrId(
+            alumnoId.toString(),
+            false,
+            false,
+          );
+          return alumno
+            ? {
+                _id: alumno._id,
+                nombre: alumno.nombre,
+                image: alumno.image,
+              }
+            : null;
+        }),
+      );
+    }
+
+    // Crear el objeto de respuesta con las publicaciones y los encargados populados
+    const seccionWithDetails = {
       ...seccion,
       publicaciones,
+      encargados: encargados.filter((encargado) => encargado !== null), // Filtramos encargados nulos
+      alumnos: alumnos.filter((alumno) => alumno !== null), // Filtramos alumnos nulos
     };
 
     return new GeneralResponseBuilder<Seccion>()
       .setMessage('Sección encontrada exitosamente')
-      .setData(seccionWithPublicaciones)
+      .setData(seccionWithDetails)
       .build();
   }
 
@@ -365,6 +417,7 @@ export class SeccionService {
   async deleteByGradoId(gradoId: string): Promise<void> {
     // Obtener todas las secciones del grado
     const secciones = await this.SeccionRepository.find({ where: { gradoId } });
+
 
     // Eliminar publicaciones y archivos de cada sección
     for (const seccion of secciones) {
