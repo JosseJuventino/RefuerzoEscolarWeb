@@ -10,7 +10,7 @@ import { updateCourse } from '@/services/courses.service';
 import { CourseConfigModal } from '@/components/Popups/CourseConfigModal';
 import { uploadImage } from '@/services/images.service';
 import { useContext } from 'react';
-import { CourseContext } from './layout';
+import { CourseContext } from '@/app/contexts/course-context';
 import { AddPublicationModal } from '@/components/Popups/AddPublicationModal';
 
 export default function Tablon() {
