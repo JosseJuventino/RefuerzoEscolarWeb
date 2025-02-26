@@ -7,10 +7,10 @@ import { getCourseBySlug } from '@/services/courses.service';
 import { Course } from '@/types/types';
 import { Loading } from '@/components/Loading';
 import { useQuery } from '@tanstack/react-query';
+import { CourseContext } from '@/app/contexts/course-context';
 
 //Este contexto se ha creado para poder compartir los datos del curso por las diferentes tabs y 
 // asi no tener que hacer peticiones a la API en cada tab.
-export const CourseContext = React.createContext<Course | undefined>(undefined);
 
 export default function CourseLayout({ children }: { children: React.ReactNode }) {
 
