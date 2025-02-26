@@ -12,7 +12,6 @@ interface FormModalProps {
     isOpen: boolean;
     initialData?: Publicacion;
     onClose: () => void;
-    onSubmit: (data: Publicacion, document: File | string | null) => void;
     title: string;
 }
 
@@ -25,7 +24,6 @@ export const AddPublicationModal = ({
     isOpen,
     initialData,
     onClose,
-    onSubmit,
     title,
 }: FormModalProps) => {
     const emptyForm = useMemo<Partial<Publicacion>>(() => ({
@@ -62,7 +60,7 @@ export const AddPublicationModal = ({
 
 
         //TODO: Add the rest of the fields
-        onSubmit(formData as Publicacion, null);
+        //onSubmit(formData as Publicacion, null);
         handleCancel();
     };
 
