@@ -1,7 +1,7 @@
 "use client";
 
 import { Modal } from "./Modal";
-import { AlertTriangle, X } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 interface DeleteModalProps<T extends { _id: string }> {
   isOpen: boolean;

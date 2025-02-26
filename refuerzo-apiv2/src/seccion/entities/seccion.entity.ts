@@ -29,6 +29,9 @@ export class Seccion {
   @Column({ default: [] })
   alumnos: string[];
 
+  @Column({ unique: true })
+  slug: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

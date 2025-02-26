@@ -17,10 +17,10 @@ import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { buildPaginationAndFilterOptions } from 'src/common/helper/pagination.helper';
 import { PaginationResponseBuilder } from 'src/common/helper/paginated-response.helper';
 import { PaginationResponseDto } from 'src/common/dto/pagination-response.dto';
-import { CONFIGURABLE_MODULE_ID } from '@nestjs/common/module-utils/constants';
 import { Grado } from 'src/grado/entities/grado.entity';
 import { Publicacion } from 'src/publicacion/entities/publicacion.entity';
 import { PublicacionService } from 'src/publicacion/service/publicacion.service';
+import { InternalUpdateSeccionDto } from '../dto/Internal-update-seccion.dto';
 import { User } from 'src/users/entities/user.entity';
 import { Alumno } from 'src/alumno/entities/alumno.entity';
 
@@ -54,6 +54,16 @@ export class SeccionService {
     );
   }
 
+  private generateSlug(name: string): string {
+    return name
+      .toLowerCase() // Convertir a minúsculas
+      .normalize('NFD') // Normalizar caracteres (eliminar acentos)
+      .replace(/[\u0300-\u036f]/g, '') // Eliminar diacríticos
+      .replace(/[^a-z0-9-]/g, '-') // Reemplazar caracteres no alfanuméricos con guiones
+      .replace(/-+/g, '-') // Eliminar múltiples guiones consecutivos
+      .replace(/^-|-$/g, ''); // Eliminar guiones al inicio y al final
+  }
+
   async create(
     createSeccionDto: CreateSeccionDto,
   ): Promise<GeneralResponseDto<Seccion>> {
@@ -78,9 +88,12 @@ export class SeccionService {
       );
     }
 
+    const slug = this.generateSlug(createSeccionDto.nombre);
+
     const newSeccion = this.SeccionRepository.create({
       ...createSeccionDto,
-      gradoId: createSeccionDto.gradoId,
+      gradoId: createSeccionDto.gradoId, // Almacenar como ObjectId
+      slug: slug,
     });
 
     const savedSeccion = await this.SeccionRepository.save(newSeccion);
@@ -186,6 +199,7 @@ export class SeccionService {
           gradoId: grado.nombre,
           backgroundImage: seccion.backgroundImage,
           encargados: encargados.filter((encargado) => encargado !== null), // Filtra cualquier encargado nulo
+          slug: seccion.slug,
         };
       }),
     );
@@ -250,6 +264,7 @@ export class SeccionService {
                 _id: alumno._id,
                 nombre: alumno.nombre,
                 image: alumno.image,
+                email: alumno.email,
               }
             : null;
         }),
@@ -270,16 +285,107 @@ export class SeccionService {
       .build();
   }
 
+  async findOneBySlug(slug: string): Promise<GeneralResponseDto<Seccion>> {
+    const seccion = await this.SeccionRepository.findOne({ where: { slug } });
+
+    if (!seccion) {
+      throw new BadRequestException(`Sección con slug "${slug}" no encontrada`);
+    }
+
+    const publicaciones = await this.PublicacionRepository.find({
+      where: { seccionId: seccion._id.toString() },
+    });
+
+    const grado = await this.GradoRepository.findOne({
+      where: { _id: new ObjectId(seccion.gradoId) },
+    });
+
+    // Populate encargados (si existen)
+    let encargados = [];
+    if (seccion.encargados && seccion.encargados.length > 0) {
+      encargados = await Promise.all(
+        seccion.encargados.map(async (encargadoId) => {
+          const encargado = await this.userCrudHelper.findByNameOrId(
+            encargadoId.toString(),
+            false,
+            false,
+          );
+          return encargado
+            ? {
+                _id: encargado._id,
+                nombre: encargado.nombre,
+                image: encargado.image,
+                email: encargado.email,
+                telefono: encargado.telefono,
+              }
+            : null;
+        }),
+      );
+    }
+
+    //populate alumnos (si existen)
+    let alumnos = [];
+    if (seccion.alumnos && seccion.alumnos.length > 0) {
+      alumnos = await Promise.all(
+        seccion.alumnos.map(async (alumnoId) => {
+          const alumno = await this.alumnoCrudHelper.findByNameOrId(
+            alumnoId.toString(),
+            false,
+            false,
+          );
+          return alumno
+            ? {
+                _id: alumno._id,
+                nombre: alumno.nombre,
+                image: alumno.image,
+                email: alumno.email,
+              }
+            : null;
+        }),
+      );
+    }
+
+    // Crear el objeto de respuesta con las publicaciones y los encargados populados
+    const seccionWithDetails = {
+      ...seccion,
+      publicaciones,
+      encargados: encargados.filter((encargado) => encargado !== null), // Filtramos encargados nulos
+      alumnos: alumnos.filter((alumno) => alumno !== null), // Filtramos alumnos nulos
+    };
+
+    return new GeneralResponseBuilder<Seccion>()
+      .setMessage('Sección encontrada exitosamente')
+      .setData(seccionWithDetails)
+      .build();
+  }
+
   async update(
     id: string,
     updateSeccionDto: UpdateSeccionDto,
   ): Promise<GeneralResponseDto<Seccion>> {
     const Seccion = await this.crudHelper.findByNameOrId(id);
 
-    const updateData: DeepPartial<Seccion> = {
+    const internalUpdateData: InternalUpdateSeccionDto = {
       ...updateSeccionDto,
     };
-    await this.crudHelper.update(Seccion, updateData);
+
+    if (updateSeccionDto.nombre && updateSeccionDto.nombre !== Seccion.nombre) {
+      const newSlug = this.generateSlug(updateSeccionDto.nombre);
+
+      // Verificar si el nuevo slug ya existe
+      const existingSeccion = await this.SeccionRepository.findOne({
+        where: { slug: newSlug },
+      });
+      if (existingSeccion && existingSeccion._id.toString() !== id) {
+        throw new ConflictException(
+          `Ya existe una sección con el slug "${newSlug}"`,
+        );
+      }
+
+      internalUpdateData.slug = newSlug; // Asignar el nuevo slug
+    }
+
+    await this.crudHelper.update(Seccion, internalUpdateData);
     return new GeneralResponseBuilder<Seccion>()
       .setMessage('Seccion updated successfully')
       .build();
@@ -326,6 +432,56 @@ export class SeccionService {
     for (const seccion of secciones) {
       if (!seccion.alumnos.includes(alumnoId)) {
         seccion.alumnos.push(alumnoId);
+        await this.SeccionRepository.save(seccion);
+      }
+    }
+  }
+
+  async deleteAlumnoFromSeccionesByGradoId(
+    gradoId: string,
+    alumnoId: string,
+  ): Promise<void> {
+    const secciones = await this.findAllByGradoId(gradoId);
+
+    for (const seccion of secciones) {
+      if (!seccion.alumnos) seccion.alumnos = [];
+
+      // Buscar usando conversión a string
+      const index = seccion.alumnos.findIndex(
+        (alumno) => alumno.toString() === alumnoId,
+      );
+
+      if (index !== -1) {
+        seccion.alumnos.splice(index, 1);
+        await this.SeccionRepository.save(seccion);
+      }
+    }
+  }
+
+  // Método deleteEncargadoFromSeccionesByUserId corregido
+  async deleteEncargadoFromSeccionesByUserId(userId: string): Promise<void> {
+    const userIdAsObjectId = new ObjectId(userId); // Convertir a ObjectId
+
+    // Trim para eliminar espacios ocultos
+    userId = userId.trim();
+
+    // Consulta directa usando el driver de MongoDB
+    const secciones = await this.SeccionRepository.find({
+      where: {
+        encargados: { $in: [userId] }, // Usar el operador $in de MongoDB
+      } as any, // Forzar el tipo si es necesario
+    });
+
+    for (const seccion of secciones) {
+      if (!seccion.encargados) seccion.encargados = [];
+
+      // Convertir cada ID en el array a string para comparar
+      const index = seccion.encargados.findIndex(
+        (encargadoId) => encargadoId.toString() === userId,
+      );
+
+      if (index !== -1) {
+        seccion.encargados.splice(index, 1);
         await this.SeccionRepository.save(seccion);
       }
     }

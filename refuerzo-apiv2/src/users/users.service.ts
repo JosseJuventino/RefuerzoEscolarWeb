@@ -14,7 +14,7 @@ import { SendEmailDto } from 'src/email/dto/send-email.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CrudHelper } from '../common/helper/crud.helper';
 import { User } from './entities/user.entity';
-import { Repository, FindManyOptions, MoreThan } from 'typeorm';
+import { Repository, FindManyOptions, MoreThan, In } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { GeneralResponseDto } from 'src/common/dto/general-response.dto';
 import { GeneralResponseBuilder } from 'src/common/helper/general-response.helper';
@@ -35,6 +35,7 @@ import { alumnoAccountCreatedTemplate } from 'src/email/templates/createAlumnoTe
 import { AlumnoService } from '../alumno/service/alumno.service';
 import { CreateAlumnoDto } from 'src/alumno/dto/create-alumno.dto';
 import { PostulanteService } from 'src/postulante/service/postulante.service';
+import { SeccionService } from 'src/seccion/service/seccion.service';
 import { ObjectId } from 'mongodb';
 
 @Injectable()
@@ -55,6 +56,7 @@ export class UsersService {
     private readonly emailService: EmailService,
     @Inject(forwardRef(() => PostulanteService))
     private readonly postulanteService: PostulanteService,
+    private readonly seccionService: SeccionService,
   ) {
     this.crudHelper = new CrudHelper<User>(this.userRepository, 'Users');
     this.roleCrudHelper = new CrudHelper<Role>(this.roleRepository, 'Roles');
@@ -546,6 +548,7 @@ export class UsersService {
     const alumnoUpdate = {
       nombre: updateUserDto.nombre,
       image: updateUserDto.image,
+      email: updateUserDto.email,
     };
 
     if (role.name === 'alumno') {
@@ -563,6 +566,9 @@ export class UsersService {
     if (userCount === 1) {
       throw new ConflictException('Cannot delete the only user in the system');
     }
+
+    await this.seccionService.deleteEncargadoFromSeccionesByUserId(id);
+
     await this.crudHelper.delete(user, true);
     return new GeneralResponseBuilder<User>()
       .setMessage('User deleted successfully')
@@ -610,6 +616,7 @@ export class UsersService {
         userId,
         user.nombre,
         user.image,
+        user.email,
         true,
       );
     }

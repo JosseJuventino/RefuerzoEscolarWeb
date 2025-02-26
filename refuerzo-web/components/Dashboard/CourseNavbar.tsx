@@ -14,7 +14,7 @@ type CourseNavbarProps = {
 
 const CourseNavbar: React.FC<CourseNavbarProps> = ({ tabs, currentTabId }) => {
   return (
-    <nav className="bg-white shadow md:mt-0 mt-20 fixed w-full z-10">
+    <nav className="bg-white shadow md:mt-0 fixed w-full z-10">
       <div className="max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex">

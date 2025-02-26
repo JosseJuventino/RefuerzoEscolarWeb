@@ -53,4 +53,8 @@ export class CreateSeccionDto {
   @IsString()
   @IsOptional()
   readonly backgroundImage?: string; 
+
+  
+
+  
 }

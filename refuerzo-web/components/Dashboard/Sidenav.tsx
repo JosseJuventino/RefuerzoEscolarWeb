@@ -19,7 +19,6 @@ import {
   UsersRoundIcon,
   LogOut,
   UserCircle,
-  LucideSquareUserRound,
   Settings
 } from "lucide-react";
 

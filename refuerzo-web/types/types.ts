@@ -79,13 +79,12 @@ export interface Usuario {
   password: string;
 }
 
-export interface UserEdited{
+export interface UserEdited {
   _id: string;
   nombres: string;
   imagen: string;
   email: string;
 }
-
 
 export interface ActivateAccountRequirements {
   image?: string;
@@ -235,23 +234,66 @@ export interface GradeResponse {
   limit: number;
 }
 
+export interface Publicacion {
+  id: number;
+  descripcion: string,
+  categoria: string,
+  files: 
+    {
+      id: string,
+      originalFileName: string,
+      url: string,
+      tipo: string
+    }[],
+  seccionId: string
+  titulo: string
+}
+
 export interface Course {
-  _id: string,
-  nombre: string,
-  gradoId: string,
-  backgroundImage: string,
-  encargados: string[],
-  alumnos: string[]
-  createdAt: string,
-  updatedAt: string
+  _id: string;
+  nombre: string;
+  gradoId: string;
+  backgroundImage: string;
+  encargados: {
+    _id: string;
+    nombre: string;
+    image: string;
+    email: string;
+    telefono: string;
+  }[];
+  alumnos: {
+    _id: string;
+    nombre: string;
+    image: string;
+    email: string;
+    telefono: string;
+  }[];
+  slug: string;
+  createdAt: string;
+  updatedAt: string;
+  publicaciones?: Publicacion[];
 }
 
 export interface CourseResponse {
-  statusCode: number,
-  message: string
-  data: Course[],
-  size: number,
-  totalPages: number,
-  page: number,
-  limit: number
+  statusCode: number;
+  message: string;
+  data: Course[] | Course;
+  size: number;
+  totalPages: number;
+  page: number;
+  limit: number;
+}
+
+export interface FileNew {
+  id: string;
+  originalFileName: string;
+  url: string;
+  tipo: string;
+}
+
+export interface Publicacion {
+  descripcion: string;
+  categoria: string;
+  files: FileNew[];
+  seccionId: string;
 }
