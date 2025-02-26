@@ -43,6 +43,29 @@ export class PublicacionService {
     this.roleCrudHelper = new CrudHelper<Role>(this.RoleRepository, 'Roles');
   }
 
+  private checkForDuplicateFiles(
+    files: Array<{ id: string; url: string; originalFileName: string }>,
+  ) {
+    const seenIds = new Set<string>();
+    const seenUrls = new Set<string>();
+
+    for (const file of files) {
+      if (seenIds.has(file.id)) {
+        throw new BadRequestException(
+          `El archivo ${file.originalFileName} está duplicado.`,
+        );
+      }
+      seenIds.add(file.id);
+
+      if (seenUrls.has(file.url)) {
+        throw new BadRequestException(
+          `El archivo ${file.originalFileName} está duplicado.`,
+        );
+      }
+      seenUrls.add(file.url);
+    }
+  }
+
   async create(
     userName: string,
     userId: string,
@@ -62,6 +85,13 @@ export class PublicacionService {
           `Tipo de archivo inválido: ${file.tipo}. Solo se permiten 'imagen' o 'documento'.`,
         );
       }
+    }
+
+    this.checkForDuplicateFiles(createPublicacionDto.files);
+
+    // Validar máximo 5 archivos
+    if (createPublicacionDto.files.length > 5) {
+      throw new BadRequestException('No se pueden adjuntar más de 5 archivos');
     }
 
     let newTitle: string;
@@ -199,17 +229,23 @@ export class PublicacionService {
       }
     }
 
-    // Obtener archivos existentes y nuevos
     const existingFiles = publicacion.files;
     const newFiles = updatePublicacionDto.files ?? publicacion.files;
 
-    // Identificar archivos a eliminar
+    if (updatePublicacionDto.files) {
+      this.checkForDuplicateFiles(updatePublicacionDto.files);
+    }
+
+    // Validar máximo 5 archivos al actualizar
+    if (newFiles.length > 5) {
+      throw new BadRequestException('No se pueden adjuntar más de 5 archivos');
+    }
+
     const filesToRemove = existingFiles.filter(
       (existingFile) =>
         !newFiles.some((newFile) => newFile.id === existingFile.id),
     );
 
-    // Eliminar archivos antiguos
     for (const file of filesToRemove) {
       if (file.tipo === 'imagen') {
         await this.imageService.delete(file.id);
@@ -218,7 +254,6 @@ export class PublicacionService {
       }
     }
 
-    // Actualizar la publicación con los nuevos archivos
     publicacion.titulo = newTitle || publicacion.titulo;
     publicacion.categoria =
       updatePublicacionDto.categoria || publicacion.categoria;
