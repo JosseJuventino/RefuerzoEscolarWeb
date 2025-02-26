@@ -12,5 +12,10 @@ export class UpdateAlumnoByUserDto {
   @ApiProperty({})
   @IsString()
   @IsNotEmpty()
+  email: string;
+
+  @ApiProperty({})
+  @IsString()
+  @IsNotEmpty()
   image: string;
 }
