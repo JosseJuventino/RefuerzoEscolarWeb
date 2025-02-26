@@ -295,6 +295,7 @@ export class PostulanteService {
     user_Id: string,
     nameUser: string,
     imageUser: string,
+    emailUser: string,
     isUser: boolean,
   ): Promise<GeneralResponseDto<Postulante>> {
     const postulante = await this.crudHelper.findByNameOrId(id);
@@ -306,6 +307,7 @@ export class PostulanteService {
       gradoId: postulante.grado.toString(),
       nombre: nameUser,
       image: imageUser,
+      email: emailUser,
     };
 
     await this.alumnoService.create(createNewAlumno);

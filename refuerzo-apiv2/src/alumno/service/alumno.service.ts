@@ -67,6 +67,7 @@ export class AlumnoService {
       userId: createAlumnoDto.userId,
       gradoId: createAlumnoDto.gradoId,
       nombre: createAlumnoDto.nombre,
+      email: createAlumnoDto.email,
       image: createAlumnoDto.image,
     });
 
@@ -281,6 +282,11 @@ export class AlumnoService {
 
     // Eliminar el usuario
     await this.usersService.remove(Alumno.userId);
+
+    await this.seccionService.deleteAlumnoFromSeccionesByGradoId(
+      Alumno.gradoId,
+      Alumno._id.toString(),
+    );
 
     await this.crudHelper.delete(Alumno, true);
 

@@ -20,6 +20,9 @@ export class Alumno {
   image: string;
 
   @Column()
+  email: string;
+
+  @Column()
   userId: string;
 
   @Column()
