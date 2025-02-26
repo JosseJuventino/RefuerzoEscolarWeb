@@ -261,7 +261,13 @@ export interface Course {
     email: string;
     telefono: string;
   }[];
-  alumnos: string[];
+  alumnos: {
+    _id: string;
+    nombre: string;
+    image: string;
+    email: string;
+    telefono: string;
+  }[];
   slug: string;
   createdAt: string;
   updatedAt: string;
@@ -278,7 +284,7 @@ export interface CourseResponse {
   limit: number;
 }
 
-export interface File {
+export interface FileNew {
   id: string;
   originalFileName: string;
   url: string;
@@ -288,6 +294,6 @@ export interface File {
 export interface Publicacion {
   descripcion: string;
   categoria: string;
-  files: File[];
+  files: FileNew[];
   seccionId: string;
 }

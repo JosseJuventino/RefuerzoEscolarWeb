@@ -2,23 +2,29 @@
 import { FileText, ClipboardList, ChevronDown, ChevronUp, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { FaRegFilePdf } from "react-icons/fa6";
-import { useParams } from 'next/navigation';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Course, Image } from '@/types/types';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Course, Image, Publicacion } from '@/types/types';
 import { formatRelativeTime } from '@/utils/formatRelativeTime';
-import { getCourseBySlug, updateCourse } from '@/services/courses.service';
-import { Loading } from '@/components/Loading';
+import { updateCourse } from '@/services/courses.service';
+
 import { CourseConfigModal } from '@/components/Popups/CourseConfigModal';
 import { uploadImage } from '@/services/images.service';
-import { toast } from '@pheralb/toast';
+import { useContext } from 'react';
+import { CourseContext } from './layout';
+import { AddPublicationModal } from '@/components/Popups/AddPublicationModal';
 
 export default function Tablon() {
-  const { slug } = useParams();
   const [openId, setOpenId] = useState<number | null>(null);
+  const course = useContext(CourseContext);
 
   const [modalState, setModalState] = useState<{
     type: 'add' | 'edit' | 'delete' | null;
     selected: Course | null;
+  }>({ type: null, selected: null });
+
+  const [modalStatePublication, setModalStatePublication] = useState<{
+    type: 'add' | 'edit' | 'delete' | null;
+    selected: Publicacion | null;
   }>({ type: null, selected: null });
 
   const queryClient = useQueryClient();
@@ -26,27 +32,17 @@ export default function Tablon() {
   const updateCourseMutation = useMutation({
     mutationFn: updateCourse,
     onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['course', slug] 
+      queryClient.invalidateQueries({
+        queryKey: ['course', course?.slug],
       });
     },
   });
+
   const uploadImageMutation = useMutation({
     mutationFn: uploadImage,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['image'] });
     },
-  });
-
-  // Query para obtener el curso
-  const {
-    data: course,
-    isLoading,
-    isError,
-    error
-  } = useQuery<Course>({
-    queryKey: ['course', slug],
-    queryFn: () => getCourseBySlug(slug as string),
   });
 
 
@@ -64,11 +60,10 @@ export default function Tablon() {
     return null;
   };
 
-  const closeModal = () => setModalState({ type: null, selected: null });
-
-  if (isLoading) return <Loading />;
-  if (isError) return <div className="text-center py-8 text-red-500">Error: {error?.message}</div>;
-
+  const closeModal = () => {
+    setModalState({ type: null, selected: null })
+    setModalStatePublication({ type: null, selected: null })
+  };
 
 
   const handleEdit = async (updated: Course, image: File | string | null) => {
@@ -87,7 +82,7 @@ export default function Tablon() {
       const imagen: Image = {
         originalFilename: image.name,
         category: "section_images",
-        file: image,
+        file: image
       };
 
       const response = await uploadImageMutation.mutateAsync(imagen);
@@ -108,7 +103,6 @@ export default function Tablon() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      {/* Banner del curso */}
       <div className="relative group h-72 rounded-2xl bg-center shadow-2xl overflow-hidden mb-10 transition-all duration-300">
         <div
           className="absolute inset-0 bg-cover bg-center"
@@ -135,8 +129,8 @@ export default function Tablon() {
             <span className="relative z-10">Últimas publicaciones</span>
             <span className="text-gray-500 text-sm">{course?.publicaciones?.length} publicaciones</span>
           </h2>
-          
-          <button className="text-blue_principal bg-white font-medium px-4 py-2 rounded-lg shadow transition-transform hover:scale-105">
+
+          <button onClick={() => setModalStatePublication({ type: 'add', selected: null })} className="text-blue_principal bg-white font-medium px-4 py-2 rounded-lg shadow transition-transform hover:scale-105">
             Agregar publicación
           </button>
 
@@ -218,7 +212,14 @@ export default function Tablon() {
         onSubmit={handleEdit}
       />
 
-      
+      <AddPublicationModal
+        isOpen={modalStatePublication.type === 'add'}
+        title="Agregar publicación"
+        initialData={modalStatePublication.selected!}
+        onClose={closeModal}
+      />
+
+
     </div>
   );
 }
