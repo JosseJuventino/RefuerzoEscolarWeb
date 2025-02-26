@@ -3,8 +3,7 @@ import { useState } from "react";
 import { CircleUser } from "lucide-react";
 import Image from "next/image";
 import { useContext } from 'react';
-import { CourseContext } from "../layout";
-
+import { CourseContext } from "@/app/contexts/course-context";
 
 interface Person {
   _id: string;
