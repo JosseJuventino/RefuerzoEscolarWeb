@@ -71,6 +71,7 @@ export default function RegistrationForm() {
         queryKey: ["grados"],
         queryFn: getGrades,
     });
+    
     const formData = useRef({
         imagen: "",
     });
