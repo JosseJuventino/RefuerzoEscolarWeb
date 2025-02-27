@@ -36,6 +36,7 @@ import { AlumnoService } from '../alumno/service/alumno.service';
 import { CreateAlumnoDto } from 'src/alumno/dto/create-alumno.dto';
 import { PostulanteService } from 'src/postulante/service/postulante.service';
 import { SeccionService } from 'src/seccion/service/seccion.service';
+import { Seccion } from 'src/seccion/entities/seccion.entity';
 import { ObjectId } from 'mongodb';
 
 @Injectable()
@@ -51,6 +52,8 @@ export class UsersService {
     private readonly roleRepository: Repository<Role>,
     @InjectRepository(Postulante)
     private readonly postulanteRepository: Repository<Postulante>,
+    @InjectRepository(Seccion)
+    private readonly seccionRepository: Repository<Seccion>,
     @Inject(forwardRef(() => AlumnoService))
     private readonly alumnoService: AlumnoService,
     private readonly emailService: EmailService,
@@ -308,6 +311,90 @@ export class UsersService {
       .setTotalPages(totalPages)
       .setPage(applyPagination ? paginationQuery.page : 1)
       .setLimit(applyPagination ? paginationQuery.limit : total) // Si no hay paginación, devolver todos los registros
+      .build();
+  }
+
+  async findAllProfesores(): Promise<GeneralResponseDto<any>> {
+    // Obtener el rol de profesor
+    const profesorRole = await this.roleCrudHelper.findByNameOrId(
+      'profesor',
+      false,
+      false,
+    );
+    if (!profesorRole) {
+      throw new BadRequestException('Rol "profesor" no encontrado');
+    }
+
+    // Obtener todos los profesores
+    const profesores = await this.userRepository.find({
+      where: { role: profesorRole._id.toString() },
+      select: ['_id', 'nombre', 'email', 'telefono', 'image'],
+    });
+
+    // Obtener todos los encargados de todas las secciones
+    const secciones = await this.seccionRepository.find({
+      select: ['encargados'],
+    });
+    const encargadosIds = new Set<string>(
+      secciones.flatMap((s) => s.encargados.map((id) => id.toString())),
+    );
+
+    // Mapear resultado con estado
+    const profesoresConEstado = profesores.map((profesor) => ({
+      ...profesor,
+      isEncargado: encargadosIds.has(profesor._id.toString()),
+    }));
+
+    // Ordenar: primero los no encargados
+    profesoresConEstado.sort(
+      (a, b) => Number(a.isEncargado) - Number(b.isEncargado),
+    );
+
+    return new GeneralResponseBuilder()
+      .setMessage('Profesores obtenidos exitosamente')
+      .setData(profesoresConEstado)
+      .build();
+  }
+
+  async findAllTutores(): Promise<GeneralResponseDto<any>> {
+    // Obtener el rol de profesor
+    const tutorRole = await this.roleCrudHelper.findByNameOrId(
+      'tutor',
+      false,
+      false,
+    );
+    if (!tutorRole) {
+      throw new BadRequestException('Rol "profesor" no encontrado');
+    }
+
+    // Obtener todos los profesores
+    const tutores = await this.userRepository.find({
+      where: { role: tutorRole._id.toString() },
+      select: ['_id', 'nombre', 'email', 'telefono', 'image'],
+    });
+
+    // Obtener todos los encargados de todas las secciones
+    const secciones = await this.seccionRepository.find({
+      select: ['encargados'],
+    });
+    const encargadosIds = new Set<string>(
+      secciones.flatMap((s) => s.encargados.map((id) => id.toString())),
+    );
+
+    // Mapear resultado con estado
+    const tutoresConEstado = tutores.map((tutor) => ({
+      ...tutor,
+      isEncargado: encargadosIds.has(tutor._id.toString()),
+    }));
+
+    // Ordenar: primero los no encargados
+    tutoresConEstado.sort(
+      (a, b) => Number(a.isEncargado) - Number(b.isEncargado),
+    );
+
+    return new GeneralResponseBuilder()
+      .setMessage('Tutores obtenidos exitosamente')
+      .setData(tutoresConEstado)
       .build();
   }
 

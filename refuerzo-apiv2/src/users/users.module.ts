@@ -13,6 +13,7 @@ import { PasswordResetToken } from 'src/auth/entities/password-reset-token';
 import { RecaptchaService } from './recaptcha.service';
 import { RecaptchaModule } from './recaptcha.module';
 import { SeccionModule } from 'src/seccion/seccion.module';
+import { Seccion } from 'src/seccion/entities/seccion.entity';
 
 @Module({
   controllers: [UsersController],
@@ -20,7 +21,7 @@ import { SeccionModule } from 'src/seccion/seccion.module';
   imports: [
     CommonModule,
     RolesModule,
-    TypeOrmModule.forFeature([User, Postulante]),
+    TypeOrmModule.forFeature([User, Postulante, Seccion]),
     TypeOrmModule.forFeature([PasswordResetToken]),
     EmailModule,
     RecaptchaModule,
