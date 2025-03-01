@@ -78,6 +78,16 @@ export class SeccionService {
       );
     }
 
+    //Verificar que la seccion con ese gradoId no exista
+    const seccionExists = await this.SeccionRepository.findOne({
+      where: { gradoId: createSeccionDto.gradoId },
+    });
+    if (seccionExists) {
+      throw new ConflictException(
+        `Seccion with gradoId ${createSeccionDto.gradoId} already exists`,
+      );
+    }
+
     // Verificar existencia del Grado
     const gradoExists = await this.GradoRepository.findOne({
       where: { _id: new ObjectId(createSeccionDto.gradoId) },
