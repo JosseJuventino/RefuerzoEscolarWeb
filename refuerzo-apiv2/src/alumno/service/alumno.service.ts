@@ -26,11 +26,13 @@ import { UsersService } from 'src/users/users.service';
 import { PostulanteService } from 'src/postulante/service/postulante.service';
 import { SeccionService } from 'src/seccion/service/seccion.service';
 import { UpdateAlumnoByUserDto } from '../dto/update-alumnoByUser.dto';
+import { Seccion } from 'src/seccion/entities/seccion.entity';
 
 @Injectable()
 export class AlumnoService {
   private readonly crudHelper: CrudHelper<Alumno>;
   private readonly userCrudHelper: CrudHelper<User>;
+  private readonly seccionCrudHelper: CrudHelper<Seccion>;
 
   constructor(
     @InjectRepository(Alumno)
@@ -42,11 +44,17 @@ export class AlumnoService {
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
     private readonly postulanteService: PostulanteService,
+    @InjectRepository(Seccion)
+    private readonly seccionRepository: Repository<Seccion>,
     @Inject(forwardRef(() => SeccionService))
     private readonly seccionService: SeccionService,
   ) {
     this.crudHelper = new CrudHelper<Alumno>(this.alumnoRepository, 'Alumnos');
     this.userCrudHelper = new CrudHelper<User>(this.userRepository, 'Users');
+    this.seccionCrudHelper = new CrudHelper<Seccion>(
+      this.seccionRepository,
+      'Secciones',
+    );
   }
 
   async create(
@@ -252,11 +260,43 @@ export class AlumnoService {
     id: string,
     updateAlumnoDto: UpdateAlumnoDto,
   ): Promise<GeneralResponseDto<Alumno>> {
-    const Alumno = await this.crudHelper.findByNameOrId(id);
+    const alumno = await this.crudHelper.findByNameOrId(id);
 
-    await this.crudHelper.update(Alumno, updateAlumnoDto);
+    // Verificar si se está actualizando el gradoId
+    if (updateAlumnoDto.gradoId && updateAlumnoDto.gradoId !== alumno.gradoId) {
+      const newGradoId = updateAlumnoDto.gradoId;
+
+      // Validar que el nuevo grado existe
+      const newGrado = await this.gradoRepository.findOne({
+        where: { _id: new ObjectId(newGradoId) },
+      });
+      if (!newGrado) {
+        throw new BadRequestException(
+          `Grado con id ${newGradoId} no encontrado`,
+        );
+      }
+
+      const oldGradoId = alumno.gradoId;
+      const alumnoId = alumno._id.toString();
+
+      // Eliminar de secciones del antiguo grado
+      await this.seccionService.deleteAlumnoFromSeccionesByGradoId(
+        oldGradoId,
+        alumnoId,
+      );
+
+      // Agregar a secciones del nuevo grado
+      await this.seccionService.addAlumnoToSeccionesByGradoId(
+        newGradoId,
+        alumnoId,
+      );
+    }
+
+    // Actualizar los datos del alumno
+    await this.crudHelper.update(alumno, updateAlumnoDto);
+
     return new GeneralResponseBuilder<Alumno>()
-      .setMessage('Alumno updated successfully')
+      .setMessage('Alumno actualizado exitosamente')
       .build();
   }
 
