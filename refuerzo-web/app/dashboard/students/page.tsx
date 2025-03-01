@@ -29,6 +29,7 @@ export default function Page() {
     queryFn: getAlumnos,
   });
 
+  console.log(alumnos)
   const queryClient = useQueryClient();
 
   const deleteProgramMutation = useMutation({
@@ -61,15 +62,15 @@ export default function Page() {
       header: "Imagen",
       accessor: (row) => (
         <img
-          src={row.user.image}
-          alt={`Avatar de ${row.user.image}`}
+          src={row.image}
+          alt={`Avatar de ${row.image}`}
           className="w-10 h-10 rounded-full object-cover"
         />
       )
     },
     {
       header: "Nombre",
-      accessor: (row) => (<span>{row.user.nombre}</span>),
+      accessor: (row) => (<span>{row.nombre}</span>),
     },
 
     {
@@ -134,7 +135,7 @@ export default function Page() {
         description={(item) => (
           <p>
             ¿Estás seguro de eliminar el alumno{" "}
-            <strong className="text-red-600">{item?.user.nombre}</strong>?
+            <strong className="text-red-600">{item?.nombre}</strong>?
             <br />
             <span className="text-sm text-gray-500">Esta acción no se puede deshacer</span>
           </p>
