@@ -201,7 +201,7 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
               <img
                 src={user.image}
                 alt="User avatar"
-                className="w-8 h-8 rounded-full"
+                className="w-8 h-8 object-cover rounded-full"
                 width={32}
                 height={32}
               />
@@ -291,7 +291,7 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
                   <img
                     src={user.image}
                     alt="User avatar"
-                    className="w-8 h-8 rounded-full"
+                    className="w-8 object-cover h-8 rounded-full"
                     width={32}
                     height={32}
                   />

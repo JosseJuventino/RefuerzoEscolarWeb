@@ -1,5 +1,5 @@
 "use client"
-import { FileText, ClipboardList, ChevronDown, ChevronUp, Settings } from 'lucide-react';
+import { FileText, ClipboardList, ChevronDown, ChevronUp, Settings, Edit2Icon } from 'lucide-react';
 import { useState } from 'react';
 import { FaRegFilePdf } from "react-icons/fa6";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -43,7 +43,6 @@ export default function Tablon() {
       queryClient.invalidateQueries({ queryKey: ['image'] });
     },
   });
-
 
   const handleToggle = (id: string) => {
     setOpenId((prev) => (prev === id ? null : id));
@@ -158,18 +157,27 @@ export default function Tablon() {
                       <span className="text-sm text-gray-400 font-medium">
                         {formatRelativeTime(novedad.createdAt)}
                       </span>
+
                     </div>
                     <p className="text-gray-600 line-clamp-2 text-opacity-90">
                       {novedad.descripcion || "Sin descripción disponible."}
                     </p>
                   </div>
 
-                  <div className="text-gray-400 pt-1.5">
-                    {openId === novedad._id ? (
-                      <ChevronUp className="w-7 h-7" />
-                    ) : (
-                      <ChevronDown className="w-7 h-7" />
-                    )}
+                  <div className='flex flex-row gap-5 justify-center items-center'>
+                    <div className='text-gray-400 pt-1.5'>
+                      <button type="button" onClick={() => setModalStatePublication({ type: 'edit', selected: novedad || null })}>
+                        <Edit2Icon size={20} />
+                      </button>
+                    </div>
+
+                    <div className="text-gray-400 pt-1.5">
+                      {openId === novedad._id ? (
+                        <ChevronUp className="w-7 h-7" />
+                      ) : (
+                        <ChevronDown className="w-7 h-7" />
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -220,9 +228,17 @@ export default function Tablon() {
         initialData={modalStatePublication.selected!}
         onClose={closeModal}
         courseId={course?._id}
+        courseSlug={course?.slug}
       />
 
-
+      <AddPublicationModal
+        isOpen={modalStatePublication.type === 'edit'}
+        title="Editar publicación"
+        initialData={modalStatePublication.selected!}
+        onClose={closeModal}
+        courseId={course?._id}
+        courseSlug={course?.slug}
+      />
     </div>
   );
 }

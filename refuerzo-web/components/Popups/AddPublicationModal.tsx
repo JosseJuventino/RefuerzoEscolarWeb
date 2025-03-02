@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Modal } from "./Modal";
 import { FilePublicacion, Image, Publicacion, FileNew } from "@/types/types";
 import { toast } from "@pheralb/toast";
@@ -11,249 +11,262 @@ import MultiFileSelector from "../Fields/DocumentSelector";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { uploadDocument } from "@/services/document.service";
 import { uploadImage } from "@/services/images.service";
-import { addPublication } from "@/services/publish.service";
+import { addPublication, updatePublication } from "@/services/publish.service";
 
 interface FormModalProps {
-  isOpen: boolean;
-  initialData?: Publicacion;
-  onClose: () => void;
-  title: string;
-  courseId: string | undefined;
+    isOpen: boolean;
+    initialData?: Publicacion;
+    onClose: () => void;
+    title: string;
+    courseId: string | undefined;
+    courseSlug: string | undefined;
 }
 
 const optionsCategory = [
-  {
-    value: "anuncio",
-    label: "Anuncio",
-    icon: <ClipboardList size={18} className="text-beige_secondary" />,
-  },
-  {
-    value: "guia",
-    label: "Guia",
-    icon: <NotebookTextIcon size={18} className="text-blue_principal" />,
-  },
+    {
+        value: "anuncio",
+        label: "Anuncio",
+        icon: <ClipboardList size={18} className="text-beige_secondary" />,
+    },
+    {
+        value: "guia",
+        label: "Guia",
+        icon: <NotebookTextIcon size={18} className="text-blue_principal" />,
+    },
 ];
 
 export const AddPublicationModal = ({
-  isOpen,
-  initialData,
-  onClose,
-  title,
-  courseId,
+    isOpen,
+    initialData,
+    onClose,
+    title,
+    courseId,
+    courseSlug
 }: FormModalProps) => {
-  // Se recalcula el formulario vacío si courseId cambia
-  const emptyForm = useMemo<Partial<Publicacion>>(
-    () => ({
-      categoria: "",
-      descripcion: "",
-      files: [],
-      seccionId: courseId,
-    }),
-    [courseId]
-  );
+    const emptyForm = useMemo<Partial<Publicacion>>(
+        () => ({
+            categoria: "",
+            descripcion: "",
+            files: [],
+            seccionId: courseId,
+        }),
+        [courseId]
+    );
 
-  const [formData, setFormData] = useState<Partial<Publicacion>>(emptyForm);
-  const [selectedFiles, setSelectedFiles] = useState<(File | Partial<FileNew>)[]>(
-    []
-  );
-  const queryClient = useQueryClient();
+    const [formData, setFormData] = useState<Partial<Publicacion>>(emptyForm);
+    const [files, setFiles] = useState<(File | Partial<FileNew>)[]>([]);
+    const queryClient = useQueryClient();
 
-  const uploadDocumentMutation = useMutation({
-    mutationFn: uploadDocument,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["document"] });
-    },
-  });
+    useEffect(() => {
+        setFormData(initialData || emptyForm);
+    }, [initialData, emptyForm]);
 
-  const addPublicationMutation = useMutation({
-    mutationFn: addPublication,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["addPublication"] });
-    },
-  });
+    // Mutaciones para agregar y actualizar
+    const addPublicationMutation = useMutation({
+        mutationFn: addPublication,
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ['course', courseSlug]
+            });
+        },
+    });
 
-  const uploadImageMutation = useMutation({
-    mutationFn: uploadImage,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["image"] });
-    },
-  });
+    // Para actualizar publicación
+    const updatePublicationMutation = useMutation({
+        mutationFn: updatePublication,
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ['course', courseSlug] 
+            });
+        },
+    });
 
-  useEffect(() => {
-    setFormData(initialData || emptyForm);
-  }, [initialData, emptyForm]);
+    const uploadDocumentMutation = useMutation({
+        mutationFn: uploadDocument,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["document"] });
+        },
+    });
 
-  const handleFieldChange = useCallback(
-    (field: keyof Publicacion, value: string) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-    },
-    []
-  );
+    const uploadImageMutation = useMutation({
+        mutationFn: uploadImage,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["image"] });
+        },
+    });
 
-  const handleCancel = () => {
-    setFormData(emptyForm);
-    onClose();
-  };
+    // Inicializar el formulario con los datos de edición (si existen)
+    useEffect(() => {
+        setFormData(initialData || emptyForm);
+        setFiles(initialData?.files || []);
+    }, [initialData, emptyForm]);
 
-  const validateForm = (): string[] => {
-    const errors: string[] = [];
-    if (!formData.descripcion?.trim()) {
-      errors.push("La descripción no puede quedar vacía");
-    }
-    if (!formData.categoria?.trim()) {
-      errors.push("La categoría no puede quedar vacía");
-    }
-    return errors;
-  };
-
-  // TODO: Considerar mover esta función a un archivo de utilidades
-  const handleImageUpload = async (file: File): Promise<Partial<FileNew>> => {
-    if (file.size > 5 * 1024 * 1024) {
-      const errorMsg = "El archivo no puede ser mayor a 5MB";
-      toast.error({ text: "Error", description: errorMsg });
-      throw new Error(errorMsg);
-    }
-
-    const imagen: Image = {
-      originalFilename: file.name,
-      category: "files_images_section",
-      file,
+    const handleFieldChange = (field: keyof Publicacion, value: string) => {
+        setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
-    const response = await uploadImageMutation.mutateAsync(imagen);
-    return {
-      originalFileName: response.data.fileName,
-      url: response.data.url,
-      tipo: "imagen",
-      id: response.data.imageId,
-    };
-  };
-
-  const handleDocumentUpload = async (
-    file: File
-  ): Promise<Partial<FileNew>> => {
-    if (file.size > 10 * 1024 * 1024) {
-      const errorMsg = "El archivo no puede ser mayor a 10MB";
-      toast.error({ text: "Error", description: errorMsg });
-      throw new Error(errorMsg);
-    }
-
-    const documento: Partial<FileNew> = {
-      originalFileName: file.name,
-      file,
-      category: "files_documents_section",
+    const handleCancel = () => {
+        setFormData(emptyForm);
+        onClose();
     };
 
-    const response = await uploadDocumentMutation.mutateAsync(documento);
-    return {
-      originalFileName: response.data!.fileName,
-      url: response.data!.url,
-      tipo: "documento",
-      id: response.data!.documentId,
+    const validateForm = (): string[] => {
+        const errors: string[] = [];
+        if (!formData.descripcion?.trim()) {
+            errors.push("La descripción no puede quedar vacía");
+        }
+        if (!formData.categoria?.trim()) {
+            errors.push("La categoría no puede quedar vacía");
+        }
+        return errors;
     };
-  };
 
-  const processFile = async (
-    file: File | Partial<FileNew>
-  ): Promise<File | Partial<FileNew>> => {
-    if (!(file instanceof File)) return file;
+    // Funciones de carga para imágenes y documentos
+    const handleImageUpload = async (file: File): Promise<Partial<FileNew>> => {
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error({
+                text: "Error",
+                description: "El archivo no puede ser mayor a 5MB",
+            });
+            throw new Error("El archivo no puede ser mayor a 5MB");
+        }
 
-    try {
-      if (file.type.startsWith("image/")) {
-        return await handleImageUpload(file);
-      }
-      return await handleDocumentUpload(file);
-    } catch (error) {
-      toast.error({
-        text: "Error",
-        description: (error as Error).message,
-      });
-      throw error;
-    }
-  };
+        const imagen: Image = {
+            originalFilename: file.name,
+            category: "files_images_section",
+            file,
+        };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+        const response = await uploadImageMutation.mutateAsync(imagen);
+        return {
+            originalFileName: response.data.fileName,
+            url: response.data.url,
+            tipo: "imagen",
+            id: response.data.imageId,
+        };
+    };
 
-    const errors = validateForm();
-    if (errors.length > 0) {
-      errors.forEach((error) =>
-        toast.error({ text: "Error", description: error })
-      );
-      return;
-    }
+    const handleDocumentUpload = async (file: File): Promise<Partial<FileNew>> => {
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error({
+                text: "Error",
+                description: "El archivo no puede ser mayor a 10MB",
+            });
+            throw new Error("El archivo no puede ser mayor a 10MB");
+        }
 
-    try {
-      const processedFiles = await Promise.all(
-        selectedFiles.map((file) => processFile(file))
-      );
+        const documento: Partial<FileNew> = {
+            originalFileName: file.name,
+            file,
+            category: "files_documents_section",
+        };
 
-      const publicationPayload = {
-        ...formData,
-        files: processedFiles.filter(Boolean) as FilePublicacion[],
-      };
+        const response = await uploadDocumentMutation.mutateAsync(documento);
+        return {
+            originalFileName: response.data!.fileName,
+            url: response.data!.url,
+            tipo: "documento",
+            id: response.data!.documentId,
+        };
+    };
 
-      await addPublicationMutation.mutateAsync(publicationPayload);
-      toast.success({
-        text: "Éxito",
-        description: "Se ha agregado la publicación correctamente",
-      });
-        
-      handleCancel();
-    } catch (error) {
-      toast.error({
-        text: "Error",
-        description: "Ha ocurrido un error procesando tus archivos",
-      });
-      console.error("Error procesando archivos:", error);
-    }
-  };
+    const processFile = async (file: File | Partial<FileNew>) => {
+        if (!(file instanceof File)) return file;
+        try {
+            if (file.type.startsWith("image/")) {
+                return await handleImageUpload(file);
+            }
+            return await handleDocumentUpload(file);
+        } catch (error) {
+            toast.error({
+                text: "Error",
+                description: (error as Error).message,
+            });
+            throw error;
+        }
+    };
 
-  return (
-    <Modal
-      isOpen={isOpen}
-      title={title}
-      onClose={handleCancel}
-      buttons={
-        <div className="flex gap-2">
-          <button
-            onClick={handleCancel}
-            className="px-4 py-2 text-blue_principal rounded"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="px-4 py-2 bg-blue_principal text-white rounded"
-          >
-            Agregar
-          </button>
-        </div>
-      }
-    >
-      <form
-        className="space-y-4 px-6 overflow-y-auto h-96 scroll-smooth"
-        onSubmit={handleSubmit}
-      >
-        <TextAreaField
-          label="Descripción"
-          value={formData.descripcion || ""}
-          onChange={(v) => handleFieldChange("descripcion", v)}
-          placeholder="Descripción de la publicación"
-          isRequired={true}
-        />
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
 
-        <SelectFieldv2
-          label="Categoría"
-          options={optionsCategory}
-          onChange={(v) => handleFieldChange("categoria", v)}
-        />
+        const formErrors = validateForm();
+        if (formErrors.length > 0) {
+            formErrors.forEach((error) =>
+                toast.error({ text: "Error", description: error })
+            );
+            return;
+        }
 
-        <MultiFileSelector
-          initialFiles={formData.files || []}
-          setFiles={setSelectedFiles}
-        />
-      </form>
-    </Modal>
-  );
+        try {
+            const processedFiles = await Promise.all(files.map((file) => processFile(file)));
+            const documentArray = processedFiles.filter(Boolean) as FilePublicacion[];
+
+            // Se arma el objeto de envío combinando el formulario con los archivos procesados
+            const submissionData = { ...formData, files: documentArray };
+
+            if (initialData && initialData._id) {
+                await updatePublicationMutation.mutateAsync(submissionData);
+                toast.success({
+                    text: "Éxito",
+                    description: "La publicación se ha actualizado correctamente",
+                });
+            } else {
+                // Modo agregar: se crea la publicación
+                await addPublicationMutation.mutateAsync(submissionData);
+                toast.success({
+                    text: "Éxito",
+                    description: "Se ha agregado la publicación correctamente",
+                });
+            }
+
+            setFormData(emptyForm);
+            handleCancel();
+        } catch (error) {
+            toast.error({
+                text: "Error",
+                description: "Ha ocurrido un error procesando tus archivos",
+            });
+            console.error("Error procesando archivos:", error);
+        }
+    };
+
+    return (
+        <Modal
+            isOpen={isOpen}
+            title={title}
+            onClose={handleCancel}
+            buttons={
+                <div className="flex gap-2">
+                    <button onClick={onClose} className="px-4 py-2 text-blue_principal rounded">
+                        Cancelar
+                    </button>
+                    <button onClick={handleSubmit} className="px-4 py-2 bg-blue_principal text-white rounded">
+                        {initialData && initialData._id ? "Editar" : "Agregar"}
+                    </button>
+                </div>
+            }
+        >
+            <form
+                className="space-y-4 px-6 overflow-y-auto h-96 scroll-smooth"
+                onSubmit={handleSubmit}
+            >
+                <TextAreaField
+                    label="Descripción"
+                    value={formData.descripcion || ""}
+                    onChange={(v) => handleFieldChange("descripcion", v)}
+                    placeholder="Descripción de la publicación"
+                    isRequired={true}
+                />
+
+                <SelectFieldv2
+                    label="Categoría"
+                    options={optionsCategory}
+                    defaultValue={formData.categoria || ""}
+                    onChange={(v) => handleFieldChange("categoria", v)}
+                />
+
+                <MultiFileSelector initialFiles={formData.files || []} setFiles={setFiles} />
+            </form>
+        </Modal>
+    );
 };
