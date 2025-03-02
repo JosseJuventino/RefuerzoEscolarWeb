@@ -33,8 +33,8 @@ import * as fs from 'fs';
 
 @Controller('images')
 @ApiTags('Images')
-@Permission('document')
-@Resources('document')
+@Permission('image')
+@Resources('image')
 export class ImageController {
   private readonly logger = new Logger(ImageController.name);
 

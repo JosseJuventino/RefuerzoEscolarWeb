@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
-import { environmentValidations } from './config/validation-schema';
 import { MongoModule } from './databases/mongo.module';
 import { CommonModule } from './common/common.module';
 import { UsersModule } from './users/users.module';
@@ -12,7 +11,6 @@ import { ImagesModule } from './images/images.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { PostulanteModule } from './postulante/postulante.module';
-import { RecomendadorModule } from './recomendadores/recomendador.module';
 import { EmailModule } from './email/email.module';
 import { GradoModule } from './grado/grado.module';
 import { ProgramaModule } from './programa/programa.module';
@@ -39,7 +37,6 @@ import { PublicacionModule } from './publicacion/publicacion.module';
     AuthModule,
     ImagesModule,
     PostulanteModule,
-    RecomendadorModule,
     EmailModule,
     GradoModule,
     ProgramaModule,
