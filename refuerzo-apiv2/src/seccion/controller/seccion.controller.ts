@@ -19,8 +19,8 @@ import { Public } from 'src/common/decorators/public.decorators';
 import { Resources, Scopes } from 'nest_autorization';
 
 @ApiBasicAuth()
-@Permission('alumnos')
-@Resources('alumnos')
+@Permission('secciones')
+@Resources('secciones')
 @Controller('seccion')
 export class SeccionController {
   constructor(private readonly SeccionService: SeccionService) {}
@@ -69,7 +69,6 @@ export class SeccionController {
     return this.SeccionService.update(id, updateSeccionDto);
   }
 
-
   @Scopes('view')
   @ApiOperation({
     summary: 'Get a Seccion by slug',
@@ -84,7 +83,6 @@ export class SeccionController {
     }
     return seccion;
   }
-
 
   @Scopes('view', 'edit')
   @ApiOperation({
