@@ -1,20 +1,21 @@
 "use client"
-import { FileText, ClipboardList, ChevronDown, ChevronUp, Settings } from 'lucide-react';
+import { FileText, ClipboardList, ChevronDown, ChevronUp, Settings, Edit2Icon, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { FaRegFilePdf } from "react-icons/fa6";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Course, Image, Publicacion } from '@/types/types';
 import { formatRelativeTime } from '@/utils/formatRelativeTime';
 import { updateCourse } from '@/services/courses.service';
-
 import { CourseConfigModal } from '@/components/Popups/CourseConfigModal';
 import { uploadImage } from '@/services/images.service';
 import { useContext } from 'react';
 import { CourseContext } from '@/app/contexts/course-context';
 import { AddPublicationModal } from '@/components/Popups/AddPublicationModal';
+import { deletePublication } from '@/services/publish.service';
+import { DeleteModal } from '@/components/Popups/DeleteModal';
 
 export default function Tablon() {
-  const [openId, setOpenId] = useState<number | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
   const course = useContext(CourseContext);
 
   const [modalState, setModalState] = useState<{
@@ -38,6 +39,21 @@ export default function Tablon() {
     },
   });
 
+  const deletePublicationMutation = useMutation({
+    mutationFn: deletePublication,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['course', course?.slug],
+      });
+    },
+  });
+
+  const handleDelete = async () => {
+    if (!modalStatePublication.selected) return;
+    await deletePublicationMutation.mutateAsync(modalStatePublication.selected._id);
+    closeModal();
+  };
+
   const uploadImageMutation = useMutation({
     mutationFn: uploadImage,
     onSuccess: () => {
@@ -45,8 +61,7 @@ export default function Tablon() {
     },
   });
 
-
-  const handleToggle = (id: number) => {
+  const handleToggle = (id: string) => {
     setOpenId((prev) => (prev === id ? null : id));
   };
 
@@ -99,8 +114,6 @@ export default function Tablon() {
     closeModal();
   };
 
-
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="relative group h-72 rounded-2xl bg-center shadow-2xl overflow-hidden mb-10 transition-all duration-300">
@@ -136,71 +149,103 @@ export default function Tablon() {
 
         </div>
 
+
+
         <div className="space-y-8">
-          {course?.publicaciones?.map((novedad) => (
-            <div
-              key={novedad.seccionId}
-              className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100/50"
-            >
+          {course && course.publicaciones
+            ?.slice()
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .map((novedad) => (
               <div
-                className="p-6 flex items-start gap-5 cursor-pointer"
-                onClick={() => handleToggle(novedad.id)}
+                key={novedad._id}
+                className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100/50"
               >
-                <div className="p-3.5 rounded-xl bg-blue_principal/10 shadow-inner">
-                  {getIconByMessage(novedad.categoria)}
-                </div>
-
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-xl font-semibold text-gray-900">{novedad.titulo}</h3>
-                    <span className="text-sm text-gray-400 font-medium">
-                      {formatRelativeTime(course.createdAt)}
-                    </span>
+                <div
+                  className="p-6 flex items-start gap-5 cursor-pointer"
+                  onClick={() => handleToggle(novedad._id)}
+                >
+                  <div className="p-3.5 rounded-xl bg-blue_principal/10 shadow-inner">
+                    {getIconByMessage(novedad.categoria)}
                   </div>
-                  <p className="text-gray-600 line-clamp-2 text-opacity-90">
-                    {novedad.descripcion || "Sin descripción disponible."}
-                  </p>
+
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-xl font-semibold text-gray-900">{novedad.titulo}</h3>
+                      <span className="text-sm text-gray-400 font-medium">
+                        {formatRelativeTime(novedad.createdAt)}
+                      </span>
+
+                    </div>
+                    <p className="text-gray-600 line-clamp-2 text-opacity-90">
+                      {novedad.descripcion || "Sin descripción disponible."}
+                    </p>
+                  </div>
+
+                  <div className='flex flex-row gap-5 justify-center items-center'>
+                    <div className='text-gray-400 pt-1.5'>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setModalStatePublication({ type: 'edit', selected: novedad || null })
+                        }}
+                      >
+                        <Edit2Icon size={20} />
+                      </button>
+                    </div>
+
+                    <div className='text-gray-400 pt-1.5'>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setModalStatePublication({ type: 'delete', selected: novedad || null })
+                        }}
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </div>
+
+                    <div className="text-gray-400 pt-1.5">
+                      {openId === novedad._id ? (
+                        <ChevronUp className="w-7 h-7" />
+                      ) : (
+                        <ChevronDown className="w-7 h-7" />
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="text-gray-400 pt-1.5">
-                  {openId === novedad.id ? (
-                    <ChevronUp className="w-7 h-7" />
-                  ) : (
-                    <ChevronDown className="w-7 h-7" />
-                  )}
-                </div>
+                {openId === novedad._id && (
+                  <div className="px-8 pb-6 pt-3 border-t border-gray-100/50">
+                    <div className="pl-16">
+                      {novedad.files.length > 0 ? (
+                        <div className="flex flex-wrap gap-4 mt-5">
+                          {novedad.files.map((file, index) => (
+                            <a
+                              key={index}
+                              href={`${file.url}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-3 px-5 py-3 bg-blue_principal/5 hover:bg-blue_principal/10 transition-colors rounded-xl border border-blue_principal/20 group"
+                            >
+                              <div className="p-2 bg-white rounded-lg shadow-sm">
+                                <FaRegFilePdf className="w-6 h-6 text-blue_principal" />
+                              </div>
+                              <span className="text-sm font-medium text-gray-700 truncate max-w-xs group-hover:text-blue_principal transition-colors">
+                                {file.originalFileName}
+                              </span>
+                            </a>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-400 text-sm mt-4">No hay archivos adjuntos</p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {openId === novedad.id && (
-                <div className="px-8 pb-6 pt-3 border-t border-gray-100/50">
-                  <div className="pl-16">
-                    {novedad.files.length > 0 ? (
-                      <div className="flex flex-wrap gap-4 mt-5">
-                        {novedad.files.map((file, index) => (
-                          <a
-                            key={index}
-                            href={`${file.url}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-3 px-5 py-3 bg-blue_principal/5 hover:bg-blue_principal/10 transition-colors rounded-xl border border-blue_principal/20 group"
-                          >
-                            <div className="p-2 bg-white rounded-lg shadow-sm">
-                              <FaRegFilePdf className="w-6 h-6 text-blue_principal" />
-                            </div>
-                            <span className="text-sm font-medium text-gray-700 truncate max-w-xs group-hover:text-blue_principal transition-colors">
-                              {file.originalFileName}
-                            </span>
-                          </a>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-gray-400 text-sm mt-4">No hay archivos adjuntos</p>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
+            ))}
         </div>
       </div>
 
@@ -217,9 +262,33 @@ export default function Tablon() {
         title="Agregar publicación"
         initialData={modalStatePublication.selected!}
         onClose={closeModal}
+        courseId={course?._id}
+        courseSlug={course?.slug}
       />
 
+      <AddPublicationModal
+        isOpen={modalStatePublication.type === 'edit'}
+        title="Editar publicación"
+        initialData={modalStatePublication.selected!}
+        onClose={closeModal}
+        courseId={course?._id}
+        courseSlug={course?.slug}
+      />
 
+      <DeleteModal<Publicacion>
+        isOpen={modalStatePublication.type === 'delete'}
+        title="Eliminar publicación"
+        item={modalStatePublication.selected!}
+        onClose={closeModal}
+        onConfirm={handleDelete}
+        description={() => (
+          <p>
+            ¿Estás seguro de eliminar la publicación?
+            <br />
+            <span className="text-sm text-gray-500">Esta acción no se puede deshacer</span>
+          </p>
+        )}
+      />
     </div>
   );
 }
