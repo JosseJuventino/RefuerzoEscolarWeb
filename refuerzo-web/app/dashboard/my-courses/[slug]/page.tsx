@@ -1,5 +1,5 @@
 "use client"
-import { FileText, ClipboardList, ChevronDown, ChevronUp, Settings, Edit2Icon } from 'lucide-react';
+import { FileText, ClipboardList, ChevronDown, ChevronUp, Settings, Edit2Icon, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { FaRegFilePdf } from "react-icons/fa6";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -11,6 +11,8 @@ import { uploadImage } from '@/services/images.service';
 import { useContext } from 'react';
 import { CourseContext } from '@/app/contexts/course-context';
 import { AddPublicationModal } from '@/components/Popups/AddPublicationModal';
+import { deletePublication } from '@/services/publish.service';
+import { DeleteModal } from '@/components/Popups/DeleteModal';
 
 export default function Tablon() {
   const [openId, setOpenId] = useState<string | null>(null);
@@ -36,6 +38,21 @@ export default function Tablon() {
       });
     },
   });
+
+  const deletePublicationMutation = useMutation({
+    mutationFn: deletePublication,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['course', course?.slug],
+      });
+    },
+  });
+
+  const handleDelete = async () => {
+    if (!modalStatePublication.selected) return;
+    await deletePublicationMutation.mutateAsync(modalStatePublication.selected._id);
+    closeModal();
+  };
 
   const uploadImageMutation = useMutation({
     mutationFn: uploadImage,
@@ -166,8 +183,26 @@ export default function Tablon() {
 
                   <div className='flex flex-row gap-5 justify-center items-center'>
                     <div className='text-gray-400 pt-1.5'>
-                      <button type="button" onClick={() => setModalStatePublication({ type: 'edit', selected: novedad || null })}>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setModalStatePublication({ type: 'edit', selected: novedad || null })
+                        }}
+                      >
                         <Edit2Icon size={20} />
+                      </button>
+                    </div>
+
+                    <div className='text-gray-400 pt-1.5'>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setModalStatePublication({ type: 'delete', selected: novedad || null })
+                        }}
+                      >
+                        <Trash2 size={20} />
                       </button>
                     </div>
 
@@ -238,6 +273,21 @@ export default function Tablon() {
         onClose={closeModal}
         courseId={course?._id}
         courseSlug={course?.slug}
+      />
+
+      <DeleteModal<Publicacion>
+        isOpen={modalStatePublication.type === 'delete'}
+        title="Eliminar publicación"
+        item={modalStatePublication.selected!}
+        onClose={closeModal}
+        onConfirm={handleDelete}
+        description={() => (
+          <p>
+            ¿Estás seguro de eliminar la publicación?
+            <br />
+            <span className="text-sm text-gray-500">Esta acción no se puede deshacer</span>
+          </p>
+        )}
       />
     </div>
   );

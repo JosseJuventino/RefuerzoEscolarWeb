@@ -12,3 +12,7 @@ export const updatePublication = async (publicacion: Partial<Publicacion>): Prom
   const response = await api.patch<Partial<Publicacion>>(`/publicacion/${publicacion._id}`, publicacion);
   return response.data;
 };
+
+export const deletePublication = async (id: string): Promise<void> => {
+  await api.delete(`/publicacion/${id}`);
+};
