@@ -151,29 +151,6 @@ export class UsersController {
   }
 
   @Scopes('view', 'edit')
-  @Patch('me/profile')
-  @ApiOperation({
-    summary: 'Actualizar perfil del usuario actual',
-    description:
-      'Actualiza imagen, teléfono y/o contraseña del usuario autenticado',
-  })
-  @ApiBearerAuth()
-  async updateProfile(
-    @Request() req,
-    @Body() updateProfileDto: UpdateProfileDto,
-  ) {
-    if (!req.user?.id) {
-      throw new UnauthorizedException('Usuario no autenticado');
-    }
-    return this.usersService.updateProfile(
-      req.user.id,
-      req.user.role,
-      req.user.idDependingRole,
-      updateProfileDto,
-    );
-  }
-
-  @Scopes('view', 'edit')
   @ApiOperation({
     summary: 'Delete a user by id',
     description: 'Delete a user by id',
