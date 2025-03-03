@@ -22,7 +22,7 @@ export class CreatePublicacionDto {
   @ApiProperty({
     description: 'Categoría de la publicación',
     example: 'anuncio',
-    enum: ['anuncio', 'material de apoyo'], // Define los valores permitidos
+    enum: ['anuncio', 'guia'],
   })
   @IsString()
   @IsNotEmpty()

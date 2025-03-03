@@ -201,11 +201,12 @@ export const AddPublicationModal = ({
             const processedFiles = await Promise.all(files.map((file) => processFile(file)));
             const documentArray = processedFiles.filter(Boolean) as FilePublicacion[];
 
-            // Se arma el objeto de envío combinando el formulario con los archivos procesados
             const submissionData = { ...formData, files: documentArray };
 
             if (initialData && initialData._id) {
                 await updatePublicationMutation.mutateAsync(submissionData);
+
+                console.log("Publicación actualizada", submissionData);
                 toast.success({
                     text: "Éxito",
                     description: "La publicación se ha actualizado correctamente",
