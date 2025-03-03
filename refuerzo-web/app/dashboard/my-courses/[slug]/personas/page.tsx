@@ -85,7 +85,7 @@ export default function Personas() {
           </div>
         )}
 
-        {filteredProfessors.length > 0 && renderList("Profesores", filteredProfessors, course?.encargados.length)}
+        {filteredProfessors.length > 0 && renderList("Encargados", filteredProfessors, course?.encargados.length)}
 
         {filteredStudents.length > 0 && renderList("Estudiantes", filteredStudents, course?.alumnos.length)}
       </div>

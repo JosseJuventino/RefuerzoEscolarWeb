@@ -1,50 +1,27 @@
 "use client";
-import { useState, useRef, useCallback, useEffect } from "react";
-import { FileText, Upload, X } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { FileText, X, Plus, Image as ImageIcon, File } from "lucide-react";
+import { FileNew } from "@/types/types";
+import { toast } from "@pheralb/toast";
 
 interface MultiFileSelectorProps {
-    initialFiles?: Array<File | { url: string; originalFileName: string }>;
-    onFilesChange: (files: Array<File | string>) => void;
-  }
-  
-interface SelectedItem {
-  file?: File;
-  preview: string;
-  name: string;
+  initialFiles?: Array<Partial<FileNew>>;
+  setFiles?: (files: (File | Partial<FileNew>)[]) => void;
 }
 
 export const MultiFileSelector: React.FC<MultiFileSelectorProps> = ({
   initialFiles = [],
-  onFilesChange,
+  setFiles,
 }) => {
-  const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<(File | Partial<FileNew>)[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const MAX_FILES = 5;
 
   useEffect(() => {
     if (initialFiles.length > 0) {
-      const items = initialFiles.slice(0, MAX_FILES).map((item) => {
-        if (item instanceof File) {
-          const blobUrl = URL.createObjectURL(item);
-          return { file: item, preview: blobUrl, name: item.name };
-        } else {
-          return { 
-            preview: item.url, 
-            name: item.originalFileName 
-          };
-        }
-      });
-      setSelectedItems(items);
+      setSelectedItems(initialFiles);
     }
   }, [initialFiles]);
-
-  // Cada vez que cambia la selección se notifica al padre
-  useEffect(() => {
-    onFilesChange(
-      selectedItems.map((item) => (item.file ? item.file : item.preview))
-    );
-  }, [selectedItems, onFilesChange]);
 
   // Validar si el archivo es de imagen o documento (pdf, doc, docx)
   const validateFileType = (file: File) => {
@@ -56,20 +33,32 @@ export const MultiFileSelector: React.FC<MultiFileSelectorProps> = ({
     );
   };
 
-  // Agrega un archivo a la selección si no se excede el límite
   const addFileItem = (selectedFile: File) => {
+    // Validar cantidad de archivos seleccionados
     if (selectedItems.length >= MAX_FILES) return;
+
+    // Validar tipo de archivo
     if (!validateFileType(selectedFile)) return;
-    const blobUrl = URL.createObjectURL(selectedFile);
-    const newItem: SelectedItem = {
-      file: selectedFile,
-      preview: blobUrl,
-      name: selectedFile.name,
-    };
-    setSelectedItems((prev) => [...prev, newItem]);
+
+
+
+    if (selectedFile.size > 5 * 1024 * 1024) {
+      toast.error({
+        text: "Error",
+        description: "El archivo no puede ser mayor a 5MB",
+      });
+      return;
+    } else {
+      setSelectedItems((prev) => [...prev, selectedFile]);
+      if (setFiles) {
+        const updatedFiles: (File | Partial<FileNew>)[] = [...selectedItems, selectedFile];
+        setFiles(updatedFiles);
+      }
+    }
+
+
   };
 
-  // Manejo del input de archivos (múltiples)
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
@@ -81,109 +70,100 @@ export const MultiFileSelector: React.FC<MultiFileSelectorProps> = ({
     }
   };
 
-  // Drag & Drop
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  }, []);
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setIsDragging(false);
-      const files = e.dataTransfer.files;
-      if (files) {
-        Array.from(files).forEach((file) => {
-          if (selectedItems.length < MAX_FILES) {
-            addFileItem(file);
-          }
-        });
-      }
-    },
-    [selectedItems]
-  );
-
   const removeItem = (index: number) => {
     setSelectedItems((prev) => prev.filter((_, i) => i !== index));
+
+    if (setFiles) {
+      const updatedFiles = selectedItems.filter((_, i) => i !== index);
+      setFiles(updatedFiles);
+    }
   };
-  
+
   return (
     <div className="space-y-3">
       {/* Botón para seleccionar archivos */}
       <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          className="px-3 py-1.5 text-sm rounded-md flex items-center gap-1 bg-blue_principal text-white"
-        >
-          <Upload size={14} /> Archivo
-        </button>
+        <label className="block text-medium text-blue_principal font-medium">
+          Archivos adjuntos
+        </label>
         <input
           type="file"
           ref={fileInputRef}
           onChange={handleFileInput}
           multiple
-          accept="image/*,.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          accept="image/png, image/jpg,.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
           className="hidden"
         />
       </div>
 
-      {/* Área de drag & drop o click para seleccionar archivos */}
-      <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-        className={`border-2 border-dashed rounded-lg p-3 text-center cursor-pointer transition-colors ${
-          isDragging
-            ? "border-blue_principal bg-blue-50"
-            : "border-gray-200 hover:border-gray-300"
-        }`}
-      >
-        <div className="space-y-1">
-          <FileText className="w-5 h-5 text-gray-400 mx-auto" />
-          <p className="text-xs text-gray-500">
-            {isDragging
-              ? "Suelta el archivo"
-              : "Arrastra o haz clic para seleccionar archivos"}
-          </p>
-        </div>
-      </div>
+      {
+        selectedItems.length === 0 && (
+          <div className="space-y-1 cursor-pointer border border-gray-200 rounded-md p-4" onClick={() => fileInputRef.current?.click()}>
+            <FileText className="w-5 h-5 text-gray-400 mx-auto" />
+            <p className="text-sm text-gray-500 text-center" >
+              Seleccione un máximo de {MAX_FILES} archivos
+            </p>
+            <p className="text-sm text-gray-500 text-center" >
+              PDF, DOCX, JPG, PNG
+            </p>
+          </div>
+        )
 
-      {/* Vista previa de los archivos seleccionados */}
+      }
+
       {selectedItems.length > 0 && (
-        <div className="space-y-2 mt-2">
+        <div className="grid grid-cols-4 gap-2 items-center">
           {selectedItems.map((item, index) => (
-            <div key={index} className="flex items-center gap-3">
-              <a
-                href={item.preview}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-blue-600 hover:underline"
-              >
-                {item.name}
-              </a>
-              <button
-                type="button"
-                onClick={() => removeItem(index)}
-                className="text-red-600 rounded-full hover:text-red-700"
-              >
-                <X size={16} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+            <a
+              key={index}
+              onClick={(e) => e.stopPropagation()}
+              className="relative group flex flex-col items-center justify-center gap-2
+                 border border-gray-200 rounded-md p-2 min-h-[80px]"
+              href={
+                "originalFileName" in item
+                  ? (item as FileNew).url
+                  : URL.createObjectURL(item as File)
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {(
+                ("type" in item && (item as File).type.startsWith("image/")) ||
+                ("originalFileName" in item &&
+                  /\.(png|jpe?g|gif|bmp|webp)$/i.test((item as FileNew).originalFileName))
+              ) ? (
+                <ImageIcon className="w-5 h-5 text-gray-400" />
+              ) : (
+                <File className="w-5 h-5 text-gray-400" />
+              )}
+              <p className="text-xs line-clamp-1">
+                {"originalFileName" in item ? item.originalFileName : (item as File).name}
+              </p>
 
-      {selectedItems.length >= MAX_FILES && (
-        <p className="text-xs text-red-600">
-          Se ha alcanzado el límite máximo de {MAX_FILES} archivos.
-        </p>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  removeItem(index);
+                }}
+                type="button"
+                className="absolute top-1 right-1 text-gray-600 hover:text-gray-800 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </a>
+          ))}
+
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="relative group flex flex-col items-center justify-center gap-2
+                     border border-gray-200 rounded-md p-2 min-h-[80px] cursor-pointer
+                     hover:bg-gray-200"
+          >
+            <Plus className="w-5 h-5 text-gray-400" />
+          </button>
+        </div>
+
       )}
     </div>
   );

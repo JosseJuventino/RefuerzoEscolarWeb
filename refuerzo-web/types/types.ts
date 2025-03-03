@@ -125,12 +125,14 @@ export interface GetPostulantesResponse {
 export interface Estudiante {
   _id: string;
   cursosId: [];
+  nombre: string;
+  image: string;
+
   user: {
-    nombre: string;
     email: string;
     telefono: string;
-    image: string;
   };
+  
   grado: string;
 }
 
@@ -191,8 +193,11 @@ export interface Image {
 }
 
 export interface ImageResponse {
+  message: string;
   data: {
     url: string;
+    imageId: string;
+    fileName: string;
   };
 }
 
@@ -289,11 +294,21 @@ export interface FileNew {
   originalFileName: string;
   url: string;
   tipo: string;
+  category: string;
+  file: File;
+  data:{
+    url: string;
+    documentId: string;
+    fileName: string;
+  }
 }
 
+export type FilePublicacion = Pick<FileNew, 'id' | 'originalFileName' | 'url' | 'tipo'>;
 export interface Publicacion {
+  _id: string;
+  createdAt: string;
   descripcion: string;
   categoria: string;
-  files: FileNew[];
+  files: FilePublicacion[];
   seccionId: string;
 }
