@@ -55,6 +55,11 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
     { name: "Matemática", path: '/dashboard/my-courses/matematica' },
   ];
 
+  const users = [
+    { name: "Alumnos", path: '/dashboard/students', icon: UserIcon },
+    { name: "Recomendadores", path: '/dashboard/recomendators', icon: UsersRoundIcon },
+  ];
+
   // Handlers
   const toggleMobileMenu = () => setIsMenuOpen((prev) => !prev);
   const handleLogout = () => clearAuth('/');
@@ -156,17 +161,20 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
               label="Inicio"
               isActive={pathName === "/dashboard"}
             />
+
             <NavItem
-              link="/dashboard/students"
               icon={UserIcon}
-              label="Alumnos"
-              isActive={pathName === "/dashboard/students"}
+              label="Usuarios"
+              isActive={pathName.startsWith("/dashboard/students") || pathName.startsWith("/dashboard/recomendators")}
+              subItems={users}
+              currentPath={pathName}
             />
             <NavItem
               icon={BookOpen}
               label="Mis cursos"
               isActive={pathName.startsWith("/dashboard/my-courses")}
               subItems={userCourses}
+              currentPath={pathName}
             />
             <NavItem
               link="/dashboard/courses"
@@ -180,12 +188,7 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
               label="Postulaciones"
               isActive={pathName === "/dashboard/applicants"}
             />
-            <NavItem
-              link="/dashboard/recomendators"
-              icon={UsersRoundIcon}
-              label="Recomendadores"
-              isActive={pathName === "/dashboard/recomendators"}
-            />
+
             <NavItem
               link="/dashboard/advanced-options"
               icon={Settings}
@@ -246,17 +249,20 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
                   isActive={pathName === "/dashboard"}
                 />
                 <NavItem
-                  link="/dashboard/students"
                   icon={UserIcon}
-                  label="Alumnos"
-                  isActive={pathName === "/dashboard/students"}
+                  label="Usuarios"
+                  isActive={pathName.startsWith("/dashboard/students") || pathName.startsWith("/dashboard/recomendators")}
+                  subItems={users}
+                  currentPath={pathName}
                 />
                 <NavItem
                   icon={BookOpen}
                   label="Mis cursos"
                   isActive={pathName.startsWith("/dashboard/my-courses")}
                   subItems={userCourses}
+                  currentPath={pathName}
                 />
+
                 <NavItem
                   link="/dashboard/courses"
                   icon={LayersIcon}
@@ -269,12 +275,7 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
                   label="Postulaciones"
                   isActive={pathName === "/dashboard/applicants"}
                 />
-                <NavItem
-                  link="/dashboard/recomendators"
-                  icon={UsersRoundIcon}
-                  label="Recomendadores"
-                  isActive={pathName === "/dashboard/recomendators"}
-                />
+
                 <NavItem
                   link="/dashboard/advanced-options"
                   icon={Settings}
