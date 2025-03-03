@@ -13,6 +13,7 @@ import { deleteUser } from "@/services/user.service";
 import ListGridLayout from "@/components/Dashboard/ListGridLayout";
 import CardRecomendador from "@/components/CardViews/RecomendadorCard";
 import { Loading } from "@/components/Loading";
+import Image from "next/image";
 
 
 const ContactInfo = ({ email, telefono }: { email: string; telefono: string }) => (
@@ -46,10 +47,13 @@ export default function RecomendadoresPage() {
     {
       header: "Imagen",
       accessor: (row) => (
-        <img
+        <Image
           src={row.image}
           alt={`Avatar de ${row.nombre}`}
           className="w-10 h-10 rounded-full object-cover"
+          width={40}
+          height={40}
+          priority
         />
       )
     },
