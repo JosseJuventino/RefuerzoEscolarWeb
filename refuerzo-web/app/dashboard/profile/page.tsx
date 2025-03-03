@@ -94,7 +94,7 @@ export default function ProfilePage() {
   const {
     data: logins,
   } = useQuery<LoginAttempt[], Error>({
-    queryKey: ["postulants"],
+    queryKey: ["loginAttempts", user?.email],
     queryFn: getLoginAttempt,
   });
 
@@ -242,7 +242,7 @@ export default function ProfilePage() {
                 <div key={login._id} className="p-4 bg-gray-50 rounded-xl">
                   <div className="flex items-center gap-4">
                     <div className="p-2 bg-white rounded-lg shadow-sm">
-                      {login.device.toLowerCase().includes('desktop') ? (
+                      {(login.device?.toLowerCase() || '').includes('desktop') ? (
                         <Monitor className="w-5 h-5 text-blue_principal" />
                       ) : (
                         <Smartphone className="w-5 h-5 text-blue_principal" />
