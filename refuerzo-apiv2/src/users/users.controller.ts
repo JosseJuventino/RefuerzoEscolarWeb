@@ -118,6 +118,28 @@ export class UsersController {
   }
 
   @Scopes('view')
+  @Get('tutores')
+  @ApiOperation({
+    summary: 'Get all tutores',
+    description: 'Get all tutores',
+  })
+  @ApiBearerAuth()
+  findAllTutores() {
+    return this.usersService.findAllTutores();
+  }
+
+  @Scopes('view')
+  @Get('profesores')
+  @ApiOperation({
+    summary: 'Get all profesores',
+    description: 'Get all profesores',
+  })
+  @ApiBearerAuth()
+  findAllProfesores() {
+    return this.usersService.findAllProfesores();
+  }
+
+  @Scopes('view')
   @Get()
   @ApiOperation({
     summary: 'Get all users',

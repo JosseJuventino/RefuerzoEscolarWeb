@@ -78,6 +78,16 @@ export class SeccionService {
       );
     }
 
+    //Verificar que la seccion con ese gradoId no exista
+    const seccionExists = await this.SeccionRepository.findOne({
+      where: { gradoId: createSeccionDto.gradoId },
+    });
+    if (seccionExists) {
+      throw new ConflictException(
+        `Seccion with gradoId ${createSeccionDto.gradoId} already exists`,
+      );
+    }
+
     // Verificar existencia del Grado
     const gradoExists = await this.GradoRepository.findOne({
       where: { _id: new ObjectId(createSeccionDto.gradoId) },
@@ -242,8 +252,7 @@ export class SeccionService {
                 nombre: encargado.nombre,
                 image: encargado.image,
                 email: encargado.email,
-              telefono: encargado.telefono,
-                
+                telefono: encargado.telefono,
               }
             : null;
         }),
@@ -265,6 +274,7 @@ export class SeccionService {
                 _id: alumno._id,
                 nombre: alumno.nombre,
                 image: alumno.image,
+                email: alumno.email,
               }
             : null;
         }),
@@ -300,7 +310,6 @@ export class SeccionService {
       where: { _id: new ObjectId(seccion.gradoId) },
     });
 
-   
     // Populate encargados (si existen)
     let encargados = [];
     if (seccion.encargados && seccion.encargados.length > 0) {
@@ -317,15 +326,12 @@ export class SeccionService {
                 nombre: encargado.nombre,
                 image: encargado.image,
                 email: encargado.email,
-              telefono: encargado.telefono,
-                
+                telefono: encargado.telefono,
               }
             : null;
         }),
       );
     }
-
-
 
     //populate alumnos (si existen)
     let alumnos = [];
@@ -342,6 +348,7 @@ export class SeccionService {
                 _id: alumno._id,
                 nombre: alumno.nombre,
                 image: alumno.image,
+                email: alumno.email,
               }
             : null;
         }),
@@ -374,7 +381,7 @@ export class SeccionService {
 
     if (updateSeccionDto.nombre && updateSeccionDto.nombre !== Seccion.nombre) {
       const newSlug = this.generateSlug(updateSeccionDto.nombre);
-  
+
       // Verificar si el nuevo slug ya existe
       const existingSeccion = await this.SeccionRepository.findOne({
         where: { slug: newSlug },
@@ -384,7 +391,7 @@ export class SeccionService {
           `Ya existe una sección con el slug "${newSlug}"`,
         );
       }
-  
+
       internalUpdateData.slug = newSlug; // Asignar el nuevo slug
     }
 
@@ -418,7 +425,6 @@ export class SeccionService {
     // Obtener todas las secciones del grado
     const secciones = await this.SeccionRepository.find({ where: { gradoId } });
 
-
     // Eliminar publicaciones y archivos de cada sección
     for (const seccion of secciones) {
       await this.publicacionService.deleteBySeccionId(seccion._id.toString());
@@ -436,6 +442,56 @@ export class SeccionService {
     for (const seccion of secciones) {
       if (!seccion.alumnos.includes(alumnoId)) {
         seccion.alumnos.push(alumnoId);
+        await this.SeccionRepository.save(seccion);
+      }
+    }
+  }
+
+  async deleteAlumnoFromSeccionesByGradoId(
+    gradoId: string,
+    alumnoId: string,
+  ): Promise<void> {
+    const secciones = await this.findAllByGradoId(gradoId);
+
+    for (const seccion of secciones) {
+      if (!seccion.alumnos) seccion.alumnos = [];
+
+      // Buscar usando conversión a string
+      const index = seccion.alumnos.findIndex(
+        (alumno) => alumno.toString() === alumnoId,
+      );
+
+      if (index !== -1) {
+        seccion.alumnos.splice(index, 1);
+        await this.SeccionRepository.save(seccion);
+      }
+    }
+  }
+
+  // Método deleteEncargadoFromSeccionesByUserId corregido
+  async deleteEncargadoFromSeccionesByUserId(userId: string): Promise<void> {
+    const userIdAsObjectId = new ObjectId(userId); // Convertir a ObjectId
+
+    // Trim para eliminar espacios ocultos
+    userId = userId.trim();
+
+    // Consulta directa usando el driver de MongoDB
+    const secciones = await this.SeccionRepository.find({
+      where: {
+        encargados: { $in: [userId] }, // Usar el operador $in de MongoDB
+      } as any, // Forzar el tipo si es necesario
+    });
+
+    for (const seccion of secciones) {
+      if (!seccion.encargados) seccion.encargados = [];
+
+      // Convertir cada ID en el array a string para comparar
+      const index = seccion.encargados.findIndex(
+        (encargadoId) => encargadoId.toString() === userId,
+      );
+
+      if (index !== -1) {
+        seccion.encargados.splice(index, 1);
         await this.SeccionRepository.save(seccion);
       }
     }

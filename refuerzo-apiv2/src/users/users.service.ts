@@ -14,7 +14,7 @@ import { SendEmailDto } from 'src/email/dto/send-email.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CrudHelper } from '../common/helper/crud.helper';
 import { User } from './entities/user.entity';
-import { Repository, FindManyOptions, MoreThan } from 'typeorm';
+import { Repository, FindManyOptions, MoreThan, In } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { GeneralResponseDto } from 'src/common/dto/general-response.dto';
 import { GeneralResponseBuilder } from 'src/common/helper/general-response.helper';
@@ -35,6 +35,8 @@ import { alumnoAccountCreatedTemplate } from 'src/email/templates/createAlumnoTe
 import { AlumnoService } from '../alumno/service/alumno.service';
 import { CreateAlumnoDto } from 'src/alumno/dto/create-alumno.dto';
 import { PostulanteService } from 'src/postulante/service/postulante.service';
+import { SeccionService } from 'src/seccion/service/seccion.service';
+import { Seccion } from 'src/seccion/entities/seccion.entity';
 import { ObjectId } from 'mongodb';
 
 @Injectable()
@@ -50,11 +52,14 @@ export class UsersService {
     private readonly roleRepository: Repository<Role>,
     @InjectRepository(Postulante)
     private readonly postulanteRepository: Repository<Postulante>,
+    @InjectRepository(Seccion)
+    private readonly seccionRepository: Repository<Seccion>,
     @Inject(forwardRef(() => AlumnoService))
     private readonly alumnoService: AlumnoService,
     private readonly emailService: EmailService,
     @Inject(forwardRef(() => PostulanteService))
     private readonly postulanteService: PostulanteService,
+    private readonly seccionService: SeccionService,
   ) {
     this.crudHelper = new CrudHelper<User>(this.userRepository, 'Users');
     this.roleCrudHelper = new CrudHelper<Role>(this.roleRepository, 'Roles');
@@ -309,6 +314,90 @@ export class UsersService {
       .build();
   }
 
+  async findAllProfesores(): Promise<GeneralResponseDto<any>> {
+    // Obtener el rol de profesor
+    const profesorRole = await this.roleCrudHelper.findByNameOrId(
+      'profesor',
+      false,
+      false,
+    );
+    if (!profesorRole) {
+      throw new BadRequestException('Rol "profesor" no encontrado');
+    }
+
+    // Obtener todos los profesores
+    const profesores = await this.userRepository.find({
+      where: { role: profesorRole._id.toString() },
+      select: ['_id', 'nombre', 'email', 'telefono', 'image'],
+    });
+
+    // Obtener todos los encargados de todas las secciones
+    const secciones = await this.seccionRepository.find({
+      select: ['encargados'],
+    });
+    const encargadosIds = new Set<string>(
+      secciones.flatMap((s) => s.encargados.map((id) => id.toString())),
+    );
+
+    // Mapear resultado con estado
+    const profesoresConEstado = profesores.map((profesor) => ({
+      ...profesor,
+      isEncargado: encargadosIds.has(profesor._id.toString()),
+    }));
+
+    // Ordenar: primero los no encargados
+    profesoresConEstado.sort(
+      (a, b) => Number(a.isEncargado) - Number(b.isEncargado),
+    );
+
+    return new GeneralResponseBuilder()
+      .setMessage('Profesores obtenidos exitosamente')
+      .setData(profesoresConEstado)
+      .build();
+  }
+
+  async findAllTutores(): Promise<GeneralResponseDto<any>> {
+    // Obtener el rol de profesor
+    const tutorRole = await this.roleCrudHelper.findByNameOrId(
+      'tutor',
+      false,
+      false,
+    );
+    if (!tutorRole) {
+      throw new BadRequestException('Rol "profesor" no encontrado');
+    }
+
+    // Obtener todos los profesores
+    const tutores = await this.userRepository.find({
+      where: { role: tutorRole._id.toString() },
+      select: ['_id', 'nombre', 'email', 'telefono', 'image'],
+    });
+
+    // Obtener todos los encargados de todas las secciones
+    const secciones = await this.seccionRepository.find({
+      select: ['encargados'],
+    });
+    const encargadosIds = new Set<string>(
+      secciones.flatMap((s) => s.encargados.map((id) => id.toString())),
+    );
+
+    // Mapear resultado con estado
+    const tutoresConEstado = tutores.map((tutor) => ({
+      ...tutor,
+      isEncargado: encargadosIds.has(tutor._id.toString()),
+    }));
+
+    // Ordenar: primero los no encargados
+    tutoresConEstado.sort(
+      (a, b) => Number(a.isEncargado) - Number(b.isEncargado),
+    );
+
+    return new GeneralResponseBuilder()
+      .setMessage('Tutores obtenidos exitosamente')
+      .setData(tutoresConEstado)
+      .build();
+  }
+
   async findOne(id: string): Promise<GeneralResponseDto<User>> {
     const findUser = await this.crudHelper.findByNameOrId(id);
     if (!findUser) {
@@ -546,6 +635,7 @@ export class UsersService {
     const alumnoUpdate = {
       nombre: updateUserDto.nombre,
       image: updateUserDto.image,
+      email: updateUserDto.email,
     };
 
     if (role.name === 'alumno') {
@@ -563,6 +653,9 @@ export class UsersService {
     if (userCount === 1) {
       throw new ConflictException('Cannot delete the only user in the system');
     }
+
+    await this.seccionService.deleteEncargadoFromSeccionesByUserId(id);
+
     await this.crudHelper.delete(user, true);
     return new GeneralResponseBuilder<User>()
       .setMessage('User deleted successfully')
@@ -610,6 +703,7 @@ export class UsersService {
         userId,
         user.nombre,
         user.image,
+        user.email,
         true,
       );
     }

@@ -28,5 +28,10 @@ export class CreateAlumnoDto {
   @ApiProperty()
   @IsString()
   @IsOptional()
+  email: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
   image: string;
 }
