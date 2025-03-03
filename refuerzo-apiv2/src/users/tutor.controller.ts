@@ -55,15 +55,4 @@ export class TutorsController {
   findAllTutores() {
     return this.usersService.findAllTutores();
   }
-
-  @Scopes('view', 'edit')
-  @Delete(':id')
-  @ApiOperation({
-    summary: 'Eliminar un tutor',
-    description: 'Elimina un tutor del sistema',
-  })
-  @ApiBearerAuth()
-  removeTutor(@Param('id') id: string) {
-    return this.usersService.removeTutor(id);
-  }
 }
