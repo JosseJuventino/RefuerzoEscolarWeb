@@ -612,6 +612,192 @@ export class UsersService {
       .build();
   }
 
+  async findAllTutoresWithPagination(
+    paginationQuery: PaginationQueryDto,
+  ): Promise<PaginationResponseDto<any>> {
+    // Obtener el rol "recomendador"
+    const role = await this.roleCrudHelper.findByNameOrId(
+      'tutor',
+      false,
+      false,
+    );
+
+    if (!role) {
+      throw new BadRequestException(`Role 'recomendador' not found`);
+    }
+
+    const filter: any = { role: role._id.toString() };
+
+    if (paginationQuery.filterBy && paginationQuery.filterValue) {
+      filter[paginationQuery.filterBy] = {
+        $regex: paginationQuery.filterValue,
+        $options: 'i',
+      };
+    }
+
+    const applyPagination =
+      paginationQuery.page !== undefined && paginationQuery.limit !== undefined;
+
+    let results: User[];
+    let total: number;
+    let totalPages: number;
+
+    if (applyPagination) {
+      const queryOptions = {
+        skip: (paginationQuery.page - 1) * paginationQuery.limit,
+        take: paginationQuery.limit,
+        where: filter,
+        order:
+          paginationQuery.orderedBy && paginationQuery.sort
+            ? {
+                [paginationQuery.orderedBy]:
+                  paginationQuery.sort.toUpperCase() as 'ASC' | 'DESC',
+              }
+            : undefined,
+        withDeleted: paginationQuery.includeDeleted,
+      };
+
+      [results, total] = await this.userRepository.findAndCount(queryOptions);
+      totalPages = Math.ceil(total / paginationQuery.limit);
+
+      if (paginationQuery.page > totalPages && totalPages > 0) {
+        throw new BadRequestException(
+          `Page ${paginationQuery.page} does not exist. Total pages: ${totalPages}`,
+        );
+      }
+    } else {
+      results = await this.userRepository.find({
+        where: filter,
+        order:
+          paginationQuery.orderedBy && paginationQuery.sort
+            ? {
+                [paginationQuery.orderedBy]:
+                  paginationQuery.sort.toUpperCase() as 'ASC' | 'DESC',
+              }
+            : undefined,
+        withDeleted: paginationQuery.includeDeleted,
+      });
+
+      total = results.length;
+      totalPages = 1;
+    }
+
+    const tutores = await Promise.all(
+      results.map(async (user) => {
+        return {
+          _id: user._id,
+          nombre: user.nombre,
+          email: user.email,
+          telefono: user.telefono,
+          image: user.image,
+          isActive: user.isActive,
+        };
+      }),
+    );
+
+    return new PaginationResponseBuilder()
+      .setMessage(`Alumnos retrieved successfully. Total pages: ${totalPages}`)
+      .setData(tutores)
+      .setSize(total)
+      .setTotalPages(totalPages)
+      .setPage(applyPagination ? paginationQuery.page : 1)
+      .setLimit(applyPagination ? paginationQuery.limit : total) // Si no hay paginación, devolver todos los registros
+      .build();
+  }
+
+  async findAllProfesoresWithPagination(
+    paginationQuery: PaginationQueryDto,
+  ): Promise<PaginationResponseDto<any>> {
+    // Obtener el rol "recomendador"
+    const role = await this.roleCrudHelper.findByNameOrId(
+      'profesor',
+      false,
+      false,
+    );
+
+    if (!role) {
+      throw new BadRequestException(`Role 'recomendador' not found`);
+    }
+
+    const filter: any = { role: role._id.toString() };
+
+    if (paginationQuery.filterBy && paginationQuery.filterValue) {
+      filter[paginationQuery.filterBy] = {
+        $regex: paginationQuery.filterValue,
+        $options: 'i',
+      };
+    }
+
+    const applyPagination =
+      paginationQuery.page !== undefined && paginationQuery.limit !== undefined;
+
+    let results: User[];
+    let total: number;
+    let totalPages: number;
+
+    if (applyPagination) {
+      const queryOptions = {
+        skip: (paginationQuery.page - 1) * paginationQuery.limit,
+        take: paginationQuery.limit,
+        where: filter,
+        order:
+          paginationQuery.orderedBy && paginationQuery.sort
+            ? {
+                [paginationQuery.orderedBy]:
+                  paginationQuery.sort.toUpperCase() as 'ASC' | 'DESC',
+              }
+            : undefined,
+        withDeleted: paginationQuery.includeDeleted,
+      };
+
+      [results, total] = await this.userRepository.findAndCount(queryOptions);
+      totalPages = Math.ceil(total / paginationQuery.limit);
+
+      if (paginationQuery.page > totalPages && totalPages > 0) {
+        throw new BadRequestException(
+          `Page ${paginationQuery.page} does not exist. Total pages: ${totalPages}`,
+        );
+      }
+    } else {
+      results = await this.userRepository.find({
+        where: filter,
+        order:
+          paginationQuery.orderedBy && paginationQuery.sort
+            ? {
+                [paginationQuery.orderedBy]:
+                  paginationQuery.sort.toUpperCase() as 'ASC' | 'DESC',
+              }
+            : undefined,
+        withDeleted: paginationQuery.includeDeleted,
+      });
+
+      total = results.length;
+      totalPages = 1;
+    }
+
+    const profesores = await Promise.all(
+      results.map(async (user) => {
+        return {
+          _id: user._id,
+          nombre: user.nombre,
+          email: user.email,
+          telefono: user.telefono,
+          image: user.image,
+          isActive: user.isActive,
+        };
+      }),
+    );
+
+    return new PaginationResponseBuilder()
+      .setMessage(`Alumnos retrieved successfully. Total pages: ${totalPages}`)
+      .setData(profesores)
+      .setSize(total)
+      .setTotalPages(totalPages)
+      .setPage(applyPagination ? paginationQuery.page : 1)
+      .setLimit(applyPagination ? paginationQuery.limit : total) // Si no hay paginación, devolver todos los registros
+      .build();
+  }
+
   async update(
     id: string,
     updateUserDto: UpdateUserDto,
@@ -834,6 +1020,147 @@ export class UsersService {
     return new GeneralResponseBuilder<void>()
       .setStatusCode(200)
       .setMessage('Contraseña actualizada exitosamente')
+      .build();
+  }
+
+  async createTutor(
+    createNewRecomendadorDto: CreateNewRecomendadorDto,
+  ): Promise<GeneralResponseDto<User>> {
+    const role = await this.roleCrudHelper.findByNameOrId(
+      'tutor',
+      false,
+      false,
+    );
+
+    if (!role) {
+      throw new BadRequestException(`Role tutor not found`);
+    }
+    const findUser = await this.crudHelper.findByEmailOrId(
+      createNewRecomendadorDto.email,
+      false,
+      false,
+    );
+    if (findUser) {
+      throw new ConflictException(
+        `User with email ${createNewRecomendadorDto.email} already exists`,
+      );
+    }
+
+    const temporaryPassword = crypto.randomBytes(8).toString('hex'); // Generar una contraseña temporal
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(temporaryPassword, salt);
+
+    const newUser = this.userRepository.create({
+      nombre: createNewRecomendadorDto.nombre,
+      email: createNewRecomendadorDto.email,
+      telefono: createNewRecomendadorDto.telefono,
+      image: createNewRecomendadorDto.image,
+      isActive: false,
+      role: role._id.toString(),
+      password: hashedPassword,
+    });
+
+    await this.crudHelper.create(newUser);
+
+    const sendEmailDto: SendEmailDto = {
+      to: [createNewRecomendadorDto.email],
+      replyTo: ['soporte@refuerzo-mendoza.me'],
+      subject: 'Cuenta de Tutor Creada',
+      from: 'soporte@refuerzo-mendoza.me',
+      text: `Hola ${createNewRecomendadorDto.nombre},\n\nTu contraseña temporal es: ${temporaryPassword}\nPor favor inicia sesión y cambia tu contraseña.`,
+      html: recomendadorAccountCreatedTemplate(
+        createNewRecomendadorDto.nombre,
+        temporaryPassword,
+      ),
+    };
+
+    try {
+      await this.emailService.sendEmail(sendEmailDto);
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
+
+    return new GeneralResponseBuilder<User>()
+      .setStatusCode(201)
+      .setMessage('Tutor created successfully')
+      .build();
+  }
+
+  async createProfesor(
+    createNewRecomendadorDto: CreateNewRecomendadorDto,
+  ): Promise<GeneralResponseDto<User>> {
+    const role = await this.roleCrudHelper.findByNameOrId(
+      'profesor',
+      false,
+      false,
+    );
+
+    if (!role) {
+      throw new BadRequestException(`Role profesor not found`);
+    }
+    const findUser = await this.crudHelper.findByEmailOrId(
+      createNewRecomendadorDto.email,
+      false,
+      false,
+    );
+    if (findUser) {
+      throw new ConflictException(
+        `User with email ${createNewRecomendadorDto.email} already exists`,
+      );
+    }
+
+    const temporaryPassword = crypto.randomBytes(8).toString('hex'); // Generar una contraseña temporal
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(temporaryPassword, salt);
+
+    const newUser = this.userRepository.create({
+      nombre: createNewRecomendadorDto.nombre,
+      email: createNewRecomendadorDto.email,
+      telefono: createNewRecomendadorDto.telefono,
+      image: createNewRecomendadorDto.image,
+      isActive: false,
+      role: role._id.toString(),
+      password: hashedPassword,
+    });
+
+    await this.crudHelper.create(newUser);
+
+    const sendEmailDto: SendEmailDto = {
+      to: [createNewRecomendadorDto.email],
+      replyTo: ['soporte@refuerzo-mendoza.me'],
+      subject: 'Cuenta de Profesor Creada',
+      from: 'soporte@refuerzo-mendoza.me',
+      text: `Hola ${createNewRecomendadorDto.nombre},\n\nTu contraseña temporal es: ${temporaryPassword}\nPor favor inicia sesión y cambia tu contraseña.`,
+      html: recomendadorAccountCreatedTemplate(
+        createNewRecomendadorDto.nombre,
+        temporaryPassword,
+      ),
+    };
+
+    try {
+      await this.emailService.sendEmail(sendEmailDto);
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
+
+    return new GeneralResponseBuilder<User>()
+      .setStatusCode(201)
+      .setMessage('Profesor created successfully')
+      .build();
+  }
+
+  async removeTutor(id: string): Promise<GeneralResponseDto<User>> {
+    const user = await this.crudHelper.findByNameOrId(id);
+    const userCount = await this.crudHelper.count();
+    if (userCount === 1) {
+      throw new ConflictException('Cannot delete the only user in the system');
+    }
+
+    await this.seccionService.deleteEncargadoFromSeccionesByUserId(id);
+
+    await this.crudHelper.delete(user, true);
+    return new GeneralResponseBuilder<User>()
+      .setMessage('User deleted successfully')
       .build();
   }
 }
