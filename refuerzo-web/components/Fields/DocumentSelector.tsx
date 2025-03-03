@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { FileText, X, Plus, Image as ImageIcon, File } from "lucide-react";
 import { FileNew } from "@/types/types";
+import { toast } from "@pheralb/toast";
 
 interface MultiFileSelectorProps {
   initialFiles?: Array<Partial<FileNew>>;
@@ -39,12 +40,23 @@ export const MultiFileSelector: React.FC<MultiFileSelectorProps> = ({
     // Validar tipo de archivo
     if (!validateFileType(selectedFile)) return;
 
-    setSelectedItems((prev) => [...prev, selectedFile]);
 
-    if (setFiles) {
-      const updatedFiles: (File | Partial<FileNew>)[] = [...selectedItems, selectedFile];
-      setFiles(updatedFiles);
+
+    if (selectedFile.size > 5 * 1024 * 1024) {
+      toast.error({
+        text: "Error",
+        description: "El archivo no puede ser mayor a 5MB",
+      });
+      return;
+    } else {
+      setSelectedItems((prev) => [...prev, selectedFile]);
+      if (setFiles) {
+        const updatedFiles: (File | Partial<FileNew>)[] = [...selectedItems, selectedFile];
+        setFiles(updatedFiles);
+      }
     }
+
+
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {

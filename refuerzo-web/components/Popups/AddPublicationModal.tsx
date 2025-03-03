@@ -54,6 +54,8 @@ export const AddPublicationModal = ({
     );
 
     const [formData, setFormData] = useState<Partial<Publicacion>>(emptyForm);
+
+    console.log(formData);
     const [files, setFiles] = useState<(File | Partial<FileNew>)[]>([]);
     const queryClient = useQueryClient();
 
@@ -147,12 +149,12 @@ export const AddPublicationModal = ({
     };
 
     const handleDocumentUpload = async (file: File): Promise<Partial<FileNew>> => {
-        if (file.size > 10 * 1024 * 1024) {
+        if (file.size > 5 * 1024 * 1024) {
             toast.error({
                 text: "Error",
-                description: "El archivo no puede ser mayor a 10MB",
+                description: "El archivo no puede ser mayor a 5MB",
             });
-            throw new Error("El archivo no puede ser mayor a 10MB");
+            throw new Error("El archivo no puede ser mayor a 5MB");
         }
 
         const documento: Partial<FileNew> = {
@@ -172,6 +174,15 @@ export const AddPublicationModal = ({
 
     const processFile = async (file: File | Partial<FileNew>) => {
         if (!(file instanceof File)) return file;
+
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error({
+                text: "Error",
+                description: "El archivo no puede ser mayor a 5MB",
+            });
+            throw new Error("El archivo no puede ser mayor a 5MB");
+        }
+
         try {
             if (file.type.startsWith("image/")) {
                 return await handleImageUpload(file);
@@ -202,6 +213,7 @@ export const AddPublicationModal = ({
             const documentArray = processedFiles.filter(Boolean) as FilePublicacion[];
 
             const submissionData = { ...formData, files: documentArray };
+            
 
             if (initialData && initialData._id) {
                 await updatePublicationMutation.mutateAsync(submissionData);

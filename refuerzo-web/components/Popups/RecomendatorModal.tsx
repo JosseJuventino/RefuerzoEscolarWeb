@@ -23,10 +23,8 @@ export const FormModal = ({
     const emptyForm = useMemo<Partial<Recomendadores>>(() => ({
         nombre: "",
         email: "",
-        telefono: "",
         imagen: "",
         isActive: true,
-        password: ""
     }), []);
 
     const [formData, setFormData] = useState<Partial<Recomendadores>>(emptyForm);
@@ -47,6 +45,8 @@ export const FormModal = ({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         onSubmit(formData as Recomendadores);
+
+        console.log(formData);
         handleCancel();
     };
 
@@ -89,15 +89,6 @@ export const FormModal = ({
                     onChange={(v) => handleFieldChange('email', v)}
                     placeholder="Email del recomendador"
                     isRequired={true}
-                />
-
-                <InputField
-                    label="Teléfono"
-                    type="tel"
-                    value={formData.telefono || ""}
-                    onChange={(v) => handleFieldChange('telefono', v)}
-                    placeholder="Teléfono del recomendador"
-                    isRequired={false}
                 />
             </form>
         </Modal>

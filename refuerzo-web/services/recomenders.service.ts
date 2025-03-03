@@ -7,8 +7,8 @@ export const getRecomendadores = async (): Promise<Recomendadores[]> => {
   return response.data.data;
 };
 
-export const addRecomendador = async (recomendador: Recomendadores): Promise<Recomendadores> => {
-  const response = await api.post<Recomendadores>('/users/recomendador', recomendador);
+export const addRecomendador = async (recomendador: Recomendadores): Promise<Partial<Recomendadores>> => {
+  const response = await api.post<Partial<Recomendadores>>('/users/recomendador', recomendador);
   return response.data;
 };
 

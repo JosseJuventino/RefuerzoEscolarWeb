@@ -16,7 +16,7 @@ class ContactoDto {
     example: '123456789',
   })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   readonly telefono: string;
 }
 
