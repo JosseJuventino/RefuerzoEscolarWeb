@@ -60,6 +60,11 @@ export const MultiFileSelector: React.FC<MultiFileSelectorProps> = ({
 
   const removeItem = (index: number) => {
     setSelectedItems((prev) => prev.filter((_, i) => i !== index));
+
+    if (setFiles) {
+      const updatedFiles = selectedItems.filter((_, i) => i !== index);
+      setFiles(updatedFiles);
+    }
   };
 
   return (
