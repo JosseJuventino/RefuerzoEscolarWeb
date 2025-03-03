@@ -647,6 +647,23 @@ export class UsersService {
       };
     }
 
+    // Obtener todas las secciones con encargados y nombres
+    const secciones = await this.seccionRepository.find({
+      select: ['encargados', 'nombre'],
+    });
+
+    // Crear mapa de ID de encargado a nombres de secciones
+    const encargadosSeccionesMap = new Map<string, string[]>();
+    for (const seccion of secciones) {
+      const nombreSeccion = seccion.nombre;
+      for (const encargadoId of seccion.encargados) {
+        const idStr = encargadoId.toString();
+        encargadosSeccionesMap.has(idStr)
+          ? encargadosSeccionesMap.get(idStr).push(nombreSeccion)
+          : encargadosSeccionesMap.set(idStr, [nombreSeccion]);
+      }
+    }
+
     const applyPagination =
       paginationQuery.page !== undefined && paginationQuery.limit !== undefined;
 
@@ -694,26 +711,28 @@ export class UsersService {
       totalPages = 1;
     }
 
+    // Mapear resultados con secciones
     const tutores = await Promise.all(
-      results.map(async (user) => {
-        return {
-          _id: user._id,
-          nombre: user.nombre,
-          email: user.email,
-          telefono: user.telefono,
-          image: user.image,
-          isActive: user.isActive,
-        };
-      }),
+      results.map(async (user) => ({
+        _id: user._id,
+        nombre: user.nombre,
+        email: user.email,
+        telefono: user.telefono,
+        image: user.image,
+        isActive: user.isActive,
+        secciones: encargadosSeccionesMap.get(user._id.toString()) || [],
+      })),
     );
 
     return new PaginationResponseBuilder()
-      .setMessage(`Alumnos retrieved successfully. Total pages: ${totalPages}`)
+      .setMessage(
+        `Tutores obtenidos exitosamente. Total páginas: ${totalPages}`,
+      )
       .setData(tutores)
       .setSize(total)
       .setTotalPages(totalPages)
       .setPage(applyPagination ? paginationQuery.page : 1)
-      .setLimit(applyPagination ? paginationQuery.limit : total) // Si no hay paginación, devolver todos los registros
+      .setLimit(applyPagination ? paginationQuery.limit : total)
       .build();
   }
 
@@ -738,6 +757,23 @@ export class UsersService {
         $regex: paginationQuery.filterValue,
         $options: 'i',
       };
+    }
+
+    // Obtener todas las secciones con encargados y nombres
+    const secciones = await this.seccionRepository.find({
+      select: ['encargados', 'nombre'],
+    });
+
+    // Crear mapa de ID de encargado a nombres de secciones
+    const encargadosSeccionesMap = new Map<string, string[]>();
+    for (const seccion of secciones) {
+      const nombreSeccion = seccion.nombre;
+      for (const encargadoId of seccion.encargados) {
+        const idStr = encargadoId.toString();
+        encargadosSeccionesMap.has(idStr)
+          ? encargadosSeccionesMap.get(idStr).push(nombreSeccion)
+          : encargadosSeccionesMap.set(idStr, [nombreSeccion]);
+      }
     }
 
     const applyPagination =
@@ -788,16 +824,15 @@ export class UsersService {
     }
 
     const profesores = await Promise.all(
-      results.map(async (user) => {
-        return {
-          _id: user._id,
-          nombre: user.nombre,
-          email: user.email,
-          telefono: user.telefono,
-          image: user.image,
-          isActive: user.isActive,
-        };
-      }),
+      results.map(async (user) => ({
+        _id: user._id,
+        nombre: user.nombre,
+        email: user.email,
+        telefono: user.telefono,
+        image: user.image,
+        isActive: user.isActive,
+        secciones: encargadosSeccionesMap.get(user._id.toString()) || [],
+      })),
     );
 
     return new PaginationResponseBuilder()
@@ -1158,21 +1193,6 @@ export class UsersService {
     return new GeneralResponseBuilder<User>()
       .setStatusCode(201)
       .setMessage('Profesor created successfully')
-      .build();
-  }
-
-  async removeTutor(id: string): Promise<GeneralResponseDto<User>> {
-    const user = await this.crudHelper.findByNameOrId(id);
-    const userCount = await this.crudHelper.count();
-    if (userCount === 1) {
-      throw new ConflictException('Cannot delete the only user in the system');
-    }
-
-    await this.seccionService.deleteEncargadoFromSeccionesByUserId(id);
-
-    await this.crudHelper.delete(user, true);
-    return new GeneralResponseBuilder<User>()
-      .setMessage('User deleted successfully')
       .build();
   }
 }
