@@ -315,7 +315,6 @@ export class UsersService {
   }
 
   async findAllProfesores(): Promise<GeneralResponseDto<any>> {
-    // Obtener el rol de profesor
     const profesorRole = await this.roleCrudHelper.findByNameOrId(
       'profesor',
       false,
@@ -325,27 +324,34 @@ export class UsersService {
       throw new BadRequestException('Rol "profesor" no encontrado');
     }
 
-    // Obtener todos los profesores
     const profesores = await this.userRepository.find({
       where: { role: profesorRole._id.toString() },
       select: ['_id', 'nombre', 'email', 'telefono', 'image'],
     });
 
-    // Obtener todos los encargados de todas las secciones
     const secciones = await this.seccionRepository.find({
-      select: ['encargados'],
+      select: ['encargados', 'nombre'],
     });
-    const encargadosIds = new Set<string>(
-      secciones.flatMap((s) => s.encargados.map((id) => id.toString())),
-    );
 
-    // Mapear resultado con estado
+    const encargadosSeccionesMap = new Map<string, string[]>();
+    for (const seccion of secciones) {
+      const nombreSeccion = seccion.nombre;
+      for (const encargadoId of seccion.encargados) {
+        const idStr = encargadoId.toString();
+        if (encargadosSeccionesMap.has(idStr)) {
+          encargadosSeccionesMap.get(idStr).push(nombreSeccion);
+        } else {
+          encargadosSeccionesMap.set(idStr, [nombreSeccion]);
+        }
+      }
+    }
+
     const profesoresConEstado = profesores.map((profesor) => ({
       ...profesor,
-      isEncargado: encargadosIds.has(profesor._id.toString()),
+      isEncargado: encargadosSeccionesMap.has(profesor._id.toString()),
+      secciones: encargadosSeccionesMap.get(profesor._id.toString()) || [],
     }));
 
-    // Ordenar: primero los no encargados
     profesoresConEstado.sort(
       (a, b) => Number(a.isEncargado) - Number(b.isEncargado),
     );
@@ -357,37 +363,43 @@ export class UsersService {
   }
 
   async findAllTutores(): Promise<GeneralResponseDto<any>> {
-    // Obtener el rol de profesor
     const tutorRole = await this.roleCrudHelper.findByNameOrId(
       'tutor',
       false,
       false,
     );
     if (!tutorRole) {
-      throw new BadRequestException('Rol "profesor" no encontrado');
+      throw new BadRequestException('Rol "tutor" no encontrado');
     }
 
-    // Obtener todos los profesores
     const tutores = await this.userRepository.find({
       where: { role: tutorRole._id.toString() },
       select: ['_id', 'nombre', 'email', 'telefono', 'image'],
     });
 
-    // Obtener todos los encargados de todas las secciones
     const secciones = await this.seccionRepository.find({
-      select: ['encargados'],
+      select: ['encargados', 'nombre'],
     });
-    const encargadosIds = new Set<string>(
-      secciones.flatMap((s) => s.encargados.map((id) => id.toString())),
-    );
 
-    // Mapear resultado con estado
+    const encargadosSeccionesMap = new Map<string, string[]>();
+    for (const seccion of secciones) {
+      const nombreSeccion = seccion.nombre;
+      for (const encargadoId of seccion.encargados) {
+        const idStr = encargadoId.toString();
+        if (encargadosSeccionesMap.has(idStr)) {
+          encargadosSeccionesMap.get(idStr).push(nombreSeccion);
+        } else {
+          encargadosSeccionesMap.set(idStr, [nombreSeccion]);
+        }
+      }
+    }
+
     const tutoresConEstado = tutores.map((tutor) => ({
       ...tutor,
-      isEncargado: encargadosIds.has(tutor._id.toString()),
+      isEncargado: encargadosSeccionesMap.has(tutor._id.toString()),
+      secciones: encargadosSeccionesMap.get(tutor._id.toString()) || [],
     }));
 
-    // Ordenar: primero los no encargados
     tutoresConEstado.sort(
       (a, b) => Number(a.isEncargado) - Number(b.isEncargado),
     );
