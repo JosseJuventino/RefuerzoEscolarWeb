@@ -25,6 +25,9 @@ export class Postulante {
   telefono: string;
 
   @Column()
+  telefonoEncargado: string; 
+
+  @Column()
   email: string;
 
   @Column()
