@@ -69,6 +69,12 @@ export class PostulanteResponseDto {
   telefono: string;
 
   @ApiProperty({
+    description: 'teléfono del encargado',
+    example: '123456789',
+  })
+  telefonoEncargado: string;
+
+  @ApiProperty({
     description: 'email del postulante',
     example: 'postulante email',
   })

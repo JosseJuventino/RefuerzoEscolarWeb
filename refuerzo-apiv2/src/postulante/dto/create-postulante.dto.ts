@@ -44,6 +44,14 @@ export class CreatePostulanteDto {
   readonly telefono: string;
 
   @ApiProperty({
+    description: 'Teléfono del encargado',
+    example: '987654321',
+  })
+  @IsString()
+  @IsNotEmpty()
+  readonly telefonoEncargado: string;
+
+  @ApiProperty({
     description: 'Correo electrónico del postulante',
     example: 'example@example.com',
   })
