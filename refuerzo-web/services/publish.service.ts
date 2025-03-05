@@ -8,7 +8,6 @@ export const addPublication = async (publicacion: Partial<Publicacion>): Promise
 };
 
 export const updatePublication = async (publicacion: Partial<Publicacion>): Promise<Partial<Publicacion>> => {
-  console.log(publicacion);
   const response = await api.patch<Partial<Publicacion>>(`/publicacion/${publicacion._id}`, publicacion);
   return response.data;
 };

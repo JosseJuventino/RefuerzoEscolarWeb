@@ -45,17 +45,17 @@ export const NavItem: React.FC<NavItemProps> = ({
       <Link
         href={link || "#"}
         onClick={handleClick}
-        className={`relative flex items-center w-full px-3 py-3 cursor-pointer rounded-md ${TRANSITION}
+        className={`relative flex items-center w-full hover:text-[#004aad] px-3 py-3 cursor-pointer rounded-md ${TRANSITION}
           ${isActive
             ? `${COLOR_TEXT_ACTIVE} ${COLOR_BG_ACTIVE}`
-            : "text-gray-600 hover:text-[#004aad] hover:bg-[#f0f4ff]/50"
+            : "text-gray-600 hover:text-[#004aad]  hover:bg-[#f0f4ff]/50"
           }`}
       >
         {isActive && (
           <span className="absolute -left-2 top-0 h-full w-[3px] bg-[#004aad] rounded-full" />
         )}
 
-        <Icon className={`w-5 h-5 mr-3 ${isActive ? "text-[#004aad]" : "text-gray-500"}`} />
+        <Icon className={`w-5 h-5  hover:text-[#004aad] mr-3 ${isActive ? "text-[#004aad]" : "text-gray-500"}`} />
 
         <span className="flex-1">{label}</span>
 
@@ -87,7 +87,7 @@ export const NavItem: React.FC<NavItemProps> = ({
                     }`}
                 >
                   {SubIcon && (
-                    <SubIcon className="w-4 h-4 font-bold mr-3 text-current" />
+                    <SubIcon className="w-4 h-4 font-bold hover:text-[#004aad] mr-3 text-current" />
                   )}
                   <span>{subItem.name}</span>
                 </Link>

@@ -146,7 +146,6 @@ export default function Applicants() {
                         loading={isLoading}
                         columns={columns}
                         hasEdit={false}
-                        onEdit={(row) => console.log("Editar: ", row)}
                         onDelete={(id) => {
                             const selected = postulants?.find(r => r._id === id);
                             if (selected) setModalState({ type: 'delete', selected });
