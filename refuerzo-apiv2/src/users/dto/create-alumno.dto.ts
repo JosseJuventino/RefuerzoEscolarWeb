@@ -8,6 +8,8 @@ export class CreateNewAlumnoDto {
 
   readonly telefono: string;
 
+  readonly telefonoEncargado : string;
+
   readonly image: string;
 
   readonly idDependingRole: string;
