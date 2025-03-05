@@ -107,9 +107,7 @@ export default function ProfilePage() {
         throw new Error("reCAPTCHA no está disponible.");
       }
 
-
       const token = await executeRecaptcha("forgot_password");
-      console.log("Token de reCAPTCHA generado:", token);
 
       if (user?.email !== undefined) {
         const response: RequestPassResponse = await requestPasswordReset(user.email, token);

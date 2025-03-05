@@ -85,9 +85,8 @@ const SelectFieldCustom: React.FC<SelectFieldCustomProps> = ({
               <li
                 key={option.value}
                 onClick={() => handleOptionClick(option)}
-                className={`px-2 py-1 flex items-center cursor-pointer hover:bg-gray-100 ${
-                  selected?.value === option.value ? "bg-gray-100" : ""
-                }`}
+                className={`px-2 py-1 flex items-center cursor-pointer hover:bg-gray-100 ${selected?.value === option.value ? "bg-gray-100" : ""
+                  }`}
               >
                 <span className="text-xl">{option.icon}</span>
                 <span className="ml-2">{option.label}</span>
