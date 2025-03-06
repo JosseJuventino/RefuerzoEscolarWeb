@@ -23,6 +23,7 @@ import { PublicacionService } from 'src/publicacion/service/publicacion.service'
 import { InternalUpdateSeccionDto } from '../dto/Internal-update-seccion.dto';
 import { User } from 'src/users/entities/user.entity';
 import { Alumno } from 'src/alumno/entities/alumno.entity';
+import { AsistenciaService } from 'src/asistencia/service/asistencia.service';
 
 @Injectable()
 export class SeccionService {
@@ -42,6 +43,7 @@ export class SeccionService {
     private readonly UserRepository: Repository<User>,
     @InjectRepository(Alumno)
     private readonly alumnoRepository: Repository<Alumno>,
+    private readonly asistenciaService: AsistenciaService,
   ) {
     this.crudHelper = new CrudHelper<Seccion>(
       this.SeccionRepository,
@@ -108,10 +110,17 @@ export class SeccionService {
 
     const savedSeccion = await this.SeccionRepository.save(newSeccion);
 
+    const newAsistencia = {
+      seccionId: savedSeccion._id.toString(),
+      alumnos: [],
+      encargados: [],
+    };
+
+    await this.asistenciaService.create(newAsistencia);
+
     return new GeneralResponseBuilder<Seccion>()
       .setStatusCode(201)
       .setMessage('Seccion created successfully')
-      .setData(savedSeccion) // Incluir el objeto creado
       .build();
   }
 
@@ -412,6 +421,7 @@ export class SeccionService {
 
     // Eliminar todas las publicaciones de la sección y sus archivos
     await this.publicacionService.deleteBySeccionId(seccion._id.toString());
+    await this.asistenciaService.removeBySeccionId(seccion._id.toString());
 
     // Eliminar la sección
     await this.crudHelper.delete(seccion, true);
@@ -428,6 +438,7 @@ export class SeccionService {
     // Eliminar publicaciones y archivos de cada sección
     for (const seccion of secciones) {
       await this.publicacionService.deleteBySeccionId(seccion._id.toString());
+      await this.asistenciaService.removeBySeccionId(seccion._id.toString());
     }
 
     // Eliminar todas las secciones del grado

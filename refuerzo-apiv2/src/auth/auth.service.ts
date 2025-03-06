@@ -43,7 +43,11 @@ export class AuthService {
     this.rolecrudHelper = new CrudHelper<Role>(this.roleRepository, 'Roles');
   }
 
-  async login(authDto: AuthDto, ipAddress: string, userAgent: string): Promise<GeneralResponseDto<auth>> {
+  async login(
+    authDto: AuthDto,
+    ipAddress: string,
+    userAgent: string,
+  ): Promise<GeneralResponseDto<auth>> {
     const user = await this.UsercrudHelper.findOne(
       {
         where: { email: authDto.email },
@@ -86,9 +90,16 @@ export class AuthService {
       hash: hashedToken,
     };
 
+    const role = await this.rolecrudHelper.findByNameOrId(
+      payload.role,
+      false,
+      false,
+    );
+
     const userData = {
       nombreCompleto: payload.name,
       email: payload.email,
+      role: role.name,
       image: user.image,
       isActive: user.isActive,
     };
@@ -96,39 +107,11 @@ export class AuthService {
     const newToken = this.tokensRepository.create(tokenData);
     await this.authcrudHelper.create(newToken);
 
-    // Enriquecer usuario con rol y permisos
-    const roleData = await this.rolecrudHelper.findByNameOrId(
-      user.role,
-      false,
-      false,
-    );
-
-    // Mapeo para convertir llaves y valores:
-    // blog -> 0, usuarios -> 1, programacion -> 2, role -> 3
-    // view/edit -> [1/0, 1/0]
-    const pagesMap = {
-      blog: 0,
-      usuarios: 1,
-      programacion: 2,
-      role: 3,
-    };
-
-    const transformedPages = Object.entries(roleData.pages).reduce(
-      (acc, [key, value]) => {
-        // Si la llave coincide con alguna del pagesMap
-        if (pagesMap[key] !== undefined) {
-          acc[pagesMap[key]] = [value.view ? 1 : 0, value.edit ? 1 : 0];
-        }
-        return acc;
-      },
-      {},
-    );
-
     const location = this.geoLocationService.getLocation(ipAddress);
     const parser = new UAParser(userAgent);
     const result = parser.getResult();
-    const device = result.device.type || 'Desktop'; 
-    const browser = result.browser.name || 'Unknown'; 
+    const device = result.device.type || 'Desktop';
+    const browser = result.browser.name || 'Unknown';
 
     await this.logLoginAttempt(
       user._id.toString(),
@@ -136,9 +119,7 @@ export class AuthService {
       device,
       browser,
       location.country,
-
     );
-
 
     return (
       new GeneralResponseBuilder<auth>()
@@ -181,18 +162,19 @@ export class AuthService {
     }
   }
 
-  async getAuditLogsByUser(userId: string): Promise<GeneralResponseDto<LoginAudit[]>> {
+  async getAuditLogsByUser(
+    userId: string,
+  ): Promise<GeneralResponseDto<LoginAudit[]>> {
     const logs = await this.loginAuditRepository.find({
       //where user id is equal to the user id and expired is not defined and not true
       where: { userId, expired: undefined },
       order: { createdAt: 'DESC' },
     });
-  
+
     return new GeneralResponseBuilder<LoginAudit[]>()
       .setStatusCode(200)
       .setMessage('Logs de auditoría obtenidos exitosamente')
       .setData(logs)
       .build();
   }
-
 }

@@ -77,6 +77,7 @@ export class AlumnoService {
       nombre: createAlumnoDto.nombre,
       email: createAlumnoDto.email,
       image: createAlumnoDto.image,
+      telefonoEncargado: createAlumnoDto.telefonoEncargado,
     });
 
     await this.crudHelper.create(newAlumno);
