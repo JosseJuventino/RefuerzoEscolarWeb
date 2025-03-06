@@ -17,6 +17,7 @@ declare module "next-auth" {
       email?: string;
       image?: string | null;
       emailVerified?: Date | null;
+      role?: string | null;
     };
   }
 }
@@ -30,6 +31,7 @@ declare module "next-auth/jwt" {
       email?: string | null;
       image?: string | null;
       emailVerified?: Date | null;
+      role?: string | null;
     };
   }
 }
@@ -59,6 +61,7 @@ export const authOptions = {
             image: data.info.image,
             accessToken: data.token,
             emailVerified: null,
+            role: data.info.role,
           };
         } catch (error) {
           console.error("Authentication error:", error);
@@ -86,6 +89,7 @@ export const authOptions = {
           email: user.email,
           image: user.image,
           emailVerified: user.emailVerified,
+          role: user.role,
         };
         
         token.exp = Math.floor(Date.now() / 1000) + 2 * 60 * 60;
@@ -106,6 +110,7 @@ export const authOptions = {
         email: token.user?.email || "",
         image: token.user?.image || null,
         emailVerified: token.user?.emailVerified || null,
+        role: token.user?.role || null
       };
       
       session.expires = token.exp ? new Date(token.exp * 1000).toISOString() : new Date().toISOString();

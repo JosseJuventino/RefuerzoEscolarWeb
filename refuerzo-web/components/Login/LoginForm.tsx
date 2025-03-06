@@ -42,7 +42,6 @@ const LoginForm: React.FC = () => {
     setLoading(true);
 
     try {
-      "use server"
       const result = await signIn("credentials", {
         redirect: false,
         email,

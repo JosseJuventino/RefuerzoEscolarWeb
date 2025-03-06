@@ -14,12 +14,12 @@ import { getGrades } from "@/services/grades.service";
 import SelectField from "@/components/Fields/SelectField";
 import { useForm, SubmitHandler, } from "react-hook-form";
 import { toast } from "@pheralb/toast";
-import { AuthService } from "@/services/auth.service";
 import { Loading } from "@/components/Loading";
 import { Grade, Image, Program } from "@/types/types";
 import { addPostulante } from "@/services/applicants.service";
 import { uploadImage } from "@/services/images.service";
 import { base64ToFile } from "@/utils/base64ToFile";
+import { useSession } from "next-auth/react";
 
 interface FormValues {
     nombre: string;
@@ -33,8 +33,8 @@ interface FormValues {
 
 export default function RegistrationForm() {
     const router = useRouter();
-
-    const [isChecking, setIsChecking] = useState<boolean>(true);
+    const [isChecking, setIsChecking] = useState(true);
+    const { status } = useSession();
     const [preview, setPreview] = useState<string | null>(null);
     const [isMobile, setIsMobile] = useState<boolean>(false);
 
@@ -71,24 +71,13 @@ export default function RegistrationForm() {
         queryKey: ["grados"],
         queryFn: getGrades,
     });
-    
+
     const formData = useRef({
         imagen: "",
     });
 
     const { cameraActive, startCamera, stopCamera, videoRef, canvasRef, handleTakePhoto, handleFileChange, handleRetakePhoto } = useCamera(isMobile, setPreview, formData);
 
-    useEffect(() => {
-        const checkAuth = async () => {
-            const isAuthenticated = await AuthService.checkAuth();
-            if (!isAuthenticated) {
-                router.push("/");
-            } else {
-                setIsChecking(false);
-            }
-        };
-        checkAuth();
-    }, [router]);
 
 
     const addPostulant = useMutation({
@@ -104,6 +93,32 @@ export default function RegistrationForm() {
             queryClient.invalidateQueries({ queryKey: ['image'] });
         },
     });
+
+    useEffect(() => {
+        if (Object.keys(errors).length > 0) {
+            Object.values(errors).forEach(() => {
+                toast.error({ text: "Ha ocurrido un error" });
+            });
+        }
+    }, [errors]);
+
+
+    useEffect(() => {
+        if (status === "unauthenticated") {
+            router.push('/');
+        } else if (status === "authenticated") {
+            setIsChecking(false);
+        }
+    }, [status, router, setIsChecking]);
+
+    if (status === "loading" || isChecking) {
+        return <Loading />;
+    }
+
+    if (isChecking) {
+        return <Loading />;
+    }
+
 
 
     const onSubmit: SubmitHandler<FormValues> = async (data) => {
@@ -128,18 +143,11 @@ export default function RegistrationForm() {
             await addPostulant.mutateAsync(postulanteData);
             router.push("/dashboard/postulantes/sucess");
         } catch {
-            toast.error({text: "Error al enviar la aplicación"});
+            toast.error({ text: "Error al enviar la aplicación" });
         }
     };
 
-    useEffect(() => {
-        if (Object.keys(errors).length > 0) {
-            Object.values(errors).forEach(() => {
-                toast.error({ text: "Ha ocurrido un error" });
-            });
-        }
-    }, [errors]);
-
+  
 
     if (isChecking) {
         return <Loading />;

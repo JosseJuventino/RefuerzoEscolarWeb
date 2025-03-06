@@ -185,6 +185,7 @@ export interface UserInfo {
   email: string;
   image: string;
   isActive: boolean;
+  role: string;
 }
 
 export interface Image {
