@@ -2,11 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useAuthStore } from "@/stores/authStore";
 import { NavItem } from "./NavItem";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { UserInfo } from "@/types/types";
 import {
   LayoutDashboardIcon,
   UserIcon,
@@ -22,20 +20,17 @@ import {
   Settings,
   Users2Icon
 } from "lucide-react";
-
-interface SidenavProps {
-  user: UserInfo | null;
-}
-
-const Sidenav: React.FC<SidenavProps> = ({ user }) => {
+import { signOut, useSession } from "next-auth/react";
 
 
-  const { clearAuth } = useAuthStore();
+const Sidenav: React.FC = () => {
   const pathName = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const { data: session } = useSession();
+  const user = session?.user;
 
   useEffect(() => {
     setIsMounted(true);
@@ -64,7 +59,7 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
 
   // Handlers
   const toggleMobileMenu = () => setIsMenuOpen((prev) => !prev);
-  const handleLogout = () => clearAuth('/');
+  const handleLogout = () => signOut({ callbackUrl: '/' });
 
   // Skeleton loader para SSR
   if (!isMounted) {
@@ -219,7 +214,7 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
             )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">
-                {user?.nombreCompleto || "Invitado"}
+                {user?.name || "Invitado"}
               </p>
               <p className="text-xs text-gray-600 truncate">
                 {user?.email || "No disponible"}
@@ -309,7 +304,7 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
-                    {user?.nombreCompleto || "Invitado"}
+                    {user?.name || "Invitado"}
                   </p>
                   <p className="text-xs text-gray-600 truncate">
                     {user?.email || "No disponible"}

@@ -1,44 +1,48 @@
 import { api } from "@/lib/api";
-import { AuthResponse } from "@/types/types";
-import { useAuthStore } from "@/stores/authStore";
+import { signIn, signOut, getSession } from "next-auth/react";
+import { Session } from "next-auth";
 
 export const AuthService = {
-  async login(credentials: { email: string; password: string }) {
-    const response = await api.post<AuthResponse>("auth/login", credentials);
-
-    if (response.data.statusCode === 200) {
-      const { token, info: user } = response.data.data;
-      sessionStorage.setItem("authToken", token);
-      sessionStorage.setItem("userInfo", JSON.stringify(user));
-      
-      useAuthStore.getState().setAuth(token, user);
-      return response.data.data;
+  async getAccessToken(): Promise<string | null> {
+    try {
+      const session = await getSession();
+      return session?.accessToken || null;
+    } catch (error) {
+      console.error("Error getting access token:", error);
+      return null;
     }
-    throw new Error("Error de autenticación");
   },
-  async checkAuth(): Promise<boolean> {
-    const token = sessionStorage.getItem("authToken"); 
 
-    if (!token) return false;
+  async login(credentials: { email: string; password: string }): Promise<Session | null> {
+    const response = await signIn("credentials", {
+      redirect: false,
+      ...credentials,
+    });
+    console.log(response);
+    if (response?.error) throw new Error(response.error);
+    
+    const session = await getSession();
+    return session;
+  },
 
-    return true;
+  async logout(): Promise<void> {
+    await signOut({ redirect: false });
   },
 
 };
 
 api.interceptors.request.use(async (config) => {
-  if (typeof window !== 'undefined') {
+  console.log("Request interceptor")
+  if (typeof window !== "undefined") {
     try {
-      const token = sessionStorage.getItem("authToken");
-      
+      const token = await AuthService.getAccessToken();
+      console.log("Token:", token);
       if (token) {
+        config.headers = config.headers || {};
         config.headers.Authorization = `Bearer ${token}`;
-      } else {
-        useAuthStore.getState().clearAuth(); 
       }
     } catch (error) {
-      console.error('Error en interceptor:', error);
-      useAuthStore.getState().clearAuth();
+      console.error("Interceptor error:", error);
     }
   }
   return config;

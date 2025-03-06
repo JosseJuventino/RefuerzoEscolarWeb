@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { useAuthStore } from "@/stores/authStore";
 import { getLoginAttempt } from "@/services/auditory.service";
 import {
   UserCircle,
@@ -21,6 +19,8 @@ import {
   Globe,
   Calendar,
 } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+
 
 import { toast } from "@pheralb/toast";
 import PageHeader from "@/components/Dashboard/PageHeader";
@@ -67,11 +67,11 @@ const InfoItem = ({
 
 
 export default function ProfilePage() {
-  const { user } = useAuth();
-  const { clearAuth } = useAuthStore();
   const [showForgotPasswordPopup, setShowForgotPasswordPopup] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
+  const { data: session } = useSession();
+  const user = session?.user;
 
   const { executeRecaptcha } = useGoogleReCaptcha();
 
@@ -81,7 +81,7 @@ export default function ProfilePage() {
       options: {
         promise: new Promise(() => {
           setTimeout(() => {
-            clearAuth('/');
+            signOut({ callbackUrl: '/' })
           }, 1500);
         }),
         success: "Sesión cerrada con éxito!",
@@ -169,7 +169,7 @@ export default function ProfilePage() {
 
             <div className="text-center md:text-left">
               <h1 className="text-3xl font-bold text-blue_principal mb-2 flex items-center gap-2">
-                {user?.nombreCompleto || "Invitado"}
+                {user?.name || "Invitado"}
               </h1>
               <p className="text-lg text-gray-600 flex items-center justify-center md:justify-start gap-2">
                 <Mail className="w-5 h-5 text-blue_principal" />
@@ -182,7 +182,7 @@ export default function ProfilePage() {
             <InfoItem
               icon={User}
               label="Nombre completo"
-              value={user?.nombreCompleto}
+              value={user?.name}
             />
             <InfoItem
               icon={Mail}
