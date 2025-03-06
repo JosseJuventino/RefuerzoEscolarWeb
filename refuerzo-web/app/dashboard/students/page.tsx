@@ -3,13 +3,16 @@
 import { useState } from "react";
 import PageHeader from '@/components/Dashboard/PageHeader'
 import Table from '@/components/Tables/Table';
-import { deleteAlumno, getAlumnos } from '@/services/alumnos.service';
+import { deleteAlumno, getAlumnos, updateAlumno } from '@/services/alumnos.service';
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Estudiante, Column } from '@/types/types';
 import CardStudent from '@/components/CardViews/StudentCard';
 import ListGridLayout from "@/components/Dashboard/ListGridLayout";
 import { DeleteModal } from "@/components/Popups/DeleteModal";
 import { Loading } from "@/components/Loading";
+import { ChangeAlumnoSection } from "@/components/Popups/ChangeAlumnoSection";
+import { toast } from "@pheralb/toast";
+import Image from "next/image";
 
 export default function Page() {
   const [isCardView, setIsCardView] = useState(false);
@@ -29,13 +32,19 @@ export default function Page() {
     queryFn: getAlumnos,
   });
 
-  console.log(alumnos)
   const queryClient = useQueryClient();
 
-  const deleteProgramMutation = useMutation({
+  const deleteAlumnoMutation = useMutation({
     mutationFn: deleteAlumno,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['programas'] });
+      queryClient.invalidateQueries({ queryKey: ['estudiantes'] });
+    },
+  });
+
+  const updateAlumnoMutation = useMutation({
+    mutationFn: updateAlumno,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['estudiantes'] });
     },
   });
 
@@ -47,24 +56,76 @@ export default function Page() {
     </div>
   );
 
-  const handleDelete = async () => {
-    if (!modalState.selected) return;
-    await deleteProgramMutation.mutateAsync(modalState.selected._id);
-    closeModal();
+  const handleEdit = async (updated: Partial<Estudiante>) => {
+    const payload = {
+      _id: updated._id,
+      gradoId: updated.gradoId
+    };
+
+    if (!payload.gradoId) {
+      toast.info({ text: "No se ha realizado ningun cambio" });
+      return;
+    }
+
+    try {
+      toast.loading({
+        text: "Actualizando alumno...",
+        options: {
+          promise: updateAlumnoMutation.mutateAsync(payload),
+          success: "Cambio de seccion exitoso",
+          error: "Error al actualizar el alumno",
+          autoDismiss: true,
+          onSuccess: () => {
+            closeModal();
+            queryClient.invalidateQueries({ queryKey: ['estudiantes'] });
+          },
+          onError: (error) => {
+            console.error("Error de actualización:", error);
+          }
+        }
+      });
+    } catch {
+      throw new Error("Error al actualizar el alumno");
+    }
   };
 
+  const handleDelete = async () => {
+    if (!modalState.selected) return;
+    try {
+      toast.loading({
+        text: "Eliminando alumno...",
+        options: {
+          promise: deleteAlumnoMutation.mutateAsync(modalState.selected._id),
+          success: "Alumno eliminado exitosamente",
+          error: "Error al eliminar el alumno",
+          autoDismiss: true,
+          onSuccess: () => {
+            closeModal();
+            queryClient.invalidateQueries({ queryKey: ['estudiantes'] });
+          },
+          onError: (error) => {
+            console.error("Error de eliminacion:", error);
+          }
+        }
+      });
+    } catch {
+      throw new Error("Error al eliminar el alumno");
+    }
+  };
 
   const closeModal = () => setModalState({ type: null, selected: null, });
-
 
   const columns: Column<Estudiante>[] = [
     {
       header: "Imagen",
       accessor: (row) => (
-        <img
+        <Image
           src={row.image}
           alt={`Avatar de ${row.image}`}
           className="w-10 h-10 rounded-full object-cover"
+          width={40}
+          height={40}
+          priority
         />
       )
     },
@@ -117,18 +178,30 @@ export default function Page() {
                 loading={isLoading}
                 columns={columns}
                 hasMove={true}
-                handleMove={() => { }}
+                handleMove={(row) => setModalState({ type: 'edit', selected: row })}
                 onDelete={(id) => {
-                  console.log("Eliminar id: ", id);
+                  const selected = alumnos?.find(r => r._id === id);
+                  if (selected) {
+                    setModalState({ type: 'delete', selected });
+                  }
                 }}
               />
             </div>
           )
       }
 
+      <ChangeAlumnoSection
+        title="Cambiar de grado"
+        isOpen={modalState.type === 'edit'}
+        onClose={closeModal}
+        onSubmit={handleEdit}
+        initialData={modalState.selected!}
+        key={modalState.selected?._id}
+      />
+
       <DeleteModal<Estudiante>
         isOpen={modalState.type === 'delete'}
-        title="Eliminar Recomendador"
+        title="Eliminar alumno"
         item={modalState.selected!}
         onClose={closeModal}
         onConfirm={handleDelete}

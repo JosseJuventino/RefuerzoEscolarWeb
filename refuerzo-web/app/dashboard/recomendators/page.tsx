@@ -24,6 +24,9 @@ const ContactInfo = ({ email, telefono }: { email: string; telefono: string }) =
 );
 
 export default function RecomendadoresPage() {
+
+  const DEFAULT_IMAGE = "https://refuerzo-mendoza.me/api/uploads/images/users/b706a946-4c4c-4745-b87d-eab8b4883138.webp"
+
   const [modalState, setModalState] = useState<{
     type: 'add' | 'edit' | 'delete' | null;
     selected: Recomendadores | null;
@@ -87,7 +90,7 @@ export default function RecomendadoresPage() {
   });
 
   const handleAdd = async (newRecommender: Recomendadores) => {
-    newRecommender.image = "https://refuerzo-mendoza.me/api/uploads/users/default.webp";
+    newRecommender.image = DEFAULT_IMAGE;
     await addRecomendadorMutation.mutateAsync(newRecommender);
     closeModal();
   };

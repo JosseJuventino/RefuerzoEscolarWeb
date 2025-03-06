@@ -55,7 +55,6 @@ export const AddPublicationModal = ({
 
     const [formData, setFormData] = useState<Partial<Publicacion>>(emptyForm);
 
-    console.log(formData);
     const [files, setFiles] = useState<(File | Partial<FileNew>)[]>([]);
     const queryClient = useQueryClient();
 
@@ -218,7 +217,6 @@ export const AddPublicationModal = ({
             if (initialData && initialData._id) {
                 await updatePublicationMutation.mutateAsync(submissionData);
 
-                console.log("Publicación actualizada", submissionData);
                 toast.success({
                     text: "Éxito",
                     description: "La publicación se ha actualizado correctamente",

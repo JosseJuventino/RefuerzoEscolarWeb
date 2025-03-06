@@ -2,38 +2,38 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Modal } from "./Modal";
-import { Recomendadores } from "@/types/types";
+import { Tutor } from "@/types/types";
 import { InputField } from "../Fields/InputField";
 
 interface FormModalProps {
     isOpen: boolean;
-    initialData?: Recomendadores;
+    initialData?: Tutor;
     onClose: () => void;
-    onSubmit: (data: Recomendadores) => void;
+    onSubmit: (data: Tutor) => void;
     title: string;
 }
 
-export const FormModal = ({
+export const FormModalTutor = ({
     isOpen,
     initialData,
     onClose,
     onSubmit,
     title,
 }: FormModalProps) => {
-    const emptyForm = useMemo<Partial<Recomendadores>>(() => ({
+    const emptyForm = useMemo<Partial<Tutor>>(() => ({
         nombre: "",
         email: "",
         imagen: "",
         isActive: true,
     }), []);
 
-    const [formData, setFormData] = useState<Partial<Recomendadores>>(emptyForm);
+    const [formData, setFormData] = useState<Partial<Tutor>>(emptyForm);
 
     useEffect(() => {
         setFormData(initialData || emptyForm);
     }, [initialData, emptyForm]);
 
-    const handleFieldChange = (field: keyof Recomendadores, value: string) => {
+    const handleFieldChange = (field: keyof Tutor, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
@@ -44,7 +44,7 @@ export const FormModal = ({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit(formData as Recomendadores);
+        onSubmit(formData as Tutor);
         handleCancel();
     };
 
@@ -76,7 +76,7 @@ export const FormModal = ({
                     type="text"
                     value={formData.nombre || ""}
                     onChange={(v) => handleFieldChange('nombre', v)}
-                    placeholder="Nombre del recomendador"
+                    placeholder="Nombre del tutor"
                     isRequired={true}
                 />
 
@@ -85,7 +85,7 @@ export const FormModal = ({
                     type="email"
                     value={formData.email || ""}
                     onChange={(v) => handleFieldChange('email', v)}
-                    placeholder="Email del recomendador"
+                    placeholder="Email del tutor"
                     isRequired={true}
                 />
             </form>

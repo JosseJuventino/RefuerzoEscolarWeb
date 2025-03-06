@@ -311,6 +311,7 @@ export class PostulanteService {
       nombre: nameUser,
       image: imageUser,
       email: emailUser,
+      telefonoEncargado: postulante.telefonoEncargado,
     };
 
     await this.alumnoService.create(createNewAlumno);

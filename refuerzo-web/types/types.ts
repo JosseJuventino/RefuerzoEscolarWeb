@@ -127,7 +127,8 @@ export interface Estudiante {
   cursosId: [];
   nombre: string;
   image: string;
-
+  gradoId: string;
+  
   user: {
     email: string;
     telefono: string;
@@ -311,4 +312,44 @@ export interface Publicacion {
   categoria: string;
   files: FilePublicacion[];
   seccionId: string;
+}
+
+export interface Tutor {
+  _id: string,
+  nombre: string,
+  email: string,
+  telefono: string,
+  image: string,
+  isActive: boolean
+  secciones: string[]
+}
+
+export interface TutorResponse {
+  statusCode: number,
+  message: string,
+  data: Tutor[],
+  size: number,
+  totalPages: number,
+  page: number,
+  limit: number
+}
+
+export interface Teacher {
+  _id: string,
+  nombre: string,
+  email: string,
+  telefono: string,
+  image: string,
+  isActive: boolean
+  secciones: string[]
+}
+
+export interface TeacherResponse {
+  statusCode: number,
+  message: string,
+  data: Teacher[],
+  size: number,
+  totalPages: number,
+  page: number,
+  limit: number
 }
