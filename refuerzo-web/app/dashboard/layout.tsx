@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import UpdateRequiredForm from "@/components/Auth/UpdateRequiredForm";
 import { Loading } from "@/components/Loading";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
+import { useSession } from "next-auth/react";
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -17,19 +18,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     const { user } = useAuth();
     const router = useRouter();
     const [isChecking, setIsChecking] = useState(true);
-
+    const { data: session, status } = useSession();
 
     useEffect(() => {
-        const checkAuth = async () => {
-            const isAuthenticated = await AuthService.checkAuth();
-            if (!isAuthenticated) {
-                router.push('/');
-            } else {
-                setIsChecking(false);
-            }
-        };
-        checkAuth();
-    }, [router]);
+        if (status === "unauthenticated") {
+            router.push('/');
+        } else if (status === "authenticated") {
+            setIsChecking(false);
+        }
+    }, [status, router]);
+
+    if (status === "loading" || isChecking) {
+        return <Loading />;
+    }
 
     if (isChecking) {
         return <Loading />;
@@ -43,7 +44,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return (
         <div className="flex h-screen flex-col md:flex-row md:overflow-hidden">
             <div className="w-full flex-none md:w-64">
-                <Sidenav user={user} />
+                <Sidenav />
             </div>
             <main className="flex-grow md:overflow-y-auto mt-20 md:mt-0 z-40 bg-gray-50">
                 <GoogleReCaptchaProvider

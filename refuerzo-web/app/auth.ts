@@ -1,0 +1,1 @@
+export { authOptions, auth } from "./api/auth/[...nextauth]/route"
