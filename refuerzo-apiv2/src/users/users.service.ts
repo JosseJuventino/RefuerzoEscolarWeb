@@ -836,7 +836,9 @@ export class UsersService {
     );
 
     return new PaginationResponseBuilder()
-      .setMessage(`Alumnos retrieved successfully. Total pages: ${totalPages}`)
+      .setMessage(
+        `Profesores retrieved successfully. Total pages: ${totalPages}`,
+      )
       .setData(profesores)
       .setSize(total)
       .setTotalPages(totalPages)
