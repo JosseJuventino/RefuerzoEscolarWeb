@@ -315,7 +315,6 @@ export class UsersService {
   }
 
   async findAllProfesores(): Promise<GeneralResponseDto<any>> {
-    // Obtener el rol de profesor
     const profesorRole = await this.roleCrudHelper.findByNameOrId(
       'profesor',
       false,
@@ -325,27 +324,34 @@ export class UsersService {
       throw new BadRequestException('Rol "profesor" no encontrado');
     }
 
-    // Obtener todos los profesores
     const profesores = await this.userRepository.find({
       where: { role: profesorRole._id.toString() },
       select: ['_id', 'nombre', 'email', 'telefono', 'image'],
     });
 
-    // Obtener todos los encargados de todas las secciones
     const secciones = await this.seccionRepository.find({
-      select: ['encargados'],
+      select: ['encargados', 'nombre'],
     });
-    const encargadosIds = new Set<string>(
-      secciones.flatMap((s) => s.encargados.map((id) => id.toString())),
-    );
 
-    // Mapear resultado con estado
+    const encargadosSeccionesMap = new Map<string, string[]>();
+    for (const seccion of secciones) {
+      const nombreSeccion = seccion.nombre;
+      for (const encargadoId of seccion.encargados) {
+        const idStr = encargadoId.toString();
+        if (encargadosSeccionesMap.has(idStr)) {
+          encargadosSeccionesMap.get(idStr).push(nombreSeccion);
+        } else {
+          encargadosSeccionesMap.set(idStr, [nombreSeccion]);
+        }
+      }
+    }
+
     const profesoresConEstado = profesores.map((profesor) => ({
       ...profesor,
-      isEncargado: encargadosIds.has(profesor._id.toString()),
+      isEncargado: encargadosSeccionesMap.has(profesor._id.toString()),
+      secciones: encargadosSeccionesMap.get(profesor._id.toString()) || [],
     }));
 
-    // Ordenar: primero los no encargados
     profesoresConEstado.sort(
       (a, b) => Number(a.isEncargado) - Number(b.isEncargado),
     );
@@ -357,37 +363,43 @@ export class UsersService {
   }
 
   async findAllTutores(): Promise<GeneralResponseDto<any>> {
-    // Obtener el rol de profesor
     const tutorRole = await this.roleCrudHelper.findByNameOrId(
       'tutor',
       false,
       false,
     );
     if (!tutorRole) {
-      throw new BadRequestException('Rol "profesor" no encontrado');
+      throw new BadRequestException('Rol "tutor" no encontrado');
     }
 
-    // Obtener todos los profesores
     const tutores = await this.userRepository.find({
       where: { role: tutorRole._id.toString() },
       select: ['_id', 'nombre', 'email', 'telefono', 'image'],
     });
 
-    // Obtener todos los encargados de todas las secciones
     const secciones = await this.seccionRepository.find({
-      select: ['encargados'],
+      select: ['encargados', 'nombre'],
     });
-    const encargadosIds = new Set<string>(
-      secciones.flatMap((s) => s.encargados.map((id) => id.toString())),
-    );
 
-    // Mapear resultado con estado
+    const encargadosSeccionesMap = new Map<string, string[]>();
+    for (const seccion of secciones) {
+      const nombreSeccion = seccion.nombre;
+      for (const encargadoId of seccion.encargados) {
+        const idStr = encargadoId.toString();
+        if (encargadosSeccionesMap.has(idStr)) {
+          encargadosSeccionesMap.get(idStr).push(nombreSeccion);
+        } else {
+          encargadosSeccionesMap.set(idStr, [nombreSeccion]);
+        }
+      }
+    }
+
     const tutoresConEstado = tutores.map((tutor) => ({
       ...tutor,
-      isEncargado: encargadosIds.has(tutor._id.toString()),
+      isEncargado: encargadosSeccionesMap.has(tutor._id.toString()),
+      secciones: encargadosSeccionesMap.get(tutor._id.toString()) || [],
     }));
 
-    // Ordenar: primero los no encargados
     tutoresConEstado.sort(
       (a, b) => Number(a.isEncargado) - Number(b.isEncargado),
     );
@@ -605,6 +617,229 @@ export class UsersService {
     return new PaginationResponseBuilder()
       .setMessage(`Alumnos retrieved successfully. Total pages: ${totalPages}`)
       .setData(recomendadores)
+      .setSize(total)
+      .setTotalPages(totalPages)
+      .setPage(applyPagination ? paginationQuery.page : 1)
+      .setLimit(applyPagination ? paginationQuery.limit : total) // Si no hay paginación, devolver todos los registros
+      .build();
+  }
+
+  async findAllTutoresWithPagination(
+    paginationQuery: PaginationQueryDto,
+  ): Promise<PaginationResponseDto<any>> {
+    // Obtener el rol "recomendador"
+    const role = await this.roleCrudHelper.findByNameOrId(
+      'tutor',
+      false,
+      false,
+    );
+
+    if (!role) {
+      throw new BadRequestException(`Role 'recomendador' not found`);
+    }
+
+    const filter: any = { role: role._id.toString() };
+
+    if (paginationQuery.filterBy && paginationQuery.filterValue) {
+      filter[paginationQuery.filterBy] = {
+        $regex: paginationQuery.filterValue,
+        $options: 'i',
+      };
+    }
+
+    // Obtener todas las secciones con encargados y nombres
+    const secciones = await this.seccionRepository.find({
+      select: ['encargados', 'nombre'],
+    });
+
+    // Crear mapa de ID de encargado a nombres de secciones
+    const encargadosSeccionesMap = new Map<string, string[]>();
+    for (const seccion of secciones) {
+      const nombreSeccion = seccion.nombre;
+      for (const encargadoId of seccion.encargados) {
+        const idStr = encargadoId.toString();
+        encargadosSeccionesMap.has(idStr)
+          ? encargadosSeccionesMap.get(idStr).push(nombreSeccion)
+          : encargadosSeccionesMap.set(idStr, [nombreSeccion]);
+      }
+    }
+
+    const applyPagination =
+      paginationQuery.page !== undefined && paginationQuery.limit !== undefined;
+
+    let results: User[];
+    let total: number;
+    let totalPages: number;
+
+    if (applyPagination) {
+      const queryOptions = {
+        skip: (paginationQuery.page - 1) * paginationQuery.limit,
+        take: paginationQuery.limit,
+        where: filter,
+        order:
+          paginationQuery.orderedBy && paginationQuery.sort
+            ? {
+                [paginationQuery.orderedBy]:
+                  paginationQuery.sort.toUpperCase() as 'ASC' | 'DESC',
+              }
+            : undefined,
+        withDeleted: paginationQuery.includeDeleted,
+      };
+
+      [results, total] = await this.userRepository.findAndCount(queryOptions);
+      totalPages = Math.ceil(total / paginationQuery.limit);
+
+      if (paginationQuery.page > totalPages && totalPages > 0) {
+        throw new BadRequestException(
+          `Page ${paginationQuery.page} does not exist. Total pages: ${totalPages}`,
+        );
+      }
+    } else {
+      results = await this.userRepository.find({
+        where: filter,
+        order:
+          paginationQuery.orderedBy && paginationQuery.sort
+            ? {
+                [paginationQuery.orderedBy]:
+                  paginationQuery.sort.toUpperCase() as 'ASC' | 'DESC',
+              }
+            : undefined,
+        withDeleted: paginationQuery.includeDeleted,
+      });
+
+      total = results.length;
+      totalPages = 1;
+    }
+
+    // Mapear resultados con secciones
+    const tutores = await Promise.all(
+      results.map(async (user) => ({
+        _id: user._id,
+        nombre: user.nombre,
+        email: user.email,
+        telefono: user.telefono,
+        image: user.image,
+        isActive: user.isActive,
+        secciones: encargadosSeccionesMap.get(user._id.toString()) || [],
+      })),
+    );
+
+    return new PaginationResponseBuilder()
+      .setMessage(
+        `Tutores obtenidos exitosamente. Total páginas: ${totalPages}`,
+      )
+      .setData(tutores)
+      .setSize(total)
+      .setTotalPages(totalPages)
+      .setPage(applyPagination ? paginationQuery.page : 1)
+      .setLimit(applyPagination ? paginationQuery.limit : total)
+      .build();
+  }
+
+  async findAllProfesoresWithPagination(
+    paginationQuery: PaginationQueryDto,
+  ): Promise<PaginationResponseDto<any>> {
+    // Obtener el rol "recomendador"
+    const role = await this.roleCrudHelper.findByNameOrId(
+      'profesor',
+      false,
+      false,
+    );
+
+    if (!role) {
+      throw new BadRequestException(`Role 'recomendador' not found`);
+    }
+
+    const filter: any = { role: role._id.toString() };
+
+    if (paginationQuery.filterBy && paginationQuery.filterValue) {
+      filter[paginationQuery.filterBy] = {
+        $regex: paginationQuery.filterValue,
+        $options: 'i',
+      };
+    }
+
+    // Obtener todas las secciones con encargados y nombres
+    const secciones = await this.seccionRepository.find({
+      select: ['encargados', 'nombre'],
+    });
+
+    // Crear mapa de ID de encargado a nombres de secciones
+    const encargadosSeccionesMap = new Map<string, string[]>();
+    for (const seccion of secciones) {
+      const nombreSeccion = seccion.nombre;
+      for (const encargadoId of seccion.encargados) {
+        const idStr = encargadoId.toString();
+        encargadosSeccionesMap.has(idStr)
+          ? encargadosSeccionesMap.get(idStr).push(nombreSeccion)
+          : encargadosSeccionesMap.set(idStr, [nombreSeccion]);
+      }
+    }
+
+    const applyPagination =
+      paginationQuery.page !== undefined && paginationQuery.limit !== undefined;
+
+    let results: User[];
+    let total: number;
+    let totalPages: number;
+
+    if (applyPagination) {
+      const queryOptions = {
+        skip: (paginationQuery.page - 1) * paginationQuery.limit,
+        take: paginationQuery.limit,
+        where: filter,
+        order:
+          paginationQuery.orderedBy && paginationQuery.sort
+            ? {
+                [paginationQuery.orderedBy]:
+                  paginationQuery.sort.toUpperCase() as 'ASC' | 'DESC',
+              }
+            : undefined,
+        withDeleted: paginationQuery.includeDeleted,
+      };
+
+      [results, total] = await this.userRepository.findAndCount(queryOptions);
+      totalPages = Math.ceil(total / paginationQuery.limit);
+
+      if (paginationQuery.page > totalPages && totalPages > 0) {
+        throw new BadRequestException(
+          `Page ${paginationQuery.page} does not exist. Total pages: ${totalPages}`,
+        );
+      }
+    } else {
+      results = await this.userRepository.find({
+        where: filter,
+        order:
+          paginationQuery.orderedBy && paginationQuery.sort
+            ? {
+                [paginationQuery.orderedBy]:
+                  paginationQuery.sort.toUpperCase() as 'ASC' | 'DESC',
+              }
+            : undefined,
+        withDeleted: paginationQuery.includeDeleted,
+      });
+
+      total = results.length;
+      totalPages = 1;
+    }
+
+    const profesores = await Promise.all(
+      results.map(async (user) => ({
+        _id: user._id,
+        nombre: user.nombre,
+        email: user.email,
+        telefono: user.telefono,
+        image: user.image,
+        isActive: user.isActive,
+        secciones: encargadosSeccionesMap.get(user._id.toString()) || [],
+      })),
+    );
+
+    return new PaginationResponseBuilder()
+      .setMessage(
+        `Profesores retrieved successfully. Total pages: ${totalPages}`,
+      )
+      .setData(profesores)
       .setSize(total)
       .setTotalPages(totalPages)
       .setPage(applyPagination ? paginationQuery.page : 1)
@@ -834,6 +1069,132 @@ export class UsersService {
     return new GeneralResponseBuilder<void>()
       .setStatusCode(200)
       .setMessage('Contraseña actualizada exitosamente')
+      .build();
+  }
+
+  async createTutor(
+    createNewRecomendadorDto: CreateNewRecomendadorDto,
+  ): Promise<GeneralResponseDto<User>> {
+    const role = await this.roleCrudHelper.findByNameOrId(
+      'tutor',
+      false,
+      false,
+    );
+
+    if (!role) {
+      throw new BadRequestException(`Role tutor not found`);
+    }
+    const findUser = await this.crudHelper.findByEmailOrId(
+      createNewRecomendadorDto.email,
+      false,
+      false,
+    );
+    if (findUser) {
+      throw new ConflictException(
+        `User with email ${createNewRecomendadorDto.email} already exists`,
+      );
+    }
+
+    const temporaryPassword = crypto.randomBytes(8).toString('hex'); // Generar una contraseña temporal
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(temporaryPassword, salt);
+
+    const newUser = this.userRepository.create({
+      nombre: createNewRecomendadorDto.nombre,
+      email: createNewRecomendadorDto.email,
+      telefono: createNewRecomendadorDto.telefono,
+      image: createNewRecomendadorDto.image,
+      isActive: false,
+      role: role._id.toString(),
+      password: hashedPassword,
+    });
+
+    await this.crudHelper.create(newUser);
+
+    const sendEmailDto: SendEmailDto = {
+      to: [createNewRecomendadorDto.email],
+      replyTo: ['soporte@refuerzo-mendoza.me'],
+      subject: 'Cuenta de Tutor Creada',
+      from: 'soporte@refuerzo-mendoza.me',
+      text: `Hola ${createNewRecomendadorDto.nombre},\n\nTu contraseña temporal es: ${temporaryPassword}\nPor favor inicia sesión y cambia tu contraseña.`,
+      html: recomendadorAccountCreatedTemplate(
+        createNewRecomendadorDto.nombre,
+        temporaryPassword,
+      ),
+    };
+
+    try {
+      await this.emailService.sendEmail(sendEmailDto);
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
+
+    return new GeneralResponseBuilder<User>()
+      .setStatusCode(201)
+      .setMessage('Tutor created successfully')
+      .build();
+  }
+
+  async createProfesor(
+    createNewRecomendadorDto: CreateNewRecomendadorDto,
+  ): Promise<GeneralResponseDto<User>> {
+    const role = await this.roleCrudHelper.findByNameOrId(
+      'profesor',
+      false,
+      false,
+    );
+
+    if (!role) {
+      throw new BadRequestException(`Role profesor not found`);
+    }
+    const findUser = await this.crudHelper.findByEmailOrId(
+      createNewRecomendadorDto.email,
+      false,
+      false,
+    );
+    if (findUser) {
+      throw new ConflictException(
+        `User with email ${createNewRecomendadorDto.email} already exists`,
+      );
+    }
+
+    const temporaryPassword = crypto.randomBytes(8).toString('hex'); // Generar una contraseña temporal
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(temporaryPassword, salt);
+
+    const newUser = this.userRepository.create({
+      nombre: createNewRecomendadorDto.nombre,
+      email: createNewRecomendadorDto.email,
+      telefono: createNewRecomendadorDto.telefono,
+      image: createNewRecomendadorDto.image,
+      isActive: false,
+      role: role._id.toString(),
+      password: hashedPassword,
+    });
+
+    await this.crudHelper.create(newUser);
+
+    const sendEmailDto: SendEmailDto = {
+      to: [createNewRecomendadorDto.email],
+      replyTo: ['soporte@refuerzo-mendoza.me'],
+      subject: 'Cuenta de Profesor Creada',
+      from: 'soporte@refuerzo-mendoza.me',
+      text: `Hola ${createNewRecomendadorDto.nombre},\n\nTu contraseña temporal es: ${temporaryPassword}\nPor favor inicia sesión y cambia tu contraseña.`,
+      html: recomendadorAccountCreatedTemplate(
+        createNewRecomendadorDto.nombre,
+        temporaryPassword,
+      ),
+    };
+
+    try {
+      await this.emailService.sendEmail(sendEmailDto);
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
+
+    return new GeneralResponseBuilder<User>()
+      .setStatusCode(201)
+      .setMessage('Profesor created successfully')
       .build();
   }
 }

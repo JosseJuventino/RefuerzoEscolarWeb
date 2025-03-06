@@ -14,9 +14,17 @@ import { RecaptchaService } from './recaptcha.service';
 import { RecaptchaModule } from './recaptcha.module';
 import { SeccionModule } from 'src/seccion/seccion.module';
 import { Seccion } from 'src/seccion/entities/seccion.entity';
+import { TutorsController } from './tutor.controller';
+import { ProfesorController } from './profesor.controller';
+import { ProfileController } from './profile.controller';
 
 @Module({
-  controllers: [UsersController],
+  controllers: [
+    UsersController,
+    TutorsController,
+    ProfesorController,
+    ProfileController,
+  ],
   providers: [UsersService],
   imports: [
     CommonModule,

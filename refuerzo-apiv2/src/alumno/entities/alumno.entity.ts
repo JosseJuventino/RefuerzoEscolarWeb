@@ -27,4 +27,7 @@ export class Alumno {
 
   @Column()
   gradoId: string;
+
+  @Column()
+  telefonoEncargado: string;
 }

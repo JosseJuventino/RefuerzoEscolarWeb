@@ -118,34 +118,12 @@ export class UsersController {
   }
 
   @Scopes('view')
-  @Get('tutores')
-  @ApiOperation({
-    summary: 'Get all tutores',
-    description: 'Get all tutores',
-  })
-  @ApiBearerAuth()
-  findAllTutores() {
-    return this.usersService.findAllTutores();
-  }
-
-  @Scopes('view')
-  @Get('profesores')
-  @ApiOperation({
-    summary: 'Get all profesores',
-    description: 'Get all profesores',
-  })
-  @ApiBearerAuth()
-  findAllProfesores() {
-    return this.usersService.findAllProfesores();
-  }
-
-  @Scopes('view')
   @Get()
   @ApiOperation({
     summary: 'Get all users',
     description: 'Get all users',
   })
-  @Public()
+  @ApiBearerAuth()
   findAll(@Query() paginationQuery: PaginationQueryDto) {
     return this.usersService.findAll(paginationQuery);
   }
@@ -170,29 +148,6 @@ export class UsersController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
-  }
-
-  @Scopes('view', 'edit')
-  @Patch('me/profile')
-  @ApiOperation({
-    summary: 'Actualizar perfil del usuario actual',
-    description:
-      'Actualiza imagen, teléfono y/o contraseña del usuario autenticado',
-  })
-  @ApiBearerAuth()
-  async updateProfile(
-    @Request() req,
-    @Body() updateProfileDto: UpdateProfileDto,
-  ) {
-    if (!req.user?.id) {
-      throw new UnauthorizedException('Usuario no autenticado');
-    }
-    return this.usersService.updateProfile(
-      req.user.id,
-      req.user.role,
-      req.user.idDependingRole,
-      updateProfileDto,
-    );
   }
 
   @Scopes('view', 'edit')

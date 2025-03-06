@@ -23,7 +23,7 @@ export class CreateNewRecomendadorDto {
     example: '1234567890',
   })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   readonly telefono: string;
 
   @ApiProperty({

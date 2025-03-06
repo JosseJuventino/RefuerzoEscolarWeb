@@ -34,4 +34,9 @@ export class CreateAlumnoDto {
   @IsString()
   @IsOptional()
   image: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  telefonoEncargado: string;
 }

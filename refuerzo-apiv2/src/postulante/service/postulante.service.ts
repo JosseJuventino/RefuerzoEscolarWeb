@@ -81,6 +81,7 @@ export class PostulanteService {
       email: createPostulanteDto.email, // Asumiendo que el contacto tiene un campo email
       image: createPostulanteDto.imagen,
       telefono: createPostulanteDto.telefono, // Asumiendo que el contacto tiene un campo telefono
+      telefonoEncargado: createPostulanteDto.telefonoEncargado, // Asumiendo que el contacto tiene un campo telefonoEncargado
       idDependingRole: savedPostulante._id.toString(), // Usar el _id generado
       grado: createPostulanteDto.grado.toString(), // Asumiendo que el contacto tiene un campo grado
     };
@@ -180,6 +181,7 @@ export class PostulanteService {
           imagen: postulante.imagen,
           direccion: postulante.direccion,
           telefono: postulante.telefono,
+          telefonoEncargado: postulante.telefonoEncargado,
           email: postulante.email,
           grado: grado.nombre,
           isUser: postulante.isUser,
@@ -241,6 +243,7 @@ export class PostulanteService {
       imagen: findPostulante.imagen,
       direccion: findPostulante.direccion,
       telefono: findPostulante.telefono,
+      telefonoEncargado: findPostulante.telefonoEncargado,
       email: findPostulante.email,
       grado: grado
         ? {
@@ -308,6 +311,7 @@ export class PostulanteService {
       nombre: nameUser,
       image: imageUser,
       email: emailUser,
+      telefonoEncargado: postulante.telefonoEncargado,
     };
 
     await this.alumnoService.create(createNewAlumno);
