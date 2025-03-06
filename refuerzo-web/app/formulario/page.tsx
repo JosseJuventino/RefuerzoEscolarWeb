@@ -125,9 +125,7 @@ export default function RegistrationForm() {
                 isUser: false
             };
 
-            const response = await addPostulant.mutateAsync(postulanteData);
-
-            console.log(response);
+            await addPostulant.mutateAsync(postulanteData);
             router.push("/dashboard/postulantes/sucess");
         } catch {
             toast.error({text: "Error al enviar la aplicación"});

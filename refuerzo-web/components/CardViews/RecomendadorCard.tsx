@@ -1,5 +1,6 @@
 import { Recomendadores } from "@/types/types";
 import { Mail, Phone, Trash2, Edit2 } from "lucide-react";
+import Image from "next/image";
 
 interface RecomendadorCardProps {
     recomendador: Recomendadores;
@@ -13,7 +14,7 @@ export default function CardRecomendador({ recomendador, setModalState }: Recome
     return (
         <div className="group relative p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all border border-gray-100">
             <div className="flex items-start gap-4">
-                <img
+                <Image
                     src={recomendador.image}
                     alt={`Avatar de ${recomendador.nombre}`}
                     className="w-14 h-14 rounded-full object-cover border-2 border-blue-100"

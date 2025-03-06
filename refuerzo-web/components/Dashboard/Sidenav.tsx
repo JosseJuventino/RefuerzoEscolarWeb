@@ -19,7 +19,8 @@ import {
   UsersRoundIcon,
   LogOut,
   UserCircle,
-  Settings
+  Settings,
+  Users2Icon
 } from "lucide-react";
 
 interface SidenavProps {
@@ -36,7 +37,6 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
   const [isMounted, setIsMounted] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Efecto para manejar el montaje del componente y clicks externos
   useEffect(() => {
     setIsMounted(true);
 
@@ -53,6 +53,13 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
   // Datos estáticos
   const userCourses = [
     { name: "Matemática", path: '/dashboard/my-courses/matematica' },
+  ];
+
+  const users = [
+    { name: "Alumnos", path: '/dashboard/students', icon: UserIcon },
+    { name: "Recomendadores", path: '/dashboard/recomendators', icon: UsersRoundIcon },
+    { name: "Tutores", path: '/dashboard/tutors', icon: Users2Icon },
+    { name: "Profesores", path: '/dashboard/teachers', icon: Users2Icon }
   ];
 
   // Handlers
@@ -138,7 +145,7 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
       </header>
 
       <aside className="hidden md:flex flex-col justify-between h-screen w-64 p-3 bg-white shadow-xl rounded-tr-2xl rounded-br-2xl">
-        <div className="space-y-4">
+        <div className="flex flex-col flex-1 overflow-hidden">
           <div className="flex justify-center">
             <Image
               src="/LogoColorido.svg"
@@ -149,53 +156,53 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
               priority
             />
           </div>
-          <nav className="space-y-2">
-            <NavItem
-              link="/dashboard"
-              icon={LayoutDashboardIcon}
-              label="Inicio"
-              isActive={pathName === "/dashboard"}
-            />
-            <NavItem
-              link="/dashboard/students"
-              icon={UserIcon}
-              label="Alumnos"
-              isActive={pathName === "/dashboard/students"}
-            />
-            <NavItem
-              icon={BookOpen}
-              label="Mis cursos"
-              isActive={pathName.startsWith("/dashboard/my-courses")}
-              subItems={userCourses}
-            />
-            <NavItem
-              link="/dashboard/courses"
-              icon={LayersIcon}
-              label="Cursos"
-              isActive={pathName === "/dashboard/courses"}
-            />
-            <NavItem
-              link="/dashboard/applicants"
-              icon={FileTextIcon}
-              label="Postulaciones"
-              isActive={pathName === "/dashboard/applicants"}
-            />
-            <NavItem
-              link="/dashboard/recomendators"
-              icon={UsersRoundIcon}
-              label="Recomendadores"
-              isActive={pathName === "/dashboard/recomendators"}
-            />
-            <NavItem
-              link="/dashboard/advanced-options"
-              icon={Settings}
-              label="Opciones avanzadas"
-              isActive={pathName === "/dashboard/advanced-options"}
-            />
-          </nav>
+          <div className="flex-1 overflow-y-auto overscroll-contain py-2">
+            <nav className="space-y-2 overflow-y-auto mr-3">
+              <NavItem
+                link="/dashboard"
+                icon={LayoutDashboardIcon}
+                label="Inicio"
+                isActive={pathName === "/dashboard"}
+              />
+
+              <NavItem
+                icon={UserIcon}
+                label="Usuarios"
+                isActive={pathName.startsWith("/dashboard/students") || pathName.startsWith("/dashboard/recomendators")}
+                subItems={users}
+                currentPath={pathName}
+              />
+              <NavItem
+                icon={BookOpen}
+                label="Mis cursos"
+                isActive={pathName.startsWith("/dashboard/my-courses")}
+                subItems={userCourses}
+                currentPath={pathName}
+              />
+              <NavItem
+                link="/dashboard/courses"
+                icon={LayersIcon}
+                label="Cursos"
+                isActive={pathName === "/dashboard/courses"}
+              />
+              <NavItem
+                link="/dashboard/applicants"
+                icon={FileTextIcon}
+                label="Postulaciones"
+                isActive={pathName === "/dashboard/applicants"}
+              />
+
+              <NavItem
+                link="/dashboard/advanced-options"
+                icon={Settings}
+                label="Opciones avanzadas"
+                isActive={pathName === "/dashboard/advanced-options"}
+              />
+            </nav>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2" suppressHydrationWarning>
+        <div className="flex items-center gap-2 mt-4 pt-4 border-t" suppressHydrationWarning>
           <div className="flex items-center gap-2 flex-1">
             {user?.image ? (
               <img
@@ -227,7 +234,7 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
       {isMenuOpen && (
         <div className="md:hidden fixed inset-0 z-[500] flex">
           <div className="flex flex-col justify-between h-full w-64 p-3 bg-white shadow-xl rounded-tr-2xl rounded-br-2xl">
-            <div className="space-y-4">
+            <div className="flex-1 overflow-hidden">
               <div className="flex justify-center">
                 <Image
                   src="/LogoColorido.svg"
@@ -238,54 +245,54 @@ const Sidenav: React.FC<SidenavProps> = ({ user }) => {
                   priority
                 />
               </div>
-              <nav className="space-y-2">
-                <NavItem
-                  link="/dashboard"
-                  icon={LayoutDashboardIcon}
-                  label="Inicio"
-                  isActive={pathName === "/dashboard"}
-                />
-                <NavItem
-                  link="/dashboard/students"
-                  icon={UserIcon}
-                  label="Alumnos"
-                  isActive={pathName === "/dashboard/students"}
-                />
-                <NavItem
-                  icon={BookOpen}
-                  label="Mis cursos"
-                  isActive={pathName.startsWith("/dashboard/my-courses")}
-                  subItems={userCourses}
-                />
-                <NavItem
-                  link="/dashboard/courses"
-                  icon={LayersIcon}
-                  label="Cursos"
-                  isActive={pathName === "/dashboard/courses"}
-                />
-                <NavItem
-                  link="/dashboard/applicants"
-                  icon={FileTextIcon}
-                  label="Postulaciones"
-                  isActive={pathName === "/dashboard/applicants"}
-                />
-                <NavItem
-                  link="/dashboard/recomendators"
-                  icon={UsersRoundIcon}
-                  label="Recomendadores"
-                  isActive={pathName === "/dashboard/recomendators"}
-                />
-                <NavItem
-                  link="/dashboard/advanced-options"
-                  icon={Settings}
-                  label="Opciones avanzadas"
-                  isActive={pathName === "/dashboard/advanced-options"}
-                />
-              </nav>
+              <div className="flex-1 overflow-y-auto overscroll-contain py-2">
+                <nav className="space-y-2 overflow-y-auto">
+                  <NavItem
+                    link="/dashboard"
+                    icon={LayoutDashboardIcon}
+                    label="Inicio"
+                    isActive={pathName === "/dashboard"}
+                  />
+                  <NavItem
+                    icon={UserIcon}
+                    label="Usuarios"
+                    isActive={pathName.startsWith("/dashboard/students") || pathName.startsWith("/dashboard/recomendators")}
+                    subItems={users}
+                    currentPath={pathName}
+                  />
+                  <NavItem
+                    icon={BookOpen}
+                    label="Mis cursos"
+                    isActive={pathName.startsWith("/dashboard/my-courses")}
+                    subItems={userCourses}
+                    currentPath={pathName}
+                  />
+
+                  <NavItem
+                    link="/dashboard/courses"
+                    icon={LayersIcon}
+                    label="Cursos"
+                    isActive={pathName === "/dashboard/courses"}
+                  />
+                  <NavItem
+                    link="/dashboard/applicants"
+                    icon={FileTextIcon}
+                    label="Postulaciones"
+                    isActive={pathName === "/dashboard/applicants"}
+                  />
+
+                  <NavItem
+                    link="/dashboard/advanced-options"
+                    icon={Settings}
+                    label="Opciones avanzadas"
+                    isActive={pathName === "/dashboard/advanced-options"}
+                  />
+                </nav>
+              </div>
             </div>
 
             {/* Mobile User Section */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mt-4 pt-4 border-t">
               <div className="flex items-center gap-2 flex-1">
                 {user?.image ? (
                   <img

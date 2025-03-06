@@ -17,11 +17,11 @@ const CourseCard = ({ course }: { course: Course }) => (
     <Link
         href={`/dashboard/my-courses/${course.slug}`}
         className="relative cursor-pointer rounded-xl bg-center shadow-lg overflow-hidden hover:shadow-xl transition-shadow h-48 group"
-        style={{ 
+        style={{
             backgroundImage: `url(${course.backgroundImage})`,
-            backgroundSize: '120%', 
+            backgroundSize: '120%',
             backgroundPosition: 'center',
-            transition: 'background-size 0.3s ease' 
+            transition: 'background-size 0.3s ease'
         }}
     >
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-4 flex flex-col justify-end">
@@ -29,7 +29,7 @@ const CourseCard = ({ course }: { course: Course }) => (
                 <h3 className="text-xl font-bold text-white mb-2 drop-shadow-md">
                     {course.nombre}
                 </h3>
-                
+
                 <div className="flex flex-wrap gap-1 text-white/90 text-sm">
                     {course.encargados.map((professor) => (
                         <span
@@ -108,13 +108,13 @@ export default function CoursesPage() {
 
 
 
-    
+
     if (isLoading) return <Loading />
-    
+
     if (isError) return <ServerErrorPage />
 
     return (
-        <div className='p-10'> 
+        <div className='p-10'>
             <PageHeader
                 title="Cursos"
             />
@@ -134,7 +134,7 @@ export default function CoursesPage() {
                         data={cursos ?? []}
                         columns={columns}
                         loading={false}
-                        onEdit={(row) => console.log("Editar:", row)}
+                        hasEdit={false}
                         onDelete={(id) => console.log("Eliminar:", id)}
                     />
                 </div>
