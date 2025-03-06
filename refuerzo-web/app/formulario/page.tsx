@@ -28,6 +28,7 @@ interface FormValues {
     telefono: string;
     grado: string;
     programa: string;
+    telefonoEncargado: string;
 }
 
 
@@ -59,6 +60,7 @@ export default function RegistrationForm() {
             telefono: "",
             grado: "",
             programa: "",
+            telefonoEncargado: ""
         },
     });
 
@@ -77,7 +79,6 @@ export default function RegistrationForm() {
     });
 
     const { cameraActive, startCamera, stopCamera, videoRef, canvasRef, handleTakePhoto, handleFileChange, handleRetakePhoto } = useCamera(isMobile, setPreview, formData);
-
 
 
     const addPostulant = useMutation({
@@ -147,7 +148,7 @@ export default function RegistrationForm() {
         }
     };
 
-  
+
 
     if (isChecking) {
         return <Loading />;
@@ -235,6 +236,23 @@ export default function RegistrationForm() {
                             register={register}
                             validation={{
                                 required: "El número de contacto es requerido",
+                                pattern: {
+                                    value: /^[0-9]{8}$/,
+                                    message: "Número inválido (8 dígitos requeridos)",
+                                },
+                            }}
+                            trigger={trigger}
+                            error={errors.telefono?.message}
+                        />
+
+                        <InputField
+                            label="Número de encargado"
+                            id="telefonoEncargado"
+                            type="tel"
+                            placeholder="Ingrese el número de un encargado"
+                            register={register}
+                            validation={{
+                                required: "El número de contacto de un encargado es requerido",
                                 pattern: {
                                     value: /^[0-9]{8}$/,
                                     message: "Número inválido (8 dígitos requeridos)",
