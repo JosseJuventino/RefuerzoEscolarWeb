@@ -120,8 +120,6 @@ export default function RegistrationForm() {
         return <Loading />;
     }
 
-
-
     const onSubmit: SubmitHandler<FormValues> = async (data) => {
         try {
 

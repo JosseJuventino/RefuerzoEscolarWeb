@@ -52,7 +52,7 @@ const LoginForm: React.FC = () => {
         throw new Error(result.error);
       }
 
-      // Redirigir manualmente después de éxito
+   
       router.refresh();
       router.push("/dashboard");
 
