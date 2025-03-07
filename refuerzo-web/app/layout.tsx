@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
 import { NextUIProvider } from '@nextui-org/react';
 import './globals.css';
+import { ClientInitializer } from "@/components/ClientInitializer"
 import ClientProviders from '@/components/ClientProvider';
 import { Toaster } from "@pheralb/toast";
 import type { Viewport } from 'next'
+import { SessionProvider } from "next-auth/react";
+import { setupAxiosInterceptor } from "@/lib/axios-interceptor";
 
 
 export const viewport: Viewport = {
@@ -24,15 +27,21 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  setupAxiosInterceptor();
+
+
   return (
     <html lang="en">
       <body>
-        <NextUIProvider>
-          <ClientProviders>
-            {children}
-            <Toaster theme="light" />
-          </ClientProviders>
-        </NextUIProvider>
+        <SessionProvider>
+          <NextUIProvider>
+            <ClientProviders>
+              <ClientInitializer />
+              {children}
+              <Toaster theme="light" />
+            </ClientProviders>
+          </NextUIProvider>
+        </SessionProvider>
       </body>
     </html>
   );

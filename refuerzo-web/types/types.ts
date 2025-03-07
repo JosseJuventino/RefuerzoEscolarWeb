@@ -8,6 +8,7 @@ export interface PartialPostulant {
   telefono: string;
   email: string;
   grado: string;
+  telefonoEncargado: string;
   programa: string;
   recomendador?: {
     nombreCompleto: string;
@@ -40,6 +41,7 @@ export interface CompletePostulant {
   direccion: string;
   telefono: string;
   email: string;
+  telefonoEncargado: string;
   grado: string;
   programa: string;
   recomendador: {
@@ -185,6 +187,7 @@ export interface UserInfo {
   email: string;
   image: string;
   isActive: boolean;
+  role: string;
 }
 
 export interface Image {

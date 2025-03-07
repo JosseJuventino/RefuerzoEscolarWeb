@@ -4,6 +4,7 @@ import {
   Injectable,
   Inject,
   forwardRef,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateAsistenciaDto } from '../dto/create-asistencia.dto';
 import { ObjectId } from 'mongodb';
@@ -22,6 +23,10 @@ import { Alumno } from 'src/alumno/entities/alumno.entity';
 import { Seccion } from 'src/seccion/entities/seccion.entity';
 import { AsistenciaAddAlumnoDto } from '../dto/add-alumno.dto';
 import { AsistenciaAddEncargadoDto } from '../dto/add-encargado.dto';
+import {
+  UpdateAlumnoRegistroDto,
+  UpdateEncargadoRegistroDto,
+} from '../dto/update-register.dto';
 
 @Injectable()
 export class AsistenciaService {
@@ -465,6 +470,7 @@ export class AsistenciaService {
     }
 
     const newAlumno = {
+      id: new ObjectId().toHexString(), // Generar ID único
       ...addAlumnoDto,
       fecha: fecha,
     };
@@ -500,7 +506,7 @@ export class AsistenciaService {
     const horaInicio = this.validateDateString(
       addEncargadoDto.hora_inicio,
       'Hora de inicio',
-      'encargado,',
+      'encargado',
     );
     const horaFin = this.validateDateString(
       addEncargadoDto.hora_fin,
@@ -528,6 +534,7 @@ export class AsistenciaService {
     }
 
     const newEncargado = {
+      id: new ObjectId().toHexString(), // Generar ID único
       ...addEncargadoDto,
       fecha: fecha,
       hora_inicio: horaInicio,
@@ -539,6 +546,185 @@ export class AsistenciaService {
 
     return new GeneralResponseBuilder<Asistencia>()
       .setMessage('Encargado agregado exitosamente')
+      .setData(asistencia)
+      .build();
+  }
+
+  async findAlumnoById(id: string): Promise<GeneralResponseDto<any>> {
+    const asistencias = await this.AsistenciaRepository.find();
+
+    let alumnoEncontrado: any = null;
+
+    for (const asistencia of asistencias) {
+      const alumno = asistencia.alumnos.find((a) => a.id === id);
+      if (alumno) {
+        alumnoEncontrado = alumno;
+        break;
+      }
+    }
+
+    if (!alumnoEncontrado) {
+      throw new NotFoundException(
+        `Registro de alumno con ID ${id} no encontrado`,
+      );
+    }
+
+    const alumnoData = await this.alumnoRepository.findOneBy({
+      _id: new ObjectId(alumnoEncontrado.alumnoId),
+    });
+
+    return new GeneralResponseBuilder<any>()
+      .setData({
+        ...alumnoEncontrado,
+        nombre: alumnoData?.nombre,
+        imagen: alumnoData?.image,
+      })
+      .setMessage('Registro de alumno encontrado')
+      .build();
+  }
+
+  async findEncargadoById(id: string): Promise<GeneralResponseDto<any>> {
+    const asistencias = await this.AsistenciaRepository.find();
+
+    let encargadoEncontrado: any = null;
+
+    for (const asistencia of asistencias) {
+      const encargado = asistencia.encargados.find((e) => e.id === id);
+      if (encargado) {
+        encargadoEncontrado = encargado;
+        break;
+      }
+    }
+
+    if (!encargadoEncontrado) {
+      throw new NotFoundException(
+        `Registro de encargado con ID ${id} no encontrado`,
+      );
+    }
+
+    const userData = await this.userRepository.findOneBy({
+      _id: new ObjectId(encargadoEncontrado.userId),
+    });
+
+    return new GeneralResponseBuilder<any>()
+      .setData({
+        ...encargadoEncontrado,
+        nombre: userData?.nombre,
+        imagen: userData?.image,
+      })
+      .setMessage('Registro de encargado encontrado')
+      .build();
+  }
+
+  async updateAlumnoRegister(
+    id: string,
+    updateDto: UpdateAlumnoRegistroDto,
+  ): Promise<GeneralResponseDto<any>> {
+    const asistencias = await this.AsistenciaRepository.find();
+
+    let registroIndex = -1;
+    let asistenciaPadre: Asistencia | null = null;
+
+    // Buscar el registro en todas las asistencias
+    for (const asistencia of asistencias) {
+      registroIndex = asistencia.alumnos.findIndex((a) => a.id === id);
+      if (registroIndex !== -1) {
+        asistenciaPadre = asistencia;
+        break;
+      }
+    }
+
+    if (!asistenciaPadre || registroIndex === -1) {
+      throw new NotFoundException(
+        `Registro de alumno con ID ${id} no encontrado`,
+      );
+    }
+
+    // Validar y actualizar campos
+    const updatedRegistro = {
+      ...asistenciaPadre.alumnos[registroIndex],
+      ...updateDto,
+      fecha: updateDto.fecha
+        ? new Date(updateDto.fecha)
+        : asistenciaPadre.alumnos[registroIndex].fecha,
+    };
+
+    // Validación de fecha
+    if (isNaN(updatedRegistro.fecha.getTime())) {
+      throw new BadRequestException('Formato de fecha inválido');
+    }
+
+    // Actualizar el registro
+    asistenciaPadre.alumnos[registroIndex] = updatedRegistro;
+    await this.crudHelper.update(asistenciaPadre, asistenciaPadre);
+
+    // Obtener datos actualizados
+    const alumnoData = await this.alumnoRepository.findOneBy({
+      _id: new ObjectId(updatedRegistro.alumnoId),
+    });
+
+    return new GeneralResponseBuilder<any>()
+      .setMessage('Registro de alumno actualizado exitosamente')
+      .build();
+  }
+
+  async updateEncargadoRegister(
+    id: string,
+    updateDto: UpdateEncargadoRegistroDto,
+  ): Promise<GeneralResponseDto<any>> {
+    const asistencias = await this.AsistenciaRepository.find();
+
+    let registroIndex = -1;
+    let asistenciaPadre: Asistencia | null = null;
+
+    // Buscar el registro en todas las asistencias
+    for (const asistencia of asistencias) {
+      registroIndex = asistencia.encargados.findIndex((e) => e.id === id);
+      if (registroIndex !== -1) {
+        asistenciaPadre = asistencia;
+        break;
+      }
+    }
+
+    if (!asistenciaPadre || registroIndex === -1) {
+      throw new NotFoundException(
+        `Registro de encargado con ID ${id} no encontrado`,
+      );
+    }
+
+    // Validar y actualizar campos
+    const updatedRegistro = {
+      ...asistenciaPadre.encargados[registroIndex],
+      ...updateDto,
+      fecha: updateDto.fecha
+        ? new Date(updateDto.fecha)
+        : asistenciaPadre.encargados[registroIndex].fecha,
+      hora_inicio: updateDto.hora_inicio
+        ? new Date(updateDto.hora_inicio)
+        : asistenciaPadre.encargados[registroIndex].hora_inicio,
+      hora_fin: updateDto.hora_fin
+        ? new Date(updateDto.hora_fin)
+        : asistenciaPadre.encargados[registroIndex].hora_fin,
+    };
+
+    // Validaciones
+    if (updatedRegistro.hora_inicio >= updatedRegistro.hora_fin) {
+      throw new BadRequestException(
+        'La hora de inicio debe ser anterior a la hora de fin',
+      );
+    }
+
+    // Actualizar el registro
+    asistenciaPadre.encargados[registroIndex] = updatedRegistro;
+    await this.crudHelper.update(asistenciaPadre, asistenciaPadre);
+
+    // Obtener datos actualizados
+    const userData = await this.userRepository.findOneBy({
+      _id: new ObjectId(updatedRegistro.userId),
+    });
+
+    return new GeneralResponseBuilder<any>()
+      .setMessage('Registro de encargado actualizado exitosamente')
       .build();
   }
 

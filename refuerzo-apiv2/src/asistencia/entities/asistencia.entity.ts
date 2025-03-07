@@ -11,6 +11,9 @@ import {
 
 class Asistencia_Alumnos {
   @Column()
+  id: string; // ID único generado automáticamente
+
+  @Column()
   alumnoId: string;
 
   @Column()
@@ -21,6 +24,9 @@ class Asistencia_Alumnos {
 }
 
 class Asistencia_Encargados {
+  @Column()
+  id: string; // ID único generado automáticamente
+
   @Column()
   userId: string;
 

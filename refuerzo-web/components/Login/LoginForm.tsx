@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { ShowPasswordIcon, HidePasswordIcon } from "@/utils/Icons";
-import { AuthService } from "@/services/auth.service";
-import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from 'next/navigation';
 import Image from "next/image";
 import { requestPasswordReset } from "@/services/user.service";
@@ -13,6 +11,7 @@ import ForgotPasswordModal from "../Popups/ForgotPasswordModal";
 import {
   useGoogleReCaptcha
 } from 'react-google-recaptcha-v3';
+import { signIn, useSession } from "next-auth/react";
 
 
 const LoginForm: React.FC = () => {
@@ -27,18 +26,14 @@ const LoginForm: React.FC = () => {
 
   const router = useRouter();
   const { executeRecaptcha } = useGoogleReCaptcha();
+  const { status } = useSession();
+
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const isAuthenticated = await AuthService.checkAuth();
-      if (isAuthenticated) {
-        router.push('/dashboard');
-      }
-    };
-
-    checkAuth();
-  }, [router]);
-
+    if (status === "authenticated") {
+      router.push('/dashboard');
+    }
+  }, [status, router]);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,18 +42,33 @@ const LoginForm: React.FC = () => {
     setLoading(true);
 
     try {
-      await AuthService.login({ email, password });
-      router.push('/dashboard');
-    } catch (err: unknown) {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password
+      });
+
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+
+   
+      router.refresh();
+      router.push("/dashboard");
+
+    } catch (err) {
+
       let errorMessage = "Error de autenticación. Por favor intenta de nuevo.";
       if (err instanceof Error) {
         errorMessage = err.message;
       }
       setError(errorMessage);
-      useAuthStore.getState().clearAuth();
-    } finally {
+
+    }
+    finally {
       setLoading(false);
     }
+
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -72,16 +82,14 @@ const LoginForm: React.FC = () => {
         throw new Error("reCAPTCHA no está disponible.");
       }
 
-
       const token = await executeRecaptcha("forgot_password");
 
       const response: RequestPassResponse = await requestPasswordReset(resetEmail, token);
 
-
       if (response && response.statusCode === 404) {
-        toast.error({text: 'Ha ocurrido un error', description: response.message});
+        toast.error({ text: 'Ha ocurrido un error', description: response.message });
       } else {
-        toast.success({text: 'Enlace de recuperación enviado. Revisa tu correo electrónico.'});
+        toast.success({ text: 'Enlace de recuperación enviado. Revisa tu correo electrónico.' });
         setShowForgotPasswordPopup(false);
       }
     } catch {
@@ -192,9 +200,8 @@ const LoginForm: React.FC = () => {
         </p>
       </form>
 
-      {/* Popup de recuperación de contraseña */}
       {showForgotPasswordPopup && (
-        <ForgotPasswordModal handleForgotPassword={handleForgotPassword} resetEmail={resetEmail} resetLoading={resetLoading} setResetEmail={setResetEmail} setShowForgotPasswordPopup={setShowForgotPasswordPopup} hasLogin={false} /> 
+        <ForgotPasswordModal handleForgotPassword={handleForgotPassword} resetEmail={resetEmail} resetLoading={resetLoading} setResetEmail={setResetEmail} setShowForgotPasswordPopup={setShowForgotPasswordPopup} hasLogin={false} />
       )}
     </div>
   );
