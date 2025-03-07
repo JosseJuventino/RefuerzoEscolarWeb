@@ -42,7 +42,6 @@ const LoginForm: React.FC = () => {
     setLoading(true);
 
     try {
-      "use server"
       const result = await signIn("credentials", {
         redirect: false,
         email,
@@ -53,7 +52,7 @@ const LoginForm: React.FC = () => {
         throw new Error(result.error);
       }
 
-      // Redirigir manualmente después de éxito
+   
       router.refresh();
       router.push("/dashboard");
 

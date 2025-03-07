@@ -13,6 +13,8 @@ import { CourseContext } from '@/app/contexts/course-context';
 import { AddPublicationModal } from '@/components/Popups/AddPublicationModal';
 import { deletePublication } from '@/services/publish.service';
 import { DeleteModal } from '@/components/Popups/DeleteModal';
+import { RoleGuard } from '@/components/RoleGuard';
+import { ROLES } from "@/app/constants/roles"
 
 export default function Tablon() {
   const [openId, setOpenId] = useState<string | null>(null);
@@ -122,12 +124,14 @@ export default function Tablon() {
           style={{ backgroundImage: `url(${course?.backgroundImage})` }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
-            <button
-              onClick={() => setModalState({ type: 'edit', selected: course || null })}
-              className="absolute top-4 right-4 outline-none flex items-center gap-2 bg-white text-blue_principal  px-4 py-2 rounded-lg "
-            >
-              <Settings className="w-5 h-5" />
-            </button>
+            <RoleGuard allowedRoles={[ROLES.ADMIN, ROLES.PROFESOR, ROLES.TUTOR]}>
+              <button
+                onClick={() => setModalState({ type: 'edit', selected: course || null })}
+                className="absolute top-4 right-4 outline-none flex items-center gap-2 bg-white text-blue_principal  px-4 py-2 rounded-lg "
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+            </RoleGuard>
 
             <div className="absolute bottom-8 left-8">
               <h1 className="text-5xl font-bold text-white mb-2">{course?.nombre}</h1>
@@ -142,11 +146,11 @@ export default function Tablon() {
             <span className="relative z-10">Últimas publicaciones</span>
             <span className="text-gray-500 text-sm">{course?.publicaciones?.length} publicaciones</span>
           </h2>
-
-          <button onClick={() => setModalStatePublication({ type: 'add', selected: null })} className="text-blue_principal bg-white font-medium px-4 py-2 rounded-lg shadow transition-transform hover:scale-105">
-            Agregar publicación
-          </button>
-
+          <RoleGuard allowedRoles={[ROLES.ADMIN, ROLES.PROFESOR, ROLES.TUTOR]}>
+            <button onClick={() => setModalStatePublication({ type: 'add', selected: null })} className="text-blue_principal bg-white font-medium px-4 py-2 rounded-lg shadow transition-transform hover:scale-105">
+              Agregar publicación
+            </button>
+          </RoleGuard>
         </div>
 
 
@@ -183,27 +187,31 @@ export default function Tablon() {
 
                   <div className='flex flex-row gap-5 justify-center items-center'>
                     <div className='text-gray-400 pt-1.5'>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setModalStatePublication({ type: 'edit', selected: novedad || null })
-                        }}
-                      >
-                        <Edit2Icon size={20} />
-                      </button>
+                      <RoleGuard allowedRoles={[ROLES.ADMIN, ROLES.PROFESOR, ROLES.TUTOR]}>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setModalStatePublication({ type: 'edit', selected: novedad || null })
+                          }}
+                        >
+                          <Edit2Icon size={20} />
+                        </button>
+                      </RoleGuard>
                     </div>
 
                     <div className='text-gray-400 pt-1.5'>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setModalStatePublication({ type: 'delete', selected: novedad || null })
-                        }}
-                      >
-                        <Trash2 size={20} />
-                      </button>
+                      <RoleGuard allowedRoles={[ROLES.ADMIN, ROLES.PROFESOR, ROLES.TUTOR]}>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setModalStatePublication({ type: 'delete', selected: novedad || null })
+                          }}
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                      </RoleGuard>
                     </div>
 
                     <div className="text-gray-400 pt-1.5">

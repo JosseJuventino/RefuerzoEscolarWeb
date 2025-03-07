@@ -21,6 +21,8 @@ import {
   Users2Icon
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
+import { ProtectedNavItem } from "./NavItem";
+import { ROLES } from "@/app/constants/roles";
 
 
 const Sidenav: React.FC = () => {
@@ -61,7 +63,7 @@ const Sidenav: React.FC = () => {
   const toggleMobileMenu = () => setIsMenuOpen((prev) => !prev);
   const handleLogout = () => signOut({ callbackUrl: '/' });
 
-  // Skeleton loader para SSR
+ 
   if (!isMounted) {
     return (
       <div className="hidden md:flex flex-col justify-between h-screen w-64 p-3 bg-white shadow-xl rounded-tr-2xl rounded-br-2xl text-black">
@@ -85,6 +87,9 @@ const Sidenav: React.FC = () => {
       </div>
     );
   }
+
+ 
+
   const UserMenu = ({ mobile = false }: { mobile?: boolean }) => (
     <div className="relative" ref={userMenuRef}>
       <button
@@ -160,13 +165,15 @@ const Sidenav: React.FC = () => {
                 isActive={pathName === "/dashboard"}
               />
 
-              <NavItem
+              <ProtectedNavItem
                 icon={UserIcon}
                 label="Usuarios"
                 isActive={pathName.startsWith("/dashboard/students") || pathName.startsWith("/dashboard/recomendators")}
                 subItems={users}
                 currentPath={pathName}
+                allowedRoles={[ROLES.ADMIN]}
               />
+
               <NavItem
                 icon={BookOpen}
                 label="Mis cursos"
@@ -174,24 +181,28 @@ const Sidenav: React.FC = () => {
                 subItems={userCourses}
                 currentPath={pathName}
               />
-              <NavItem
+              <ProtectedNavItem
                 link="/dashboard/courses"
                 icon={LayersIcon}
                 label="Cursos"
                 isActive={pathName === "/dashboard/courses"}
+                allowedRoles={[ROLES.ADMIN]}
               />
-              <NavItem
+
+              <ProtectedNavItem
                 link="/dashboard/applicants"
                 icon={FileTextIcon}
                 label="Postulaciones"
                 isActive={pathName === "/dashboard/applicants"}
+                allowedRoles={[ROLES.ADMIN]}
               />
 
-              <NavItem
+              <ProtectedNavItem
                 link="/dashboard/advanced-options"
                 icon={Settings}
                 label="Opciones avanzadas"
                 isActive={pathName === "/dashboard/advanced-options"}
+                allowedRoles={[ROLES.ADMIN]}
               />
             </nav>
           </div>
@@ -200,7 +211,7 @@ const Sidenav: React.FC = () => {
         <div className="flex items-center gap-2 mt-4 pt-4 border-t" suppressHydrationWarning>
           <div className="flex items-center gap-2 flex-1">
             {user?.image ? (
-              <img
+              <Image
                 src={user.image}
                 alt="User avatar"
                 className="w-8 h-8 object-cover rounded-full"
@@ -248,12 +259,13 @@ const Sidenav: React.FC = () => {
                     label="Inicio"
                     isActive={pathName === "/dashboard"}
                   />
-                  <NavItem
+                  <ProtectedNavItem
                     icon={UserIcon}
                     label="Usuarios"
                     isActive={pathName.startsWith("/dashboard/students") || pathName.startsWith("/dashboard/recomendators")}
                     subItems={users}
                     currentPath={pathName}
+                    allowedRoles={[ROLES.ADMIN]}
                   />
                   <NavItem
                     icon={BookOpen}
@@ -263,24 +275,28 @@ const Sidenav: React.FC = () => {
                     currentPath={pathName}
                   />
 
-                  <NavItem
+                  <ProtectedNavItem
                     link="/dashboard/courses"
                     icon={LayersIcon}
                     label="Cursos"
                     isActive={pathName === "/dashboard/courses"}
+                    allowedRoles={[ROLES.ADMIN]}
                   />
-                  <NavItem
+
+                  <ProtectedNavItem
                     link="/dashboard/applicants"
                     icon={FileTextIcon}
                     label="Postulaciones"
                     isActive={pathName === "/dashboard/applicants"}
+                    allowedRoles={[ROLES.ADMIN]}
                   />
 
-                  <NavItem
+                  <ProtectedNavItem
                     link="/dashboard/advanced-options"
                     icon={Settings}
                     label="Opciones avanzadas"
                     isActive={pathName === "/dashboard/advanced-options"}
+                    allowedRoles={[ROLES.ADMIN]}
                   />
                 </nav>
               </div>
@@ -290,7 +306,7 @@ const Sidenav: React.FC = () => {
             <div className="flex items-center gap-2 mt-4 pt-4 border-t">
               <div className="flex items-center gap-2 flex-1">
                 {user?.image ? (
-                  <img
+                  <Image
                     src={user.image}
                     alt="User avatar"
                     className="w-8 object-cover h-8 rounded-full"

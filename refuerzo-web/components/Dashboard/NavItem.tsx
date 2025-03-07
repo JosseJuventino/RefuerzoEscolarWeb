@@ -1,6 +1,8 @@
 import Link from "next/link";
 import React, { useState } from "react";
 import { ChevronDownIcon } from "lucide-react";
+import { RoleGuard } from "../RoleGuard";
+import { RoleValues } from "@/app/constants/roles";
 
 const COLOR_TEXT_ACTIVE = "text-[#004aad] font-bold";
 const COLOR_BG_ACTIVE = "bg-[#f0f4ff]";
@@ -99,3 +101,9 @@ export const NavItem: React.FC<NavItemProps> = ({
     </div>
   );
 };
+
+export const ProtectedNavItem = ({ allowedRoles = [], ...props }: NavItemProps & { allowedRoles?: RoleValues[] }) => (
+  <RoleGuard allowedRoles={allowedRoles} fallback={null}>
+    <NavItem {...props} />
+  </RoleGuard>
+);
