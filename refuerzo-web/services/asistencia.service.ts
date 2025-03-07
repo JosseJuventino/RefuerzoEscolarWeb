@@ -1,0 +1,47 @@
+import { api } from '@/lib/api';
+
+import { Asistencia, AsistenciaResponse } from '@/types/types';
+
+export const getAllAsistencia = async (): Promise<Asistencia[]> => {
+    const response = await api.get<AsistenciaResponse>('/asistencia');
+    const data = response.data.data;
+    return Array.isArray(data) ? data : [data];
+};
+
+export const getAsistenciaOfAlumnosBySectionId = async (id: string): Promise<Asistencia> => {
+    const response = await api.get<Asistencia>(`/asistencia/alumnos/${id}`);
+    const data = response.data;
+    return Array.isArray(data) ? data[0] : data;
+} 
+
+export const getAsistenciaOfEncargadosBySectionId = async (id: string): Promise<Asistencia> => {
+    const response = await api.get<Asistencia>(`/asistencia/encargados/${id}`);
+    const data = response.data;
+    return Array.isArray(data) ? data[0] : data;
+}
+
+export const getRecordOfAlumno = async (id: string): Promise<Asistencia> => {
+    const response = await api.get<Asistencia>(`/asistencia/alumno/register/${id}`);
+    const data = response.data;
+    return Array.isArray(data) ? data[0] : data;
+}
+
+export const updateAsistenciaOfAlumno = async (asistencia: Partial<Asistencia>): Promise<Asistencia> => {
+    const response = await api.patch<Asistencia>(`/asistencia/alumno/register/${asistencia._id}`, asistencia);
+    return response.data;
+}
+
+export const updateAsistenciaById = async (asistencia: Partial<Asistencia>): Promise<Asistencia> => {
+    const response = await api.patch<Asistencia>(`/asistencia/${asistencia._id}`, asistencia);
+    return response.data;
+}
+
+export const addAlumnoAsistenciaBySectionId = async (asistencia: Partial<Asistencia>): Promise<Asistencia> => {
+    const response = await api.patch<Asistencia>('/asistencia/alumno/', asistencia);
+    return response.data;
+}
+
+export const addEncargadoAsistenciaBySectionId = async (asistencia: Partial<Asistencia>): Promise<Asistencia> => {
+    const response = await api.patch<Asistencia>('/asistencia/encargado/', asistencia);
+    return response.data;
+}

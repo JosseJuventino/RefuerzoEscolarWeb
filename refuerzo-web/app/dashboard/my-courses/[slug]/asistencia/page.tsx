@@ -1,6 +1,10 @@
 "use client";
-import React, { useState} from "react";
+import React, { useContext, useState } from "react";
 import data from "@/data/asistencia.json";
+import { CourseContext } from "@/app/contexts/course-context";
+import Image from "next/image";
+import { CircleUser } from "lucide-react";
+
 
 interface Asistencia {
   id: number;
@@ -11,7 +15,8 @@ interface Asistencia {
 }
 
 export default function Asistencia() {
-  const [alumnos] = useState<string[]>(data.alumnos);
+  const course = useContext(CourseContext);
+
   const [asistencias, setAsistencias] = useState<Asistencia[]>(data.asistencias);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,13 +52,13 @@ export default function Asistencia() {
 
   return (
     <div className="">
-      <h1 className="text-2xl font-bold mb-4">Registro de Asistencia</h1>
+      <h1 className="text-2xl text-blue_principal font-bold mb-4">Registro de Asistencia</h1>
       {error && <div className="text-red-500 mb-4">{error}</div>}
 
       <ul className="space-y-2">
-        {alumnos.map((alumno, index) => {
+        {course?.alumnos.map((alumno, index) => {
           const yaRegistrado = asistencias.some(
-            (asistencia) => asistencia.nombre === alumno && asistencia.fecha === new Date().toISOString().split("T")[0]
+            (asistencia) => asistencia.nombre === alumno.nombre && asistencia.fecha === new Date().toISOString().split("T")[0]
           );
 
           return (
@@ -61,13 +66,31 @@ export default function Asistencia() {
               key={index}
               className="flex flex-col md:flex-row justify-between items-center bg-white shadow rounded-lg p-4"
             >
-              <span className="text-lg md:text-base mb-2 md:mb-0">{alumno}</span>
+              <div className="flex flex-row items-center gap-2">
+                {alumno.image ? (
+                  <Image
+                    src={alumno.image}
+                    alt={alumno.nombre}
+                    width={48}
+                    height={48}
+                    className="w-12 h-12 rounded-full object-cover mr-4"
+                    priority
+                  />
+                ) : (
+                  <div className="p-2 rounded-full bg-gray-100 flex items-center justify-center mr-4">
+                    <CircleUser className="w-8 h-8 text-blue_principal" />
+                  </div>
+                )}
+                <div className="flex flex-col">
+                  <p className="text-lg font-medium text-gray-900">{alumno.nombre}</p>
+                  <p className="text-md text-gray-600">{alumno.email}</p>
+                </div>
+              </div>
               <button
-                onClick={() => registrarAsistencia(alumno)}
+                onClick={() => registrarAsistencia(alumno.nombre)}
                 disabled={yaRegistrado}
-                className={`px-4 py-2 rounded-lg text-white w-full md:w-auto ${
-                  yaRegistrado ? "bg-gray-400 cursor-not-allowed" : "bg-blue_principal hover:bg-sky-950"
-                }`}
+                className={`px-4 py-2 rounded-lg text-white w-full md:w-auto ${yaRegistrado ? "bg-gray-400 cursor-not-allowed" : "bg-blue_principal hover:bg-sky-950"
+                  }`}
               >
                 {yaRegistrado ? "Registrado" : "Registrar Asistencia"}
               </button>
