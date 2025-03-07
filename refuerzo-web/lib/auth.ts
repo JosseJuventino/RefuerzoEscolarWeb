@@ -126,8 +126,8 @@ export const authOptions = {
   },
   trustHost: true,
   pages: {
-    signIn: "/login",
-    error: "/login/error",
+    signIn: "/",
+    error: "/",
   },
 };
 
