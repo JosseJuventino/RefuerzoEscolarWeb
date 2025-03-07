@@ -130,12 +130,12 @@ export interface Estudiante {
   nombre: string;
   image: string;
   gradoId: string;
-  
+
   user: {
     email: string;
     telefono: string;
   };
-  
+
   grado: string;
 }
 
@@ -245,17 +245,16 @@ export interface GradeResponse {
 
 export interface Publicacion {
   id: number;
-  descripcion: string,
-  categoria: string,
-  files: 
-    {
-      id: string,
-      originalFileName: string,
-      url: string,
-      tipo: string
-    }[],
-  seccionId: string
-  titulo: string
+  descripcion: string;
+  categoria: string;
+  files: {
+    id: string;
+    originalFileName: string;
+    url: string;
+    tipo: string;
+  }[];
+  seccionId: string;
+  titulo: string;
 }
 
 export interface Course {
@@ -300,14 +299,17 @@ export interface FileNew {
   tipo: string;
   category: string;
   file: File;
-  data:{
+  data: {
     url: string;
     documentId: string;
     fileName: string;
-  }
+  };
 }
 
-export type FilePublicacion = Pick<FileNew, 'id' | 'originalFileName' | 'url' | 'tipo'>;
+export type FilePublicacion = Pick<
+  FileNew,
+  "id" | "originalFileName" | "url" | "tipo"
+>;
 export interface Publicacion {
   _id: string;
   createdAt: string;
@@ -318,41 +320,73 @@ export interface Publicacion {
 }
 
 export interface Tutor {
-  _id: string,
-  nombre: string,
-  email: string,
-  telefono: string,
-  image: string,
-  isActive: boolean
-  secciones: string[]
+  _id: string;
+  nombre: string;
+  email: string;
+  telefono: string;
+  image: string;
+  isActive: boolean;
+  secciones: string[];
 }
 
 export interface TutorResponse {
-  statusCode: number,
-  message: string,
-  data: Tutor[],
-  size: number,
-  totalPages: number,
-  page: number,
-  limit: number
+  statusCode: number;
+  message: string;
+  data: Tutor[];
+  size: number;
+  totalPages: number;
+  page: number;
+  limit: number;
 }
 
 export interface Teacher {
-  _id: string,
-  nombre: string,
-  email: string,
-  telefono: string,
-  image: string,
-  isActive: boolean
-  secciones: string[]
+  _id: string;
+  nombre: string;
+  email: string;
+  telefono: string;
+  image: string;
+  isActive: boolean;
+  secciones: string[];
 }
 
 export interface TeacherResponse {
-  statusCode: number,
-  message: string,
-  data: Teacher[],
-  size: number,
-  totalPages: number,
-  page: number,
-  limit: number
+  statusCode: number;
+  message: string;
+  data: Teacher[];
+  size: number;
+  totalPages: number;
+  page: number;
+  limit: number;
+}
+
+export interface Asistencia {
+  _id: string;
+  seccionId: string;
+  alumnos: {
+    id: string;
+    alumnoId: string;
+    fecha: string;
+    estado: string;
+    nombre: string;
+    imagen: string;
+  }[];
+  encargados: {
+    id: string;
+    userId: string;
+    fecha: string;
+    estado: string;
+    hora_inicio: string;
+    hora_fin: string;
+    nombre: string;
+    imagen: string;
+  }[];
+}
+export interface AsistenciaResponse {
+  statusCode: number;
+  message: string;
+  data: Asistencia[];
+  size: number;
+  totalPages: number;
+  page: number;
+  limit: number;
 }
