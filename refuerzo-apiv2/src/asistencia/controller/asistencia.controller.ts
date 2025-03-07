@@ -18,6 +18,8 @@ import { Resources, Scopes } from 'nest_autorization';
 import { UpdateAsistenciaDto } from '../dto/update-asistencia.dto';
 import { AsistenciaAddAlumnoDto } from '../dto/add-alumno.dto';
 import { AsistenciaAddEncargadoDto } from '../dto/add-encargado.dto';
+import { UpdateAlumnoRegistroDto } from '../dto/update-register.dto';
+import { UpdateEncargadoRegistroDto } from '../dto/update-register.dto';
 
 @ApiBasicAuth()
 @Permission('asistencias')
@@ -72,6 +74,28 @@ export class AsistenciaController {
 
   @Scopes('view')
   @ApiOperation({
+    summary: 'Get an alumno register',
+    description: 'Get an alumno register',
+  })
+  @ApiBearerAuth()
+  @Get('alumno/register/:id')
+  findAlumnoById(@Param('id') id: string) {
+    return this.AsistenciaService.findAlumnoById(id);
+  }
+
+  @Scopes('view')
+  @ApiOperation({
+    summary: 'Get an encargado register',
+    description: 'Get an encargado register',
+  })
+  @ApiBearerAuth()
+  @Get('encargado/register/:id')
+  findEncargadoById(@Param('id') id: string) {
+    return this.AsistenciaService.findEncargadoById(id);
+  }
+
+  @Scopes('view')
+  @ApiOperation({
     summary: 'Get a Asistencia by seccion id',
     description: 'Get a Asistencia by seccion id',
   })
@@ -113,6 +137,34 @@ export class AsistenciaController {
       id,
       addEncargadoDto,
     );
+  }
+
+  @Scopes('view', 'edit')
+  @ApiOperation({
+    summary: 'Update an alumno register by register id',
+    description: 'Update an alumno register by register id',
+  })
+  @ApiBearerAuth()
+  @Patch('alumno/register/:id')
+  updateAlumnoRegister(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateAlumnoRegistroDto,
+  ) {
+    return this.AsistenciaService.updateAlumnoRegister(id, updateDto);
+  }
+
+  @Scopes('view', 'edit')
+  @ApiOperation({
+    summary: 'Update an encargado register by register id',
+    description: 'Update a encargado register by register id',
+  })
+  @ApiBearerAuth()
+  @Patch('encargado/register/:id')
+  updateEncargadoRegister(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateEncargadoRegistroDto,
+  ) {
+    return this.AsistenciaService.updateEncargadoRegister(id, updateDto);
   }
 
   @Scopes('view', 'edit')
