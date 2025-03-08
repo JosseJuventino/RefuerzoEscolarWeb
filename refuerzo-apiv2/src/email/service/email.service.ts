@@ -52,7 +52,7 @@ import {
   
     private buildSESParams(sendEmailDto: SendEmailDto): AWS.SES.SendEmailRequest {
       return {
-        Source: 'jcastillo10b@gmail.com',
+        Source: 'soporte@refuerzo-mendoza.me',
         Destination: {
           ToAddresses: sendEmailDto.to,
           CcAddresses: sendEmailDto.cc,
