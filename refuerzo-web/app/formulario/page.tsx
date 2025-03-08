@@ -1,13 +1,9 @@
 "use client";
 
 import { Header } from "@/components/Form/FormHeader";
-import { ImagePreview } from "@/components/Auth/ImagePreview";
 import { useRouter } from "next/navigation";
-import { CameraPreview } from "@/components/Auth/CameraPreview";
 import { useEffect, useState, useRef } from "react";
-import { UploadButton } from "@/components/Fields/UploadButton";
 import InputField from "@/components/Fields/InputFieldValidate";
-import { useCamera } from "@/hooks/useCamera";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getPrograms } from "@/services/programs.service";
 import { getGrades } from "@/services/grades.service";
@@ -28,14 +24,6 @@ export default function RegistrationForm() {
     const router = useRouter();
     const [isChecking, setIsChecking] = useState(true);
     const { status } = useSession();
-    const [preview, setPreview] = useState<string | null>(null);
-    const [isMobile, setIsMobile] = useState<boolean>(false);
-
-    useEffect(() => {
-        setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
-    }, []);
-
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const queryClient = useQueryClient();
 
@@ -71,9 +59,6 @@ export default function RegistrationForm() {
     const formData = useRef({
         imagen: "",
     });
-
-    const { cameraActive, startCamera, stopCamera, videoRef, canvasRef, handleTakePhoto, handleFileChange, handleRetakePhoto } = useCamera(isMobile, setPreview, formData);
-
 
     const addPostulant = useMutation({
         mutationFn: addPostulante,
