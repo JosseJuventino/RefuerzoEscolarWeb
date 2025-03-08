@@ -56,7 +56,7 @@ export class EmailService {
 
   private buildSESParams(sendEmailDto: SendEmailDto): AWS.SES.SendEmailRequest {
     return {
-      Source: `"${this.configService.get('AWS_SES_SENDER_NAME')}" <${sendEmailDto.from || this.configService.get('AWS_SES_SENDER_EMAIL')}>`,
+      Source: `"Refuerzo Escolar Mendoza" <soporte@refuerzo-mendoza.me>`,
       Destination: {
         ToAddresses: sendEmailDto.to,
         CcAddresses: sendEmailDto.cc,
