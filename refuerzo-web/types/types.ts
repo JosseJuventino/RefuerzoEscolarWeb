@@ -390,3 +390,13 @@ export interface AsistenciaResponse {
   page: number;
   limit: number;
 }
+
+export interface FormValues {
+    nombre: string;
+    email: string;
+    direccion: string;
+    telefono: string;
+    grado: string;
+    programa: string;
+    telefonoEncargado: string;
+}

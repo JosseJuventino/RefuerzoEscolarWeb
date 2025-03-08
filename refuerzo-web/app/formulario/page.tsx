@@ -20,16 +20,8 @@ import { addPostulante } from "@/services/applicants.service";
 import { uploadImage } from "@/services/images.service";
 import { base64ToFile } from "@/utils/base64ToFile";
 import { useSession } from "next-auth/react";
-
-interface FormValues {
-    nombre: string;
-    email: string;
-    direccion: string;
-    telefono: string;
-    grado: string;
-    programa: string;
-    telefonoEncargado: string;
-}
+import { PhoneField } from "@/components/Fields/PhoneField";
+import { FormValues } from "@/types/types";
 
 
 export default function RegistrationForm() {
@@ -50,6 +42,8 @@ export default function RegistrationForm() {
     const {
         register,
         handleSubmit,
+        setValue,
+        watch,
         formState: { errors, isSubmitting },
         trigger,
     } = useForm<FormValues>({
@@ -169,17 +163,7 @@ export default function RegistrationForm() {
 
                 <div className="p-8 md:p-4">
                     <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-                        <div className="flex justify-center">
-                            {preview ? (
-                                <ImagePreview preview={preview} setPreview={setPreview} formData={formData} handleRetakePhoto={handleRetakePhoto} />
-                            ) : cameraActive ? (
-                                <CameraPreview videoRef={videoRef} fileInputRef={fileInputRef} isMobile={isMobile} handleFileChange={handleFileChange} handleTakePhoto={handleTakePhoto} stopCamera={stopCamera} />
-                            ) : (
-                                <UploadButton fileInputRef={fileInputRef} startCamera={startCamera} isMobile={isMobile} handleFileChange={handleFileChange} />
-                            )}
 
-                            <canvas ref={canvasRef} className="hidden" />
-                        </div>
                         <InputField
                             label="Nombre Completo"
                             id="nombre"
@@ -226,10 +210,10 @@ export default function RegistrationForm() {
                             error={errors.direccion?.message}
                         />
 
-                        <InputField
-                            label="Número de contacto"
+                        <PhoneField
+                            telefono={watch("telefono") || ""}
+                            handleTelefonoChange={(e) => setValue("telefono", e.target.value)}
                             id="telefono"
-                            type="tel"
                             placeholder="Ingrese el número de contacto"
                             register={register}
                             validation={{
@@ -241,16 +225,18 @@ export default function RegistrationForm() {
                             }}
                             trigger={trigger}
                             error={errors.telefono?.message}
+                            label="Teléfono de contacto"
                         />
 
-                        <InputField
-                            label="Número de encargado"
+
+                        <PhoneField
+                            telefono={watch("telefonoEncargado") || ""}
+                            handleTelefonoChange={(e) => setValue("telefonoEncargado", e.target.value)}
                             id="telefonoEncargado"
-                            type="tel"
-                            placeholder="Ingrese el número de un encargado"
+                            placeholder="Ingrese el número de contacto de un encargado"
                             register={register}
                             validation={{
-                                required: "El número de contacto de un encargado es requerido",
+                                required: "El número de contacto es requerido",
                                 pattern: {
                                     value: /^[0-9]{8}$/,
                                     message: "Número inválido (8 dígitos requeridos)",
@@ -258,7 +244,9 @@ export default function RegistrationForm() {
                             }}
                             trigger={trigger}
                             error={errors.telefono?.message}
+                            label="Teléfono de contacto de un encargado"
                         />
+
 
                         <SelectField
                             label="Grado"
