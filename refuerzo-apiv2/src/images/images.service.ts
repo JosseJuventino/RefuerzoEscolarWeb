@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Image } from './entities/image.entity';
@@ -28,7 +32,15 @@ export class ImageService {
     file: Express.Multer.File,
   ): Promise<Object> {
     if (!file) {
-      throw new Error('El archivo es obligatorio');
+      throw new BadRequestException('El archivo es obligatorio');
+    }
+
+    // Validar tamaño máximo del archivo (5 MB)
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB en bytes
+    if (file.size > MAX_FILE_SIZE) {
+      throw new BadRequestException(
+        'El tamaño del archivo no puede exceder los 5 MB',
+      );
     }
 
     // Validar el tipo de archivo para evitar errores en formatos no soportados
@@ -40,7 +52,7 @@ export class ImageService {
       'image/tiff',
     ];
     if (!supportedFormats.includes(file.mimetype)) {
-      throw new Error(
+      throw new BadRequestException(
         'Formato de archivo no soportado. Solo se permiten imágenes.',
       );
     }
@@ -91,7 +103,7 @@ export class ImageService {
       };
     } catch (error) {
       console.error('Error al procesar la imagen:', error);
-      throw new Error('Error al procesar y guardar la imagen.');
+      throw new BadRequestException('Error al procesar y guardar la imagen.');
     }
   }
 
