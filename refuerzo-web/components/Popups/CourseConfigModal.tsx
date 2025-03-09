@@ -9,24 +9,27 @@ import { toast } from "@pheralb/toast";
 import SelectFieldMultiple from "@/components/Fields/SelectFieldMultiple";
 import { getTutors } from "@/services/tutors.service";
 import { getTeacher } from "@/services/teacher.service";
-import { updateCourse } from "@/services/courses.service";
+//import { updateCourse } from "@/services/courses.service";
 
 interface FormModalProps {
   isOpen: boolean;
   initialData?: Course;
   onClose: () => void;
   title: string;
+  onSubmit: (data: Course, image: File | string | null) => void;
 }
 
 export const CourseConfigModal = ({
   isOpen,
   initialData,
   onClose,
+  onSubmit,
   title,
 }: FormModalProps) => {
   const emptyForm = useMemo<Partial<Course>>(
     () => ({
       nombre: "",
+      encargados: [],
     }),
     []
   );
@@ -35,8 +38,8 @@ export const CourseConfigModal = ({
   const [imageFile, setImageFile] = useState<File | string | null>(null);
   const [tutors, setTutors] = useState<{ value: string; label: string; image: string; email: string; telefono: string }[]>([]); // Estado para tutores
   const [teachers, setTeachers] = useState<{ value: string; label: string; image: string; email: string; telefono: string }[]>([]); // Estado para profesores
-  const [selectedTutors, setSelectedTutors] = useState<string[]>([]); // IDs de tutores seleccionados
-  const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]); // IDs de profesores seleccionados
+  const [selectedTutors, setSelectedTutors] = useState<string[]>([]);
+  const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
 
   // Obtener tutores desde la API
   useEffect(() => {
@@ -63,7 +66,6 @@ export const CourseConfigModal = ({
     fetchTutors();
   }, []);
 
-  // Obtener profesores desde la API
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
@@ -93,8 +95,19 @@ export const CourseConfigModal = ({
   };
 
   useEffect(() => {
+    if (initialData?.encargados) {
+      initialData.encargados.forEach((encargado) => {
+        const encargadoId = typeof encargado === 'string' ? encargado : encargado._id;
+        
+        if (tutors.find((tutor) => tutor.value === encargadoId)) {
+          setSelectedTutors((prev) => [...prev, encargadoId]);
+        } else if (teachers.find((teacher) => teacher.value === encargadoId)) {
+          setSelectedTeachers((prev) => [...prev, encargadoId]);
+        }
+      });
+    }
     setFormData(initialData || emptyForm);
-  }, [initialData, emptyForm]);
+  }, [initialData, emptyForm, tutors, teachers]);
 
   const handleFieldChange = (field: keyof Course, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -109,31 +122,27 @@ export const CourseConfigModal = ({
   };
 
   const combineIds = () => {
-    // Obtener los datos completos de los tutores seleccionados
-    const selectedTutorsData = tutors
-      .filter((tutor) => selectedTutors.includes(tutor.value))
-      .map((tutor) => ({
+    const selectedTutorObjects = tutors
+      .filter(tutor => selectedTutors.includes(tutor.value))
+      .map(tutor => ({
         _id: tutor.value,
         nombre: tutor.label,
         image: tutor.image,
         email: tutor.email,
-        telefono: tutor.telefono,
+        telefono: tutor.telefono
       }));
 
-    // Obtener los datos completos de los profesores seleccionados
-    const selectedTeachersData = teachers
-      .filter((teacher) => selectedTeachers.includes(teacher.value))
-      .map((teacher) => ({
+    const selectedTeacherObjects = teachers
+      .filter(teacher => selectedTeachers.includes(teacher.value))
+      .map(teacher => ({
         _id: teacher.value,
         nombre: teacher.label,
         image: teacher.image,
         email: teacher.email,
-        telefono: teacher.telefono,
+        telefono: teacher.telefono
       }));
-
-    // Combinar los datos de tutores y profesores
-    const combinedData = [...selectedTutorsData, ...selectedTeachersData];
-    return combinedData;
+    
+    return [...selectedTutorObjects, ...selectedTeacherObjects];
   };
 
   const handleCancel = () => {
@@ -143,44 +152,21 @@ export const CourseConfigModal = ({
     onClose();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!formData.nombre || formData.nombre.trim() === "") {
       toast.error({
         text: "Error",
-        description: "El nombre no puede quedar vacío.",
-      });
+        description: "EL nombre no puede quedar vacio",
+      })
       return;
     }
 
-    try {
-      const combinedData = combineIds();
+    const combinedData = combineIds();
+    formData.encargados = combinedData;
 
-      const updatedData: Partial<Course> = {
-        _id: formData._id!, 
-        nombre: formData.nombre,
-        encargados: combinedData, 
-      };
-      await updateCourse(updatedData);
-
-      
-      if (imageFile) {
-      }
-
-      toast.success({
-        text: "Éxito",
-        description: "El curso se actualizó correctamente.",
-      });
-
-      handleCancel();
-    } catch (error) {
-      console.error("Error updating course:", error);
-      toast.error({
-        text: "Error",
-        description: "Hubo un error al actualizar el curso.",
-      });
-    }
+    onSubmit(formData as Course, imageFile);
+    handleCancel();
   };
 
   return (
@@ -219,14 +205,14 @@ export const CourseConfigModal = ({
           label="Selecciona Tutores"
           options={tutors.map((tutor) => ({ value: tutor.value, label: tutor.label }))}
           onChange={handleTutorsChange}
-          defaultValues={[]}
+          defaultValues={selectedTutors}
         />
 
         <SelectFieldMultiple
           label="Selecciona Profesores"
           options={teachers.map((teacher) => ({ value: teacher.value, label: teacher.label }))}
           onChange={handleTeachersChange}
-          defaultValues={[]}
+          defaultValues={selectedTeachers}
         />
 
         <ImageSelector
