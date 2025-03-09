@@ -1,5 +1,9 @@
 // document.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Document } from './entities/document.entity';
@@ -32,12 +36,22 @@ export class DocumentService {
     file: Express.Multer.File,
   ): Promise<Object> {
     if (!file) {
-      throw new Error('El archivo es obligatorio');
+      throw new BadRequestException('El archivo es obligatorio');
+    }
+
+    // Validar tamaño máximo del archivo (5 MB)
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB en bytes
+    if (file.size > MAX_FILE_SIZE) {
+      throw new BadRequestException(
+        'El tamaño del archivo no puede exceder los 5 MB',
+      );
     }
 
     // Validar que sea PDF
     if (file.mimetype !== 'application/pdf') {
-      throw new Error('Formato de archivo no soportado. Solo se permiten PDF.');
+      throw new BadRequestException(
+        'Formato de archivo no soportado. Solo se permiten PDF.',
+      );
     }
 
     const uploadsDir = path.resolve(
@@ -91,7 +105,9 @@ export class DocumentService {
       };
     } catch (error) {
       console.error('Error al guardar el documento:', error);
-      throw new Error('Error al procesar y guardar el documento.');
+      throw new BadRequestException(
+        'Error al procesar y guardar el documento.',
+      );
     }
   }
 
