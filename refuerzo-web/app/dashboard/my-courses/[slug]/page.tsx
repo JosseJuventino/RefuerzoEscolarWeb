@@ -15,6 +15,7 @@ import { deletePublication } from '@/services/publish.service';
 import { DeleteModal } from '@/components/Popups/DeleteModal';
 import { RoleGuard } from '@/components/RoleGuard';
 import { ROLES } from "@/app/constants/roles"
+import { toast } from '@pheralb/toast';
 
 export default function Tablon() {
   const [openId, setOpenId] = useState<string | null>(null);
@@ -86,34 +87,61 @@ export default function Tablon() {
   const handleEdit = async (updated: Course, image: File | string | null) => {
     const updateData: Partial<Course> = { _id: updated._id };
 
-    if (image instanceof File) {
+    try {
+      let imageUploadPromise: Promise<void> = Promise.resolve();
 
-      if (!image.type.startsWith("image/")) {
-        throw new Error("Invalid file type. Only images are allowed.");
+      if (image instanceof File) {
+        if (!image.type.startsWith("image/")) {
+          throw new Error("Solo se permiten imágenes");
+        }
+
+        if (image.size > 5 * 1024 * 1024) {
+          throw new Error("Tamaño máximo de imagen: 5MB");
+        }
+
+        const imagen: Image = {
+          originalFilename: image.name,
+          category: "section_images",
+          file: image
+        };
+
+        imageUploadPromise = uploadImageMutation.mutateAsync(imagen)
+          .then(response => {
+            updateData.backgroundImage = response.data.url;
+          });
+      } else if (typeof image === 'string') {
+        updateData.backgroundImage = image;
       }
 
-      if (image.size > 5 * 1024 * 1024) {
-        throw new Error("Image is too large. Maximum size allowed is 5MB.");
-      }
+      const finalPromise = imageUploadPromise.then(async () => {
+        updateData.nombre = updated.nombre;
+        updateData.encargados = updated.encargados;
+        return await updateCourseMutation.mutateAsync(updateData);
+      });
 
-      const imagen: Image = {
-        originalFilename: image.name,
-        category: "section_images",
-        file: image
-      };
+      toast.loading({
+        text: "Actualizando curso...",
+        options: {
+          promise: finalPromise,
+          success: "Curso actualizado exitosamente 🎉",
+          error: "Error al actualizar el curso",
+          autoDismiss: true,
+          onSuccess: () => {
+            closeModal();
+            queryClient.invalidateQueries({ queryKey: ['cursos'] });
+          },
+          onError: (error) => {
+            console.error("Detalles del error:", error);
+          }
+        }
+      });
 
-      const response = await uploadImageMutation.mutateAsync(imagen);
-      updateData.backgroundImage = response.data.url;
-
-    } else if (typeof image === 'string') {
-      updateData.backgroundImage = image
+    } catch {
+      toast.error({
+        text: "Error de validación",
+        description: "Ha ocurrido un error al ingresar el curso",
+      });
     }
-
-    updateData.nombre = updated.nombre;
-
-    await updateCourseMutation.mutateAsync(updateData);
-
-    closeModal();
   };
 
   return (

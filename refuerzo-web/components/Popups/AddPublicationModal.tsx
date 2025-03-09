@@ -59,6 +59,7 @@ export const AddPublicationModal = ({
     const queryClient = useQueryClient();
 
     useEffect(() => {
+        console.log("initialData", initialData);
         setFormData(initialData || emptyForm);
     }, [initialData, emptyForm]);
 

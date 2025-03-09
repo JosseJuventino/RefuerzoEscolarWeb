@@ -15,6 +15,15 @@ export const getCourseBySlug = async (slug: string): Promise<Course> => {
 } 
 
 export const updateCourse = async (course: Partial<Course>): Promise<Course> => {
-    const response = await api.patch<Course>(`/seccion/${course._id}`, course);
+    const courseToUpdate: { encargados?: string[], imagen?: string, nombre?: string } = {};
+    
+    courseToUpdate.imagen = course.backgroundImage;
+    courseToUpdate.nombre = course.nombre;
+    
+    if (course.encargados) {
+        courseToUpdate.encargados = course.encargados.map((encargado) => encargado._id);
+    }
+    
+    const response = await api.patch<Course>(`/seccion/${course._id}`, courseToUpdate);
     return response.data;
 }
