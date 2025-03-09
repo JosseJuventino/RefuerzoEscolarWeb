@@ -74,6 +74,37 @@ export class AsistenciaController {
 
   @Scopes('view')
   @ApiOperation({
+    summary: 'Get an alumnos register by seccionId and date',
+    description: 'Get an alumnos register by seccionId and date',
+  })
+  @ApiBearerAuth()
+  @Get('seccion/:id/alumnos')
+  findAlumnosBySeccionIdAndDate(
+    @Param('id') seccionId: string,
+    @Query('date') date: string,
+  ) {
+    return this.AsistenciaService.findAlumnosBySeccionAndDate(seccionId, date);
+  }
+
+  @Scopes('view')
+  @ApiOperation({
+    summary: 'Get a encargados register by seccionId and date',
+    description: 'Get a encargados register by seccionId and date',
+  })
+  @ApiBearerAuth()
+  @Get('seccion/:id/encargados')
+  findEncargadosBySeccionIdAndDate(
+    @Param('id') seccionId: string,
+    @Query('date') date: string,
+  ) {
+    return this.AsistenciaService.findEncargadosBySeccionAndDate(
+      seccionId,
+      date,
+    );
+  }
+
+  @Scopes('view')
+  @ApiOperation({
     summary: 'Get an alumno register',
     description: 'Get an alumno register',
   })

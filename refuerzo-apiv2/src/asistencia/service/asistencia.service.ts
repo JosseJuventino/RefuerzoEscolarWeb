@@ -243,6 +243,100 @@ export class AsistenciaService {
       .build();
   }
 
+  async findAlumnosBySeccionAndDate(
+    seccionId: string,
+    fecha: string,
+  ): Promise<GeneralResponseDto<any>> {
+    const asistencia = await this.AsistenciaRepository.findOne({
+      where: { seccionId },
+    });
+
+    if (!asistencia) {
+      throw new NotFoundException(
+        `Asistencia para sección ${seccionId} no encontrada`,
+      );
+    }
+
+    // Validar y formatear fecha
+    const fechaBusqueda = new Date(fecha);
+    if (isNaN(fechaBusqueda.getTime())) {
+      throw new BadRequestException('Formato de fecha inválido');
+    }
+
+    // Filtrar alumnos por fecha
+    const alumnosFiltrados = asistencia.alumnos.filter(
+      (a) =>
+        a.fecha.toISOString().split('T')[0] ===
+        fechaBusqueda.toISOString().split('T')[0],
+    );
+
+    // Poblar datos de alumnos
+    const alumnosPopulated = await Promise.all(
+      alumnosFiltrados.map(async (alumno) => {
+        const alumnoData = await this.alumnoRepository.findOneBy({
+          _id: new ObjectId(alumno.alumnoId),
+        });
+        return {
+          ...alumno,
+          nombre: alumnoData?.nombre,
+          imagen: alumnoData?.image,
+        };
+      }),
+    );
+
+    return new GeneralResponseBuilder<any>()
+      .setData(alumnosPopulated)
+      .setMessage('Registros de alumnos encontrados')
+      .build();
+  }
+
+  async findEncargadosBySeccionAndDate(
+    seccionId: string,
+    fecha: string,
+  ): Promise<GeneralResponseDto<any>> {
+    const asistencia = await this.AsistenciaRepository.findOne({
+      where: { seccionId },
+    });
+
+    if (!asistencia) {
+      throw new NotFoundException(
+        `Asistencia para sección ${seccionId} no encontrada`,
+      );
+    }
+
+    // Validar y formatear fecha
+    const fechaBusqueda = new Date(fecha);
+    if (isNaN(fechaBusqueda.getTime())) {
+      throw new BadRequestException('Formato de fecha inválido');
+    }
+
+    // Filtrar encargados por fecha
+    const encargadosFiltrados = asistencia.encargados.filter(
+      (e) =>
+        e.fecha.toISOString().split('T')[0] ===
+        fechaBusqueda.toISOString().split('T')[0],
+    );
+
+    // Poblar datos de usuarios
+    const encargadosPopulated = await Promise.all(
+      encargadosFiltrados.map(async (encargado) => {
+        const userData = await this.userRepository.findOneBy({
+          _id: new ObjectId(encargado.userId),
+        });
+        return {
+          ...encargado,
+          nombre: userData?.nombre,
+          imagen: userData?.image,
+        };
+      }),
+    );
+
+    return new GeneralResponseBuilder<any>()
+      .setData(encargadosPopulated)
+      .setMessage('Registros de encargados encontrados')
+      .build();
+  }
+
   async findOne(id: string): Promise<GeneralResponseDto<any>> {
     const findAsistencia = await this.crudHelper.findByNameOrId(id);
     if (!findAsistencia) {
@@ -288,6 +382,8 @@ export class AsistenciaService {
       .setData(populatedAsistencia)
       .build();
   }
+
+  
 
   async findAsistenciaBySeccionId(
     seccionId: string,
