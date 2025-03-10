@@ -47,7 +47,7 @@ export default function CourseLayout({ children }: { children: React.ReactNode }
         <CourseNavbar tabs={tabs} currentTabId={currentTabId} />
 
         <main className="py-6">
-          <div className="sm:px-6 lg:px-8 md:mt-16 mt-36">{children}</div>
+          <div className="sm:px-6 lg:px-8 md:mt-16 mt-20">{children}</div>
         </main>
       </div>
     </CourseContext.Provider>
