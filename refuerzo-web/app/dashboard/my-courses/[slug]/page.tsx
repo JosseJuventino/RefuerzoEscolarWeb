@@ -146,9 +146,9 @@ export default function Tablon() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="relative group h-72 rounded-2xl bg-center shadow-2xl overflow-hidden mb-10 transition-all duration-300">
+      <div className="relative group h-40 md:h-72 rounded-2xl bg-center shadow-2xl overflow-hidden mb-2 md:mb-10 transition-all duration-300">
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover  bg-center"
           style={{ backgroundImage: `url(${course?.backgroundImage})` }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
@@ -162,16 +162,16 @@ export default function Tablon() {
             </RoleGuard>
 
             <div className="absolute bottom-8 left-8">
-              <h1 className="text-5xl font-bold text-white mb-2">{course?.nombre}</h1>
+              <h1 className="text-xl md:text-5xl font-bold text-white mb-2">{course?.nombre}</h1>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="pb-10">
-        <div className="flex items-center justify-between mb-10">
-          <h2 className="text-3xl font-bold text-blue_principal flex flex-col gap-1 relative">
-            <span className="relative z-10">Últimas publicaciones</span>
+      <div className="md:pb-10 pb-2">
+        <div className="flex items-center px-2 md:px-0 justify-between mb-2 md:mb-10">
+          <h2 className="md:text-3xl text-base font-bold text-blue_principal flex flex-col gap-1 relative">
+            <span className="relative z-10 mr-3">Últimas publicaciones</span>
             <span className="text-gray-500 text-sm">{course?.publicaciones?.length} publicaciones</span>
           </h2>
           <RoleGuard allowedRoles={[ROLES.ADMIN, ROLES.PROFESOR, ROLES.TUTOR]}>
@@ -196,13 +196,13 @@ export default function Tablon() {
                   className="p-6 flex items-start gap-5 cursor-pointer"
                   onClick={() => handleToggle(novedad._id)}
                 >
-                  <div className="p-3.5 rounded-xl bg-blue_principal/10 shadow-inner">
+                  <div className="sm:p-3.5 p-1 rounded-xl bg-blue_principal/10 shadow-inner">
                     {getIconByMessage(novedad.categoria)}
                   </div>
 
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-semibold text-gray-900">{novedad.titulo}</h3>
+                    <div className="flex  flex-col md:flex-row gap-0 md:gap-3 mb-2">
+                      <h3 className="md:text-xl text-sm font-semibold text-gray-900">{novedad.titulo}</h3>
                       <span className="text-sm text-gray-400 font-medium">
                         {formatRelativeTime(novedad.createdAt)}
                       </span>
@@ -253,20 +253,20 @@ export default function Tablon() {
                 </div>
 
                 {openId === novedad._id && (
-                  <div className="px-8 pb-6 pt-3 border-t border-gray-100/50">
+                  <div className="px-8 pb-6 border-t border-gray-100/50">
                     <div className="pl-16">
                       {novedad.files.length > 0 ? (
-                        <div className="flex flex-wrap gap-4 mt-5">
+                        <div className="flex flex-wrap gap-4 md:mt-5">
                           {novedad.files.map((file, index) => (
                             <a
                               key={index}
                               href={`${file.url}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-3 px-5 py-3 bg-blue_principal/5 hover:bg-blue_principal/10 transition-colors rounded-xl border border-blue_principal/20 group"
+                              className="flex items-center gap-3 px-4 md:px-5 py-1 md:py-3 bg-blue_principal/5 hover:bg-blue_principal/10 transition-colors rounded-xl border border-blue_principal/20 group"
                             >
                               <div className="p-2 bg-white rounded-lg shadow-sm">
-                                <FaRegFilePdf className="w-6 h-6 text-blue_principal" />
+                                <FaRegFilePdf className="md:w-6 md:h-6  text-blue_principal" />
                               </div>
                               <span className="text-sm font-medium text-gray-700 truncate max-w-xs group-hover:text-blue_principal transition-colors">
                                 {file.originalFileName}

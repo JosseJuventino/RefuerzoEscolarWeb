@@ -14,7 +14,7 @@ type CourseNavbarProps = {
 
 const CourseNavbar: React.FC<CourseNavbarProps> = ({ tabs, currentTabId }) => {
   return (
-    <nav className="bg-white shadow md:mt-0 fixed w-full z-10">
+    <nav className="bg-white py-2 sm:py-0 shadow md:mt-0 fixed w-full z-10">
       <div className="max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex">
@@ -26,7 +26,7 @@ const CourseNavbar: React.FC<CourseNavbarProps> = ({ tabs, currentTabId }) => {
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium mr-5 ${
                     tab.id === currentTabId
                       ? 'border-indigo-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                      : 'border-transparent py-1 md:py-0 text-gray-500 hover:border-gray-300 hover:text-gray-700'
                   }`}
                 >
                   {tab.name}
