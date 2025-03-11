@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   NotFoundException,
+  Request,
 } from '@nestjs/common';
 import { SeccionService } from '../service/seccion.service';
 import { CreateSeccionDto } from '../dto/create-seccion.dto';
@@ -34,6 +35,36 @@ export class SeccionController {
   @ApiBearerAuth()
   create(@Body() createSeccionDto: CreateSeccionDto) {
     return this.SeccionService.create(createSeccionDto);
+  }
+
+  @Scopes('view')
+  @ApiOperation({
+    summary: 'Get a Seccion by slug',
+    description: 'Get a Seccion by slug',
+  })
+  @ApiBearerAuth()
+  @Get('slug/:slug')
+  async findOneBySlug(@Param('slug') slug: string) {
+    const seccion = await this.SeccionService.findOneBySlug(slug);
+    if (!seccion) {
+      throw new NotFoundException(`Sección con slug "${slug}" no encontrada`);
+    }
+    return seccion;
+  }
+
+  @Scopes('view')
+  @Get('me')
+  @ApiOperation({
+    summary: 'Get all Seccions of the logged user',
+    description: 'Get all Seccions of the logged user',
+  })
+  @ApiBearerAuth()
+  findAllByRole(@Request() req, @Query() paginationQuery: PaginationQueryDto) {
+    return this.SeccionService.findAllByRole(
+      req.user.id,
+      req.user.role,
+      paginationQuery,
+    );
   }
 
   @Scopes('view')
@@ -67,21 +98,6 @@ export class SeccionController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSeccionDto: UpdateSeccionDto) {
     return this.SeccionService.update(id, updateSeccionDto);
-  }
-
-  @Scopes('view')
-  @ApiOperation({
-    summary: 'Get a Seccion by slug',
-    description: 'Get a Seccion by slug',
-  })
-  @ApiBearerAuth()
-  @Get('slug/:slug')
-  async findOneBySlug(@Param('slug') slug: string) {
-    const seccion = await this.SeccionService.findOneBySlug(slug);
-    if (!seccion) {
-      throw new NotFoundException(`Sección con slug "${slug}" no encontrada`);
-    }
-    return seccion;
   }
 
   @Scopes('view', 'edit')
