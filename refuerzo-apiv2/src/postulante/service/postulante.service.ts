@@ -210,6 +210,124 @@ export class PostulanteService {
       .build();
   }
 
+  async findAllByRecomendador(
+    recomendadorId: string,
+    paginationQuery: PaginationQueryDto,
+  ): Promise<PaginationResponseDto<any>> {
+    // Inicializa el filtro con el recomendadorId convertido a ObjectId
+    const filter: any = { recomendador: recomendadorId };
+
+    // Agregar filtros adicionales si existen
+    if (paginationQuery.filterBy && paginationQuery.filterValue) {
+      filter[paginationQuery.filterBy] = {
+        $regex: paginationQuery.filterValue,
+        $options: 'i', // Insensible a mayúsculas
+      };
+    }
+
+    // Determinar si se aplica paginación
+    const applyPagination =
+      paginationQuery.page !== undefined && paginationQuery.limit !== undefined;
+
+    let results: Postulante[];
+    let total: number;
+    let totalPages: number;
+
+    if (applyPagination) {
+      const queryOptions = {
+        skip: (paginationQuery.page - 1) * paginationQuery.limit,
+        take: paginationQuery.limit,
+        where: filter,
+        order:
+          paginationQuery.orderedBy && paginationQuery.sort
+            ? {
+                [paginationQuery.orderedBy]:
+                  paginationQuery.sort.toUpperCase() as 'ASC' | 'DESC',
+              }
+            : undefined,
+        withDeleted: paginationQuery.includeDeleted,
+      };
+
+      // Obtener los resultados con paginación
+      [results, total] =
+        await this.postulanteRepository.findAndCount(queryOptions);
+
+      totalPages = Math.ceil(total / paginationQuery.limit);
+
+      // Validar si la página solicitada existe
+      if (paginationQuery.page > totalPages && totalPages > 0) {
+        throw new BadRequestException(
+          `Page ${paginationQuery.page} does not exist. Total pages: ${totalPages}`,
+        );
+      }
+    } else {
+      // Si no hay paginación, obtener todos los registros
+      results = await this.postulanteRepository.find({
+        where: filter,
+        order:
+          paginationQuery.orderedBy && paginationQuery.sort
+            ? {
+                [paginationQuery.orderedBy]:
+                  paginationQuery.sort.toUpperCase() as 'ASC' | 'DESC',
+              }
+            : undefined,
+        withDeleted: paginationQuery.includeDeleted,
+      });
+
+      total = results.length;
+      totalPages = 1;
+    }
+
+    //Enriqueces los postulantes con la informacion del recomendador y grado
+    const postulantesWithRecomendador = await Promise.all(
+      results.map(async (postulante) => {
+        const recomendador = await this.userCrudHelper.findByNameOrId(
+          postulante.recomendador.toString(),
+          false,
+          false,
+        );
+
+        const grado = await this.gradoCrudHelper.findByNameOrId(
+          postulante.grado.toString(),
+          false,
+          false,
+        );
+
+        return {
+          _id: postulante._id,
+          nombre: postulante.nombre,
+          imagen: postulante.imagen,
+          direccion: postulante.direccion,
+          telefono: postulante.telefono,
+          telefonoEncargado: postulante.telefonoEncargado,
+          email: postulante.email,
+          grado: grado.nombre,
+          isUser: postulante.isUser,
+          recomendador: {
+            nombreCompleto: recomendador.nombre,
+            email: recomendador.email,
+            image: recomendador.image,
+          },
+
+          createdAt: postulante.createdAt,
+          updatedAt: postulante.updatedAt,
+        };
+      }),
+    );
+
+    // Construir la respuesta paginada
+    return new PaginationResponseBuilder()
+      .setMessage(
+        `Postulantes retrieved successfully. Total pages: ${totalPages}`,
+      )
+      .setData(postulantesWithRecomendador)
+      .setSize(total)
+      .setTotalPages(totalPages)
+      .setPage(applyPagination ? paginationQuery.page : 1)
+      .setLimit(applyPagination ? paginationQuery.limit : total) // Si no hay paginación, devolver todos los registros
+      .build();
+  }
+
   async findOne(
     id: string,
   ): Promise<GeneralResponseDto<PostulanteResponseDto>> {
@@ -280,6 +398,8 @@ export class PostulanteService {
       .setData(postulanteWithRecomendador)
       .build();
   }
+
+  //Traer los postulantes que haya recomendado un usuario en especifico
 
   async update(
     id: string,
