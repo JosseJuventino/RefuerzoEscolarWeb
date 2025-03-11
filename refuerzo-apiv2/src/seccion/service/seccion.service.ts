@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
 } from '@nestjs/common';
 import { CreateSeccionDto } from '../dto/create-seccion.dto';
@@ -24,12 +25,14 @@ import { InternalUpdateSeccionDto } from '../dto/Internal-update-seccion.dto';
 import { User } from 'src/users/entities/user.entity';
 import { Alumno } from 'src/alumno/entities/alumno.entity';
 import { AsistenciaService } from 'src/asistencia/service/asistencia.service';
+import { Role } from 'src/roles/entities/role.entity';
 
 @Injectable()
 export class SeccionService {
   private readonly crudHelper: CrudHelper<Seccion>;
   private readonly userCrudHelper: CrudHelper<User>;
   private readonly alumnoCrudHelper: CrudHelper<Alumno>;
+  private readonly roleCrudHelper: CrudHelper<Role>;
 
   constructor(
     @InjectRepository(Seccion)
@@ -44,6 +47,8 @@ export class SeccionService {
     @InjectRepository(Alumno)
     private readonly alumnoRepository: Repository<Alumno>,
     private readonly asistenciaService: AsistenciaService,
+    @InjectRepository(Role)
+    private readonly RoleRepository: Repository<Role>,
   ) {
     this.crudHelper = new CrudHelper<Seccion>(
       this.SeccionRepository,
@@ -54,6 +59,7 @@ export class SeccionService {
       this.alumnoRepository,
       'Alumnos',
     );
+    this.roleCrudHelper = new CrudHelper<Role>(this.RoleRepository, 'Role');
   }
 
   private generateSlug(name: string): string {
@@ -128,6 +134,126 @@ export class SeccionService {
     paginationQuery: PaginationQueryDto,
   ): Promise<PaginationResponseDto<any>> {
     const filter: any = {};
+    if (paginationQuery.filterBy && paginationQuery.filterValue) {
+      filter[paginationQuery.filterBy] = {
+        $regex: paginationQuery.filterValue,
+        $options: 'i', // Insensible a mayúsculas
+      };
+    }
+
+    const applyPagination =
+      paginationQuery.page !== undefined && paginationQuery.limit !== undefined;
+
+    let results: Seccion[];
+    let total: number;
+    let totalPages: number;
+
+    if (applyPagination) {
+      const queryOptions = {
+        skip: (paginationQuery.page - 1) * paginationQuery.limit,
+        take: paginationQuery.limit,
+        where: filter,
+        order:
+          paginationQuery.orderedBy && paginationQuery.sort
+            ? {
+                [paginationQuery.orderedBy]:
+                  paginationQuery.sort.toUpperCase() as 'ASC' | 'DESC',
+              }
+            : undefined,
+        withDeleted: paginationQuery.includeDeleted,
+      };
+
+      [results, total] =
+        await this.SeccionRepository.findAndCount(queryOptions);
+
+      totalPages = Math.ceil(total / paginationQuery.limit);
+
+      if (paginationQuery.page > totalPages && totalPages > 0) {
+        throw new BadRequestException(
+          `Page ${paginationQuery.page} does not exist. Total pages: ${totalPages}`,
+        );
+      }
+    } else {
+      results = await this.SeccionRepository.find({
+        where: filter,
+        order:
+          paginationQuery.orderedBy && paginationQuery.sort
+            ? {
+                [paginationQuery.orderedBy]:
+                  paginationQuery.sort.toUpperCase() as 'ASC' | 'DESC',
+              }
+            : undefined,
+        withDeleted: paginationQuery.includeDeleted,
+      });
+
+      total = results.length;
+      totalPages = 1;
+    }
+
+    const seccionWithEncargados = await Promise.all(
+      results.map(async (seccion) => {
+        let encargados = [];
+        if (seccion.encargados && seccion.encargados.length > 0) {
+          encargados = await Promise.all(
+            seccion.encargados.map(async (encargadoId) => {
+              const encargado = await this.userCrudHelper.findByNameOrId(
+                encargadoId.toString(),
+                false,
+                false,
+              );
+              return encargado
+                ? {
+                    _id: encargado._id,
+                    nombre: encargado.nombre,
+                    image: encargado.image,
+                    email: encargado.email,
+                    telefono: encargado.telefono,
+                  }
+                : null;
+            }),
+          );
+        }
+
+        const grado = await this.GradoRepository.findOne({
+          where: { _id: new ObjectId(seccion.gradoId) },
+        });
+
+        return {
+          _id: seccion._id,
+          nombre: seccion.nombre,
+          gradoId: grado.nombre,
+          backgroundImage: seccion.backgroundImage,
+          encargados: encargados.filter((encargado) => encargado !== null), // Filtra cualquier encargado nulo
+          slug: seccion.slug,
+        };
+      }),
+    );
+
+    return new PaginationResponseBuilder()
+      .setMessage(`Seccions retrieved successfully. Total pages: ${totalPages}`)
+      .setData(seccionWithEncargados)
+      .setSize(total)
+      .setTotalPages(totalPages)
+      .setPage(applyPagination ? paginationQuery.page : 1)
+      .setLimit(applyPagination ? paginationQuery.limit : total)
+      .build();
+  }
+
+  async findAllByRole(
+    userId: string,
+    roleId: string,
+    paginationQuery: PaginationQueryDto,
+  ): Promise<PaginationResponseDto<any>> {
+    let filter: any = {};
+
+    const role = this.roleCrudHelper.findByNameOrId(roleId, false, false);
+
+    if ((await role).name == 'alumno') {
+      filter = { alumnos: userId };
+    } else {
+      filter = { encargados: userId };
+    }
+
     if (paginationQuery.filterBy && paginationQuery.filterValue) {
       filter[paginationQuery.filterBy] = {
         $regex: paginationQuery.filterValue,

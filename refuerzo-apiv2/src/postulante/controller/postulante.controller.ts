@@ -42,6 +42,17 @@ export class PostulanteController {
   }
 
   @Scopes('view')
+  @Get('me')
+  @ApiOperation({
+    summary: 'Get all postulantes',
+    description: 'Get all postulantes',
+  })
+  @ApiBearerAuth()
+  findAllByRecomendador(@Request() req,@Query() paginationQuery: PaginationQueryDto) {
+    return this.postulanteService.findAllByRecomendador(req.user.id, paginationQuery);
+  }
+
+  @Scopes('view')
   @Get()
   @ApiOperation({
     summary: 'Get all postulantes',
