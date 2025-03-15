@@ -31,10 +31,6 @@ export const updateAsistenciaOfAlumno = async (asistencia: Partial<Asistencia>):
     return response.data;
 }
 
-export const updateAsistenciaById = async (asistencia: Partial<Asistencia>): Promise<Asistencia> => {
-    const response = await api.patch<Asistencia>(`/asistencia/${asistencia._id}`, asistencia);
-    return response.data;
-}
 
 export const addAlumnoAsistenciaBySectionId = async (asistencia: Partial<Asistencia>): Promise<Asistencia> => {
     const response = await api.patch<Asistencia>('/asistencia/alumno/', asistencia);
@@ -43,5 +39,17 @@ export const addAlumnoAsistenciaBySectionId = async (asistencia: Partial<Asisten
 
 export const addEncargadoAsistenciaBySectionId = async (asistencia: Partial<Asistencia>): Promise<Asistencia> => {
     const response = await api.patch<Asistencia>('/asistencia/encargado/', asistencia);
+    return response.data;
+}
+
+export const getAsistenciaByCourseId = async (slug: string | undefined): Promise<Asistencia> => {
+    const response = await api.get<AsistenciaResponse>(`/asistencia/seccion/${slug}`);
+    const data = response.data.data;
+    return Array.isArray(data) ? data[0] : data;
+} 
+
+
+export const updateAsistenciaById = async (asistencia: Partial<Asistencia>): Promise<Asistencia> => {
+    const response = await api.patch<Asistencia>(`/asistencia/${asistencia._id}`, asistencia);
     return response.data;
 }

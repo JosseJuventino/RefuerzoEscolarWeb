@@ -150,7 +150,7 @@ export const ImageSelector = ({ initialPreview, onImageChange }: ImageSelectorPr
                 <div className="relative mt-2 flex flex-row justify-start gap-5 items-center">
                     <div className="group relative rounded-md overflow-hidden border">
                         <img
-                            src={preview}
+                            src={initialPreview !== "" ? initialPreview : preview}
                             alt="Vista previa"
                             className="h-10 w-10 object-cover"
                         />
