@@ -15,7 +15,7 @@ import { CourseContext } from '@/app/contexts/course-context';
 export default function CourseLayout({ children }: { children: React.ReactNode }) {
 
   const { slug } = useParams();
-  
+
   const pathname = usePathname();
 
   const {
@@ -27,6 +27,8 @@ export default function CourseLayout({ children }: { children: React.ReactNode }
     queryKey: ['course', slug],
     queryFn: () => getCourseBySlug(slug as string),
   });
+
+ 
 
   const tabs = [
     { id: 1, name: 'Tablón', href: `/dashboard/my-courses/${slug}` },
