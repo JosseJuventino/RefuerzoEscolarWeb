@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { AsistenciaService } from '../service/asistencia.service';
 import { CreateAsistenciaDto } from '../dto/create-asistencia.dto';
@@ -100,6 +101,44 @@ export class AsistenciaController {
     return this.AsistenciaService.findEncargadosBySeccionAndDate(
       seccionId,
       date,
+    );
+  }
+
+  @Scopes('view')
+  @ApiOperation({
+    summary: 'Get a encargados register by month and year',
+    description: 'Get a encargados register by month and year',
+  })
+  @ApiBearerAuth()
+  @Get('seccion/:id/encargados-agrupados')
+  getEncargadosGroupedByDate(
+    @Param('id') seccionId: string,
+    @Query('month') month: number,
+    @Query('year') year: number,
+  ) {
+    return this.AsistenciaService.getEncargadosGroupedByDate(
+      seccionId,
+      month,
+      year,
+    );
+  }
+
+  @Scopes('view')
+  @ApiOperation({
+    summary: 'Get an alumnos register by month and year',
+    description: 'Get an alumnos register by month and year',
+  })
+  @ApiBearerAuth()
+  @Get('seccion/:id/alumnos-agrupados')
+  getAlumnosGroupedByDate(
+    @Param('id') seccionId: string,
+    @Query('month', new ParseIntPipe()) month: number,
+    @Query('year', new ParseIntPipe()) year: number,
+  ) {
+    return this.AsistenciaService.getAlumnosGroupedByDate(
+      seccionId,
+      month,
+      year,
     );
   }
 

@@ -1,35 +1,43 @@
 "use client";
-import React, { useContext, useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 import { CourseContext } from "@/app/contexts/course-context";
 import Image from "next/image";
 import { CircleUser, Check, X, TriangleAlert } from "lucide-react";
 import type { Asistencia } from "@/types/types";
-import { getAsistenciaByCourseId, updateAsistenciaById } from "@/services/asistencia.service";
+import {
+  getAsistenciaByCourseId,
+  updateAsistenciaById,
+} from "@/services/asistencia.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { capitalize } from "@/utils/utils";
 import { toast } from "@pheralb/toast";
 import { useWarnIfUnsavedChanges } from "@/hooks/useWarnUnsavedChanges";
 
+type EstadoAsistencia = "asistió" | "falto" | "permiso";
 
-type EstadoAsistencia = 'asistió' | 'falto' | 'permiso';
-
-const getCurrentDateString = () => new Date().toISOString().split('T')[0];
+const getCurrentDateString = () => new Date().toISOString().split("T")[0];
 
 export default function Asistencia() {
   const course = useContext(CourseContext);
   const queryClient = useQueryClient();
 
   const [localAsistencia, setLocalAsistencia] = useState<Asistencia>({
-    _id: '',
-    seccionId: course?._id || '',
+    _id: "",
+    seccionId: course?._id || "",
     alumnos: [],
-    encargados: []
+    encargados: [],
   });
 
   const { data: asistenciaResponse } = useQuery<Asistencia>({
-    queryKey: ['asistencia', course?._id],
+    queryKey: ["asistencia", course?._id],
     queryFn: () => getAsistenciaByCourseId(course?._id as string),
-    enabled: !!course?._id
+    enabled: !!course?._id,
   });
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -41,7 +49,7 @@ export default function Asistencia() {
     mutationFn: updateAsistenciaById,
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['asistencia', course?._id],
+        queryKey: ["asistencia", course?._id],
       });
     },
   });
@@ -50,9 +58,11 @@ export default function Asistencia() {
     if (asistenciaResponse) {
       const todayAsistencias = {
         ...asistenciaResponse,
-        alumnos: asistenciaResponse.alumnos.filter((alumno: { fecha: string }) =>
-          new Date(alumno.fecha).toISOString().split('T')[0] === getCurrentDateString()
-        )
+        alumnos: asistenciaResponse.alumnos.filter(
+          (alumno: { fecha: string }) =>
+            new Date(alumno.fecha).toISOString().split("T")[0] ===
+            getCurrentDateString()
+        ),
       };
 
       setLocalAsistencia(todayAsistencias);
@@ -60,54 +70,64 @@ export default function Asistencia() {
     }
   }, [asistenciaResponse]); 
 
-
   useEffect(() => {
-    const hasChanges = JSON.stringify(localAsistencia.alumnos) !== JSON.stringify(initialAlumnosRef.current);
+    const hasChanges =
+      JSON.stringify(localAsistencia.alumnos) !==
+      JSON.stringify(initialAlumnosRef.current);
     setHasUnsavedChanges(hasChanges);
   }, [localAsistencia.alumnos]);
 
-  const handleEstadoAsistencia = useCallback((alumnoId: string, estado: EstadoAsistencia) => {
-    setLocalAsistencia(prev => {
-      const alumno = course?.alumnos.find(a => a._id === alumnoId);
-      if (!alumno) return prev;
+  const handleEstadoAsistencia = useCallback(
+    (alumnoId: string, estado: EstadoAsistencia) => {
+      setLocalAsistencia((prev) => {
+        const alumno = course?.alumnos.find((a) => a._id === alumnoId);
+        if (!alumno) return prev;
 
-      const existingIndex = prev.alumnos.findIndex(a => a.alumnoId === alumnoId);
-      const newAsistencia = {
-        alumnoId: alumno._id,
-        fecha: new Date().toISOString(),
-        estado,
-        nombre: alumno.nombre,
-        imagen: alumno.image
-      };
+        const existingIndex = prev.alumnos.findIndex(
+          (a) => a.alumnoId === alumnoId
+        );
+        const newAsistencia = {
+          alumnoId: alumno._id,
+          fecha: new Date().toISOString(),
+          estado,
+          nombre: alumno.nombre,
+          imagen: alumno.image,
+        };
 
-      const updatedAlumnos = [...prev.alumnos];
+        const updatedAlumnos = [...prev.alumnos];
 
-      if (existingIndex === -1) {
-        updatedAlumnos.push(newAsistencia);
-      } else {
-        updatedAlumnos[existingIndex] = newAsistencia;
-      }
+        if (existingIndex === -1) {
+          updatedAlumnos.push(newAsistencia);
+        } else {
+          updatedAlumnos[existingIndex] = newAsistencia;
+        }
 
-      return {
-        ...prev,
-        alumnos: updatedAlumnos
-      };
-    });
-  }, [course]);
+        return {
+          ...prev,
+          alumnos: updatedAlumnos,
+        };
+      });
+    },
+    [course]
+  );
 
   const getEstadoColor = (estado: string) => {
     switch (estado) {
-      case 'asistió': return 'bg-green-100 text-green-800';
-      case 'falto': return 'bg-red-100 text-red-800';
-      case 'permiso': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "asistió":
+        return "bg-green-100 text-green-800";
+      case "falto":
+        return "bg-red-100 text-red-800";
+      case "permiso":
+        return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   const handleGuardar = () => {
     const payload: Asistencia = {
       ...localAsistencia,
-      seccionId: course?._id || ''
+      seccionId: course?._id || "",
     };
 
     const finalPromise = updateAsistenciaByIdMutation.mutateAsync(payload);
@@ -120,16 +140,15 @@ export default function Asistencia() {
         error: "Error al guardar la asistencia 😢",
         autoDismiss: true,
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ['asistencia'] });
+          queryClient.invalidateQueries({ queryKey: ["asistencia"] });
           initialAlumnosRef.current = localAsistencia.alumnos;
           setHasUnsavedChanges(false);
         },
         onError: (error) => {
           console.error("Detalles del error:", error);
-        }
-      }
+        },
+      },
     });
-
   };
 
   if (!course) return <div>Seleccione un curso primero</div>;
@@ -137,32 +156,36 @@ export default function Asistencia() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center mb-8">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl text-blue_principal font-bold">
-            Registro de Asistencia
-          </h1>
+        <div className="flex flex-col w-full gap-2">
+          <div className="flex justify-between gap-4">
+            <h1 className="sm:text-2xl text-base text-blue_principal font-bold">
+              Registro de Asistencia
+            </h1>
+            <button
+              onClick={handleGuardar}
+              className="bg-blue_principal text-white sm:px-6 sm:py-0 px-2 py-0 rounded-lg transition-colors disabled:bg-gray-300"
+              disabled={!hasUnsavedChanges}
+            >
+              Guardar Asistencias
+            </button>
+          </div>
           {new Date().getDay() === 0 && (
             <p className="text-red-600 text-sm">
               Hoy es domingo, no hay clases
             </p>
           )}
         </div>
-        <button
-          onClick={handleGuardar}
-          className="bg-blue_principal text-white px-6 py-2 rounded-lg transition-colors disabled:bg-gray-300"
-          disabled={!hasUnsavedChanges}
-        >
-          Guardar Asistencias
-        </button>
       </div>
 
       <div className="space-y-4">
-        {course.alumnos.map(alumno => {
-          const asistencia = localAsistencia.alumnos.find(a => a.alumnoId === alumno._id);
+        {course.alumnos.map((alumno) => {
+          const asistencia = localAsistencia.alumnos.find(
+            (a) => a.alumnoId === alumno._id
+          );
           return (
             <div
               key={alumno._id}
-              className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-100"
+              className="flex sm:flex-row flex-col  items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-100"
             >
               <div className="flex flex-row items-center gap-4 flex-1">
                 {alumno.image ? (
@@ -172,7 +195,6 @@ export default function Asistencia() {
                     width={48}
                     height={48}
                     className="w-12 h-12 rounded-full object-cover"
-
                   />
                 ) : (
                   <div className="p-2 rounded-full bg-gray-100">
@@ -180,38 +202,59 @@ export default function Asistencia() {
                   </div>
                 )}
                 <div className="flex flex-row justify-end items-end gap-2">
-                  <div>
+                  <div className="max-w-[150px] sm:max-w-[200px]">
+                    {" "}
                     <p className="font-medium text-gray-900">{alumno.nombre}</p>
-                    <p className="text-sm text-gray-500">{alumno.email}</p>
+                    <p className="text-sm text-gray-500 truncate">
+                      {alumno.email}
+                    </p>{" "}
                   </div>
                   {asistencia ? (
-                    <span className={`inline-block mt-1 px-2 py-1 rounded text-sm ${getEstadoColor(asistencia.estado)}`}>
+                    <span
+                      className={`inline-block mt-1 px-2 py-1 rounded text-sm ${getEstadoColor(
+                        asistencia.estado
+                      )}`}
+                    >
                       {capitalize(asistencia.estado)}
                     </span>
-                  ) :
-                    <span className={`inline-block mt-1 px-2 py-1 rounded text-sm bg-gray-100 text-gray-800`}>
+                  ) : (
+                    <span
+                      className={`inline-block mt-1 px-2 py-1 rounded text-center text-sm bg-gray-100 text-gray-800`}
+                    >
                       No registrado
                     </span>
-                  }
+                  )}
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 sm:mt-0 mt-3">
                 <button
-                  onClick={() => handleEstadoAsistencia(alumno._id, 'asistió')}
-                  className={`px-3 py-2 rounded-lg ${asistencia?.estado === 'asistió' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-600'} hover:bg-green-200 transition-colors`}
+                  onClick={() => handleEstadoAsistencia(alumno._id, "asistió")}
+                  className={`px-3 py-2 rounded-lg ${
+                    asistencia?.estado === "asistió"
+                      ? "bg-green-600 text-white"
+                      : "bg-green-100 text-green-600"
+                  } hover:bg-green-200 transition-colors`}
                 >
                   <Check size={20} />
                 </button>
                 <button
-                  onClick={() => handleEstadoAsistencia(alumno._id, 'falto')}
-                  className={`px-3 py-2 rounded-lg ${asistencia?.estado === 'falto' ? 'bg-red-600 text-white' : 'bg-red-100 text-red-600'} hover:bg-red-200 transition-colors`}
+                  onClick={() => handleEstadoAsistencia(alumno._id, "falto")}
+                  className={`px-3 py-2 rounded-lg ${
+                    asistencia?.estado === "falto"
+                      ? "bg-red-600 text-white"
+                      : "bg-red-100 text-red-600"
+                  } hover:bg-red-200 transition-colors`}
                 >
                   <X size={20} />
                 </button>
                 <button
-                  onClick={() => handleEstadoAsistencia(alumno._id, 'permiso')}
-                  className={`px-3 py-2 rounded-lg ${asistencia?.estado === 'permiso' ? 'bg-yellow-600 text-white' : 'bg-yellow-100 text-yellow-600'} hover:bg-yellow-200 transition-colors`}
+                  onClick={() => handleEstadoAsistencia(alumno._id, "permiso")}
+                  className={`px-3 py-2 rounded-lg ${
+                    asistencia?.estado === "permiso"
+                      ? "bg-yellow-600 text-white"
+                      : "bg-yellow-100 text-yellow-600"
+                  } hover:bg-yellow-200 transition-colors`}
                 >
                   <TriangleAlert size={20} />
                 </button>
@@ -220,7 +263,6 @@ export default function Asistencia() {
           );
         })}
       </div>
-
     </div>
   );
 }

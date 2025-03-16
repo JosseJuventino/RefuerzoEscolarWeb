@@ -263,12 +263,14 @@ export class AsistenciaService {
       throw new BadRequestException('Formato de fecha inválido');
     }
 
-    // Filtrar alumnos por fecha
-    const alumnosFiltrados = asistencia.alumnos.filter(
-      (a) =>
-        a.fecha.toISOString().split('T')[0] ===
-        fechaBusqueda.toISOString().split('T')[0],
-    );
+    const alumnosFiltrados = (asistencia.alumnos || []).filter((a) => {
+      if (!a.fecha) return false; // Verificar si existe
+      const fechaAlumno = new Date(a.fecha); // Convertir a Date
+      return (
+        fechaAlumno.toISOString().split('T')[0] ===
+        fechaBusqueda.toISOString().split('T')[0]
+      );
+    });
 
     // Poblar datos de alumnos
     const alumnosPopulated = await Promise.all(
@@ -294,6 +296,11 @@ export class AsistenciaService {
     seccionId: string,
     fecha: string,
   ): Promise<GeneralResponseDto<any>> {
+    // En el servicio, antes de buscar la asistencia:
+    if (!ObjectId.isValid(seccionId)) {
+      throw new BadRequestException(`ID de sección inválido: ${seccionId}`);
+    }
+
     const asistencia = await this.AsistenciaRepository.findOne({
       where: { seccionId },
     });
@@ -306,16 +313,19 @@ export class AsistenciaService {
 
     // Validar y formatear fecha
     const fechaBusqueda = new Date(fecha);
+
     if (isNaN(fechaBusqueda.getTime())) {
       throw new BadRequestException('Formato de fecha inválido');
     }
 
-    // Filtrar encargados por fecha
-    const encargadosFiltrados = asistencia.encargados.filter(
-      (e) =>
-        e.fecha.toISOString().split('T')[0] ===
-        fechaBusqueda.toISOString().split('T')[0],
-    );
+    const encargadosFiltrados = (asistencia.encargados || []).filter((e) => {
+      if (!e.fecha) return false; // Verificar si existe
+      const fechaEncargado = new Date(e.fecha); // Convertir a Date
+      return (
+        fechaEncargado.toISOString().split('T')[0] ===
+        fechaBusqueda.toISOString().split('T')[0]
+      );
+    });
 
     // Poblar datos de usuarios
     const encargadosPopulated = await Promise.all(
@@ -334,6 +344,171 @@ export class AsistenciaService {
     return new GeneralResponseBuilder<any>()
       .setData(encargadosPopulated)
       .setMessage('Registros de encargados encontrados')
+      .build();
+  }
+
+  async getEncargadosGroupedByDate(
+    seccionId: string,
+    month: number,
+    year: number,
+  ): Promise<GeneralResponseDto<any>> {
+    this.validateMonthYear(month, year);
+
+    const asistencia = await this.getValidAsistencia(seccionId);
+    const { startDate, endDate } = this.createMonthRange(month, year);
+
+    const encargadosFiltrados = this.filterByDateRange(
+      asistencia.encargados,
+      startDate,
+      endDate,
+    );
+
+    const grouped = this.groupByDate(encargadosFiltrados);
+    const populatedGrouped = await this.populateEncargados(grouped);
+
+    return this.buildSuccessResponse(
+      populatedGrouped,
+      'Encargados agrupados por fecha obtenidos exitosamente',
+    );
+  }
+
+  async getAlumnosGroupedByDate(
+    seccionId: string,
+    month: number,
+    year: number,
+  ): Promise<GeneralResponseDto<any>> {
+    this.validateMonthYear(month, year);
+
+    const asistencia = await this.getValidAsistencia(seccionId);
+    const { startDate, endDate } = this.createMonthRange(month, year);
+
+    const alumnosFiltrados = this.filterByDateRange(
+      asistencia.alumnos,
+      startDate,
+      endDate,
+    );
+
+    const grouped = this.groupByDate(alumnosFiltrados);
+    const populatedGrouped = await this.populateAlumnos(grouped);
+
+    return this.buildSuccessResponse(
+      populatedGrouped,
+      'Alumnos agrupados por fecha obtenidos exitosamente',
+    );
+  }
+
+  private validateMonthYear(month: number, year: number): void {
+    if (month < 1 || month > 12) {
+      throw new BadRequestException('El mes debe estar entre 1 y 12');
+    }
+    if (year < 1900 || year > new Date().getFullYear() + 1) {
+      throw new BadRequestException('Año inválido');
+    }
+  }
+
+  private async getValidAsistencia(seccionId: string): Promise<Asistencia> {
+    const asistencia = await this.AsistenciaRepository.findOne({
+      where: { seccionId },
+    });
+
+    if (!asistencia) {
+      throw new NotFoundException(
+        `Asistencia para sección ${seccionId} no encontrada`,
+      );
+    }
+    return asistencia;
+  }
+
+  private createMonthRange(month: number, year: number) {
+    return {
+      startDate: new Date(year, month - 1, 1),
+      endDate: new Date(year, month, 1),
+    };
+  }
+
+  private filterByDateRange(registros: any[], startDate: Date, endDate: Date) {
+    return (registros || []).filter((registro) => {
+      try {
+        const fecha = new Date(registro.fecha);
+        if (isNaN(fecha.getTime())) {
+          console.warn(`Fecha inválida en registro: ${registro.fecha}`);
+          return false; // Descarta registros con fechas inválidas
+        }
+        return fecha >= startDate && fecha < endDate;
+      } catch (error) {
+        return false;
+      }
+    });
+  }
+
+  private groupByDate(registros: any[]): { [key: string]: any[] } {
+    return registros.reduce((acc, registro) => {
+      try {
+        // Convertir a Date si es necesario
+        const fecha = new Date(registro.fecha);
+
+        if (isNaN(fecha.getTime())) {
+          console.error(`Fecha inválida: ${registro.fecha}`);
+          return acc; // Saltar registro inválido
+        }
+
+        const dateKey = fecha.toISOString().split('T')[0];
+        acc[dateKey] = acc[dateKey] || [];
+        acc[dateKey].push(registro);
+        return acc;
+      } catch (error) {
+        console.error(`Error procesando fecha: ${registro.fecha}`, error);
+        return acc;
+      }
+    }, {});
+  }
+
+  private async populateEncargados(grouped: {
+    [key: string]: any[];
+  }): Promise<any> {
+    const populated: any = {};
+    for (const [date, encargados] of Object.entries(grouped)) {
+      populated[date] = await Promise.all(
+        encargados.map(async (e) => {
+          const user = await this.userRepository.findOneBy({
+            _id: new ObjectId(e.userId),
+          });
+          return {
+            ...e,
+            nombre: user?.nombre || 'No encontrado',
+            imagen: user?.image || null,
+          };
+        }),
+      );
+    }
+    return populated;
+  }
+
+  private async populateAlumnos(grouped: {
+    [key: string]: any[];
+  }): Promise<any> {
+    const populated: any = {};
+    for (const [date, alumnos] of Object.entries(grouped)) {
+      populated[date] = await Promise.all(
+        alumnos.map(async (a) => {
+          const alumno = await this.alumnoRepository.findOneBy({
+            _id: new ObjectId(a.alumnoId),
+          });
+          return {
+            ...a,
+            nombre: alumno?.nombre || 'No encontrado',
+            imagen: alumno?.image || null,
+          };
+        }),
+      );
+    }
+    return populated;
+  }
+
+  private buildSuccessResponse(data: any, message: string) {
+    return new GeneralResponseBuilder<any>()
+      .setData(data)
+      .setMessage(message)
       .build();
   }
 
@@ -382,8 +557,6 @@ export class AsistenciaService {
       .setData(populatedAsistencia)
       .build();
   }
-
-  
 
   async findAsistenciaBySeccionId(
     seccionId: string,
