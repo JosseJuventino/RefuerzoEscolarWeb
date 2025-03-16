@@ -58,7 +58,7 @@ export default function Asistencia() {
       setLocalAsistencia(todayAsistencias);
       initialAlumnosRef.current = todayAsistencias.alumnos;
     }
-  }, [asistenciaResponse]);
+  }, [asistenciaResponse]); 
 
 
   useEffect(() => {
