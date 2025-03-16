@@ -363,7 +363,7 @@ export interface Asistencia {
   _id: string;
   seccionId: string;
   alumnos: {
-    id: string;
+    id?: string;
     alumnoId: string;
     fecha: string;
     estado: string;
@@ -371,7 +371,7 @@ export interface Asistencia {
     imagen: string;
   }[];
   encargados: {
-    id: string;
+    id?: string;
     userId: string;
     fecha: string;
     estado: string;

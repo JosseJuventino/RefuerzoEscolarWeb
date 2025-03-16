@@ -2,11 +2,11 @@ import { UseFormRegister, UseFormTrigger, Path, FieldValues, RegisterOptions } f
 
 interface InputFieldProps<T extends FieldValues> {
   label: string;
-  id: Path<T>; // Usa Path<T> en lugar de string
+  id: Path<T>; 
   type?: string;
   placeholder?: string;
   register: UseFormRegister<T>;
-  validation?: RegisterOptions<T, Path<T>>; // Validación específica para el campo
+  validation?: RegisterOptions<T, Path<T>>; 
   error?: string;
   trigger: UseFormTrigger<T>;
 }
