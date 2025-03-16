@@ -3,7 +3,7 @@ import { AuthDto } from './dto/auth.dto';
 import { CrudHelper } from 'src/common/helper/crud.helper';
 import { User } from 'src/users/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, LessThanOrEqual } from 'typeorm';
 import { GeneralResponseDto } from 'src/common/dto/general-response.dto';
 import { auth } from './entities/auth.entity';
 import { GeneralResponseBuilder } from 'src/common/helper/general-response.helper';
@@ -16,7 +16,7 @@ import { PermisionOptions, Role } from 'src/roles/entities/role.entity';
 import { LoginAudit } from './entities/loginAudith.entity';
 import { GeoLocationService } from './geolocation.service';
 import { UAParser } from 'ua-parser-js';
-import { ObjectId } from 'typeorm';
+import { MongoRepository } from 'typeorm'; // Importa MongoRepository
 
 @Injectable()
 export class AuthService {
@@ -25,7 +25,7 @@ export class AuthService {
   private readonly rolecrudHelper: CrudHelper<Role>;
   constructor(
     @InjectRepository(LoginAudit)
-    private readonly loginAuditRepository: Repository<LoginAudit>,
+    private readonly loginAuditRepository: MongoRepository<LoginAudit>,
     private readonly geoLocationService: GeoLocationService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -107,27 +107,22 @@ export class AuthService {
     const newToken = this.tokensRepository.create(tokenData);
     await this.authcrudHelper.create(newToken);
 
-    console.log('Llegue a crear el token');
-
     const location = this.geoLocationService.getLocation(ipAddress);
-    console.log('Llegue a obtener la ubicacion');
     const parser = new UAParser(userAgent);
     const result = parser.getResult();
     const device = result.device.type || 'Desktop';
     const browser = result.browser.name || 'Unknown';
 
-    console.log(
-      'Llegue a obtener el dispositivo y el navegador y empiezo proceso de loggeo',
-    );
-    await this.logLoginAttempt(
+    this.logLoginAttempt(
       user._id.toString(),
       user.email,
       device,
       browser,
       location.country,
-    );
+    ).catch((error) => {
+      console.error('Error en auditoría:', error);
+    });
 
-    console.log('Llegue a finalizar el proceso de loggeo');
 
     return (
       new GeneralResponseBuilder<auth>()
@@ -146,27 +141,38 @@ export class AuthService {
     browser: string,
     country: string,
   ): Promise<void> {
-    const newLog = this.loginAuditRepository.create({
-      userId,
-      email,
-      device,
-      browser,
-      country,
-    });
+    try {
+      // 1. Insertar nuevo registro
+      await this.loginAuditRepository.insert({
+        userId,
+        email,
+        device,
+        browser,
+        country,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
-    await this.loginAuditRepository.save(newLog);
+      // 2. Buscar el 4to registro más antiguo
+      const fourthLog = await this.loginAuditRepository.find({
+        where: { userId },
+        order: { createdAt: -1 }, // Ordena de más reciente a más antiguo
+        skip: 3,
+        take: 1,
+      });
 
-    const userLogs = await this.loginAuditRepository.find({
-      where: { userId },
-      order: { createdAt: 'DESC' },
-    });
+      // 3. Eliminar registros antiguos (si existen)
+      if (fourthLog.length > 0) {
+        const cutoffDate = fourthLog[0].createdAt;
 
-    if (userLogs.length > 3) {
-      const logsToDelete = userLogs.slice(3);
-      for (const log of logsToDelete) {
-        log.expired = true;
-        await this.loginAuditRepository.save(log);
+        // Usar operadores de MongoDB directamente
+        await this.loginAuditRepository.deleteMany({
+          userId,
+          createdAt: { $lte: cutoffDate }, 
+        });
       }
+    } catch (error) {
+      console.error('Error en logLoginAttempt:', error);
     }
   }
 
