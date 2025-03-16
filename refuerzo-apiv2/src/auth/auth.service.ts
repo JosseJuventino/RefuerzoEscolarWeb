@@ -107,12 +107,18 @@ export class AuthService {
     const newToken = this.tokensRepository.create(tokenData);
     await this.authcrudHelper.create(newToken);
 
+    console.log('Llegue a crear el token');
+
     const location = this.geoLocationService.getLocation(ipAddress);
+    console.log('Llegue a obtener la ubicacion');
     const parser = new UAParser(userAgent);
     const result = parser.getResult();
     const device = result.device.type || 'Desktop';
     const browser = result.browser.name || 'Unknown';
 
+    console.log(
+      'Llegue a obtener el dispositivo y el navegador y empiezo proceso de loggeo',
+    );
     await this.logLoginAttempt(
       user._id.toString(),
       user.email,
@@ -120,6 +126,8 @@ export class AuthService {
       browser,
       location.country,
     );
+
+    console.log('Llegue a finalizar el proceso de loggeo');
 
     return (
       new GeneralResponseBuilder<auth>()
