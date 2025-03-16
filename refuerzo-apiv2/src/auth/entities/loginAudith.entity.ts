@@ -11,7 +11,6 @@ import { ObjectId } from 'mongodb';
 
 @Entity('login_audit')
 export class LoginAudit {
-
   @ObjectIdColumn()
   _id: ObjectId;
 
@@ -30,10 +29,10 @@ export class LoginAudit {
   @Column({ nullable: true })
   country: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 
   @Column({ default: false })
