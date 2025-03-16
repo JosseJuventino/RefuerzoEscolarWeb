@@ -32,3 +32,20 @@ h2 {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+.scrollbar-thin::-webkit-scrollbar {
+  height: 4px; 
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #d7d7d7;
+  border-radius: 2px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #d7d7d7;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #FFFFFF;
+}

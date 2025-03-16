@@ -40,7 +40,7 @@ export default function Personas() {
         {people.map((person) => (
           <li
             key={person._id}
-            className="flex items-center bg-white rounded-lg p-4 w-full"
+            className="flex items-center bg-white rounded-lg sm:py-4 py-2 px-6 w-full"
           >
             {person.image ? (
               <Image
@@ -67,7 +67,7 @@ export default function Personas() {
   );
 
   return (
-    <div className="w-full">
+    <div className="w-full px-4 md:px-0">
       <input
         type="text"
         placeholder="Buscar personas..."

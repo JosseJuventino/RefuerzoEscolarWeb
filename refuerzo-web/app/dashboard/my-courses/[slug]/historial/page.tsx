@@ -49,7 +49,7 @@ export default function HistorialAsistencia() {
   };
 
   return (
-    <div className="">
+    <div className="sm:p-0 p-2">
       <h1 className="text-2xl font-bold mb-4">Historial de Asistencia</h1>
 
       <div className="flex justify-between items-center mb-4">
