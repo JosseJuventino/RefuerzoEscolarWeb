@@ -263,12 +263,14 @@ export class AsistenciaService {
       throw new BadRequestException('Formato de fecha inválido');
     }
 
-    // Filtrar alumnos por fecha
-    const alumnosFiltrados = asistencia.alumnos.filter(
-      (a) =>
-        a.fecha.toISOString().split('T')[0] ===
-        fechaBusqueda.toISOString().split('T')[0],
-    );
+    const alumnosFiltrados = (asistencia.alumnos || []).filter((a) => {
+      if (!a.fecha) return false; // Verificar si existe
+      const fechaAlumno = new Date(a.fecha); // Convertir a Date
+      return (
+        fechaAlumno.toISOString().split('T')[0] ===
+        fechaBusqueda.toISOString().split('T')[0]
+      );
+    });
 
     // Poblar datos de alumnos
     const alumnosPopulated = await Promise.all(
@@ -294,6 +296,11 @@ export class AsistenciaService {
     seccionId: string,
     fecha: string,
   ): Promise<GeneralResponseDto<any>> {
+    // En el servicio, antes de buscar la asistencia:
+    if (!ObjectId.isValid(seccionId)) {
+      throw new BadRequestException(`ID de sección inválido: ${seccionId}`);
+    }
+
     const asistencia = await this.AsistenciaRepository.findOne({
       where: { seccionId },
     });
@@ -306,16 +313,19 @@ export class AsistenciaService {
 
     // Validar y formatear fecha
     const fechaBusqueda = new Date(fecha);
+
     if (isNaN(fechaBusqueda.getTime())) {
       throw new BadRequestException('Formato de fecha inválido');
     }
 
-    // Filtrar encargados por fecha
-    const encargadosFiltrados = asistencia.encargados.filter(
-      (e) =>
-        e.fecha.toISOString().split('T')[0] ===
-        fechaBusqueda.toISOString().split('T')[0],
-    );
+    const encargadosFiltrados = (asistencia.encargados || []).filter((e) => {
+      if (!e.fecha) return false; // Verificar si existe
+      const fechaEncargado = new Date(e.fecha); // Convertir a Date
+      return (
+        fechaEncargado.toISOString().split('T')[0] ===
+        fechaBusqueda.toISOString().split('T')[0]
+      );
+    });
 
     // Poblar datos de usuarios
     const encargadosPopulated = await Promise.all(
@@ -382,8 +392,6 @@ export class AsistenciaService {
       .setData(populatedAsistencia)
       .build();
   }
-
-  
 
   async findAsistenciaBySeccionId(
     seccionId: string,
