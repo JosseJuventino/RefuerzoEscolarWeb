@@ -52,7 +52,7 @@ const LoginForm: React.FC = () => {
         throw new Error(result.error);
       }
 
-   
+
       router.refresh();
       router.push("/dashboard");
 

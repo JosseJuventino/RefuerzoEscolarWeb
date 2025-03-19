@@ -17,6 +17,7 @@ declare module "next-auth" {
       image?: string | null;
       emailVerified?: Date | null;
       role?: string | null;
+      isActive?: boolean;
     };
   }
 }
@@ -31,6 +32,7 @@ declare module "next-auth/jwt" {
       image?: string | null;
       emailVerified?: Date | null;
       role?: string | null;
+      isActive?: boolean;
     };
   }
 }
@@ -50,6 +52,8 @@ export const authOptions = {
             password: credentials.password,
           });
 
+          console.log("response", response);
+
           const { data } = response.data;
           if (!data?.token || !data?.info) return null;
 
@@ -61,6 +65,7 @@ export const authOptions = {
             accessToken: data.token,
             emailVerified: null,
             role: data.info.role,
+            isActive: data.info.isActive,
           };
         } catch (error) {
           console.error("Authentication error:", error);
@@ -70,7 +75,7 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async redirect({ url, baseUrl }: { url: string; baseUrl: string; }) {
+    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
       return url.startsWith(baseUrl) ? url : baseUrl;
     },
     async jwt({
@@ -89,8 +94,9 @@ export const authOptions = {
           image: user.image,
           emailVerified: user.emailVerified,
           role: user.role,
+          isActive: user.isActive,
         };
-        
+
         token.exp = Math.floor(Date.now() / 1000) + 2 * 60 * 60;
       }
       return token;
@@ -109,20 +115,23 @@ export const authOptions = {
         email: token.user?.email || "",
         image: token.user?.image || null,
         emailVerified: token.user?.emailVerified || null,
-        role: token.user?.role || null
+        role: token.user?.role || null,
+        isActive: token.user?.isActive || false,
       };
-      
-      session.expires = token.exp ? new Date(token.exp * 1000).toISOString() : new Date().toISOString();
+
+      session.expires = token.exp
+        ? new Date(token.exp * 1000).toISOString()
+        : new Date().toISOString();
       return session;
     },
   },
   secret: process.env.AUTH_SECRET,
   session: {
     strategy: "jwt" as const,
-    maxAge: 2 * 60 * 60
+    maxAge: 2 * 60 * 60,
   },
   jwt: {
-    maxAge: 2 * 60 * 60, 
+    maxAge: 2 * 60 * 60,
   },
   trustHost: true,
   pages: {
@@ -130,4 +139,3 @@ export const authOptions = {
     error: "/",
   },
 };
-

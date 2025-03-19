@@ -92,6 +92,7 @@ export interface ActivateAccountRequirements {
   image?: string;
   telefono: string;
   password?: string;
+  isActive: boolean;
 }
 
 export interface Recomendadores {
@@ -383,21 +384,21 @@ export interface Asistencia {
     imagen: string;
   }[];
 }
-  export interface AsistenciaResponse {
-    statusCode: number;
-    message: string;
-    data: Asistencia[];
-    size: number;
-    totalPages: number;
-    page: number;
-    limit: number;
-  }
+export interface AsistenciaResponse {
+  statusCode: number;
+  message: string;
+  data: Asistencia[];
+  size: number;
+  totalPages: number;
+  page: number;
+  limit: number;
+}
 
-  export interface HistoryAsistenciaResponse {
-    statusCode: number;
-    message: string;
-    data: Record<string, AsistenciaAlumno[]>;
-  }
+export interface HistoryAsistenciaResponse {
+  statusCode: number;
+  message: string;
+  data: Record<string, AsistenciaAlumno[]>;
+}
 
 export interface FormValues {
   nombre: string;

@@ -24,7 +24,6 @@ import { signOut, useSession } from "next-auth/react";
 import { ProtectedNavItem } from "./NavItem";
 import { ROLES } from "@/app/constants/roles";
 
-
 const Sidenav: React.FC = () => {
   const pathName = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -47,7 +46,7 @@ const Sidenav: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Datos estáticos
+
   const userCourses = [
     { name: "Matemática", path: '/dashboard/my-courses/matematica' },
   ];
@@ -63,7 +62,7 @@ const Sidenav: React.FC = () => {
   const toggleMobileMenu = () => setIsMenuOpen((prev) => !prev);
   const handleLogout = () => signOut({ callbackUrl: '/' });
 
- 
+
   if (!isMounted) {
     return (
       <div className="hidden md:flex flex-col justify-between h-screen w-64 p-3 bg-white shadow-xl rounded-tr-2xl rounded-br-2xl text-black">
@@ -88,7 +87,7 @@ const Sidenav: React.FC = () => {
     );
   }
 
- 
+
 
   const UserMenu = ({ mobile = false }: { mobile?: boolean }) => (
     <div className="relative" ref={userMenuRef}>
