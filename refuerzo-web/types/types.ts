@@ -359,17 +359,19 @@ export interface TeacherResponse {
   limit: number;
 }
 
+export interface AsistenciaAlumno {
+  id?: string;
+  alumnoId: string;
+  fecha: string;
+  estado: string;
+  nombre: string;
+  imagen: string;
+}
+
 export interface Asistencia {
   _id: string;
   seccionId: string;
-  alumnos: {
-    id?: string;
-    alumnoId: string;
-    fecha: string;
-    estado: string;
-    nombre: string;
-    imagen: string;
-  }[];
+  alumnos: AsistenciaAlumno[];
   encargados: {
     id?: string;
     userId: string;
@@ -381,22 +383,28 @@ export interface Asistencia {
     imagen: string;
   }[];
 }
-export interface AsistenciaResponse {
-  statusCode: number;
-  message: string;
-  data: Asistencia[];
-  size: number;
-  totalPages: number;
-  page: number;
-  limit: number;
-}
+  export interface AsistenciaResponse {
+    statusCode: number;
+    message: string;
+    data: Asistencia[];
+    size: number;
+    totalPages: number;
+    page: number;
+    limit: number;
+  }
+
+  export interface HistoryAsistenciaResponse {
+    statusCode: number;
+    message: string;
+    data: Record<string, AsistenciaAlumno[]>;
+  }
 
 export interface FormValues {
-    nombre: string;
-    email: string;
-    direccion: string;
-    telefono: string;
-    grado: string;
-    programa: string;
-    telefonoEncargado: string;
+  nombre: string;
+  email: string;
+  direccion: string;
+  telefono: string;
+  grado: string;
+  programa: string;
+  telefonoEncargado: string;
 }
