@@ -9,7 +9,6 @@ import IndicatorStepFinish from "./IndicatorStep";
 import { UploadButton } from "../Fields/UploadButton";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { base64ToFile } from "@/utils/base64ToFile";
-import { useAuthStore } from "@/stores/authStore";
 import { Image, ActivateAccountRequirements } from "@/types/types";
 import { uploadImage } from "@/services/images.service";
 import { activeProfile } from "@/services/user.service";
