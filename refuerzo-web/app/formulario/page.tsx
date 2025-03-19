@@ -2,7 +2,7 @@
 
 import { Header } from "@/components/Form/FormHeader";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import InputField from "@/components/Fields/InputFieldValidate";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getPrograms } from "@/services/programs.service";
@@ -11,10 +11,8 @@ import SelectField from "@/components/Fields/SelectField";
 import { useForm, SubmitHandler, } from "react-hook-form";
 import { toast } from "@pheralb/toast";
 import { Loading } from "@/components/Loading";
-import { Grade, Image, Program } from "@/types/types";
+import { Grade, Program } from "@/types/types";
 import { addPostulante } from "@/services/applicants.service";
-import { uploadImage } from "@/services/images.service";
-import { base64ToFile } from "@/utils/base64ToFile";
 import { useSession } from "next-auth/react";
 import { PhoneField } from "@/components/Fields/PhoneField";
 import { FormValues } from "@/types/types";
@@ -56,9 +54,6 @@ export default function RegistrationForm() {
         queryFn: getGrades,
     });
 
-    const formData = useRef({
-        imagen: "",
-    });
 
     const addPostulant = useMutation({
         mutationFn: addPostulante,
@@ -66,21 +61,6 @@ export default function RegistrationForm() {
             queryClient.invalidateQueries({ queryKey: ['postulante'] });
         },
     });
-
-    const uploadImageMutator = useMutation({
-        mutationFn: uploadImage,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['image'] });
-        },
-    });
-
-    useEffect(() => {
-        if (Object.keys(errors).length > 0) {
-            Object.values(errors).forEach(() => {
-                toast.error({ text: "Ha ocurrido un error" });
-            });
-        }
-    }, [errors]);
 
 
     useEffect(() => {
@@ -102,26 +82,23 @@ export default function RegistrationForm() {
     const onSubmit: SubmitHandler<FormValues> = async (data) => {
         try {
 
-            const imageFile = base64ToFile(formData.current.imagen, data.nombre);
-
-            const imagen: Image = {
-                originalFilename: imageFile.name,
-                category: "profile_images",
-                file: imageFile,
-            };
-
-            const imagenSubida = await uploadImageMutator.mutateAsync(imagen);
-
             const postulanteData = {
                 ...data,
-                imagen: imagenSubida.data.url,
+                imagen: "https://refuerzo-mendoza.me/apiv2/uploads/images/profile_images/8ad77c37-2d3f-4a46-81ea-cb2e61dd8c8e.webp",
                 isUser: false
             };
 
             await addPostulant.mutateAsync(postulanteData);
-            router.push("/dashboard/postulantes/sucess");
-        } catch {
-            toast.error({ text: "Error al enviar la aplicación" });
+            console.log("se subio el postulante")
+
+            router.push("/formulario/sucess");
+        } catch (error: unknown) {
+            const err = error as { response?: { status: number } };
+            if (err.response && err.response.status === 409)
+                toast.error({ text: "Ya existe un postulante con este correo" });
+            else {
+                toast.error({ text: "Error al enviar la aplicación" });
+            }
         }
     };
 
