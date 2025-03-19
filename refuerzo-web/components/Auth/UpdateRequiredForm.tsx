@@ -16,10 +16,11 @@ import { activeProfile } from "@/services/user.service";
 import { PhoneField } from "../Fields/PhoneField";
 import { useCamera } from "@/hooks/useCamera";
 import { toast } from "@pheralb/toast";
+import { signOut } from "next-auth/react";
 
 
 interface UpdateRequiredFormProps {
-    username: string;
+    username: string | undefined | null;
 }
 
 const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => {
@@ -31,9 +32,8 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
     const [password, setPassword] = useState("");
     const [isMobile, setIsMobile] = useState<boolean>(false);
     const [activationStatus, setActivationStatus] = useState<"idle" | "success" | "error">("idle");
-    const { clearAuth } = useAuthStore();
-
     const queryClient = useQueryClient();
+    const handleLogout = () => signOut({ callbackUrl: '/' });
 
     const formData = useRef({
         imagen: "",
@@ -50,7 +50,6 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleLogout = () => clearAuth('/');
 
     useEffect(() => {
         formData.current.telefono = `+503${telefono}`;
@@ -124,7 +123,7 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
         }
 
         try {
-            const imageFile = base64ToFile(formData.current.imagen, username);
+            const imageFile = base64ToFile(formData.current.imagen, username!);
 
             const imagen: Image = {
                 originalFilename: imageFile.name,
@@ -138,12 +137,16 @@ const UpdateRequiredForm: React.FC<UpdateRequiredFormProps> = ({ username }) => 
                 telefono: formData.current.telefono,
                 password: formData.current.password,
                 image: imagenSubida.data.url,
+                isActive: true,
             };
 
 
             await activateAccountMutator.mutateAsync(usuario);
             setStep(3);
             setActivationStatus("success");
+
+            handleLogout();
+
 
 
         } catch (error) {

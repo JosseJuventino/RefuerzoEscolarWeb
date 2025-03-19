@@ -10,6 +10,7 @@ declare module "next-auth" {
     role?: string;
     accessToken: string;
     emailVerified?: Date | null;
+    isActive?: boolean;
   }
 
   interface Session {
@@ -21,6 +22,7 @@ declare module "next-auth" {
       image?: string;
       role?: string;
       emailVerified?: Date | null;
+      isActive?: boolean;
     };
   }
 }
@@ -35,6 +37,7 @@ declare module "next-auth/jwt" {
       image?: string;
       role?: string;
       emailVerified?: Date | null;
+      isActive?: boolean;
     };
   }
 }
