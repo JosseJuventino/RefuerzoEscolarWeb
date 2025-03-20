@@ -3,7 +3,7 @@ import Image from "next/image";
 export const Header = () => (
     <div className="text-center mb-4">
         <Image
-            src="/LogoColorido.svg"
+            src="/Logov3.svg"
             alt="Logo"
             className="w-24 mx-auto mb-2"
             width={96}
