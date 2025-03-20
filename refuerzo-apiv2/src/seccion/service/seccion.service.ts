@@ -246,10 +246,13 @@ export class SeccionService {
   ): Promise<PaginationResponseDto<any>> {
     let filter: any = {};
 
-    const role = this.roleCrudHelper.findByNameOrId(roleId, false, false);
+    const role = await this.roleCrudHelper.findByNameOrId(roleId, false, false);
 
-    if ((await role).name == 'alumno') {
-      filter = { alumnos: userId };
+    if (role.name == 'alumno') {
+      const alumno = await this.alumnoRepository.findOne({
+        where: { userId: userId },
+      });
+      filter = { alumnos: alumno._id.toString() };
     } else {
       filter = { encargados: userId };
     }
