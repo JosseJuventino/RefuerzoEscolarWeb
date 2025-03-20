@@ -158,7 +158,7 @@ export default function Asistencia() {
       <div className="flex justify-between items-center mb-8">
         <div className="flex flex-col w-full gap-2">
           <div className="flex justify-between gap-4">
-            <h1 className="sm:text-2xl text-base text-blue_principal font-bold">
+            <h1 className="sm:text-2xl my-1 text-base text-blue_principal font-bold">
               Registro de Asistencia
             </h1>
             <button
@@ -169,11 +169,6 @@ export default function Asistencia() {
               Guardar Asistencias
             </button>
           </div>
-          {new Date().getDay() === 0 && (
-            <p className="text-red-600 text-sm">
-              Hoy es domingo, no hay clases
-            </p>
-          )}
         </div>
       </div>
 
@@ -230,31 +225,28 @@ export default function Asistencia() {
               <div className="flex gap-2 sm:mt-0 mt-3">
                 <button
                   onClick={() => handleEstadoAsistencia(alumno._id, "asistió")}
-                  className={`px-3 py-2 rounded-lg ${
-                    asistencia?.estado === "asistió"
-                      ? "bg-green-600 text-white"
-                      : "bg-green-100 text-green-600"
-                  } hover:bg-green-200 transition-colors`}
+                  className={`px-3 py-2 rounded-lg ${asistencia?.estado === "asistió"
+                    ? "bg-green-600 text-white"
+                    : "bg-green-100 text-green-600"
+                    } hover:bg-green-200 transition-colors`}
                 >
                   <Check size={20} />
                 </button>
                 <button
                   onClick={() => handleEstadoAsistencia(alumno._id, "falto")}
-                  className={`px-3 py-2 rounded-lg ${
-                    asistencia?.estado === "falto"
-                      ? "bg-red-600 text-white"
-                      : "bg-red-100 text-red-600"
-                  } hover:bg-red-200 transition-colors`}
+                  className={`px-3 py-2 rounded-lg ${asistencia?.estado === "falto"
+                    ? "bg-red-600 text-white"
+                    : "bg-red-100 text-red-600"
+                    } hover:bg-red-200 transition-colors`}
                 >
                   <X size={20} />
                 </button>
                 <button
                   onClick={() => handleEstadoAsistencia(alumno._id, "permiso")}
-                  className={`px-3 py-2 rounded-lg ${
-                    asistencia?.estado === "permiso"
-                      ? "bg-yellow-600 text-white"
-                      : "bg-yellow-100 text-yellow-600"
-                  } hover:bg-yellow-200 transition-colors`}
+                  className={`px-3 py-2 rounded-lg ${asistencia?.estado === "permiso"
+                    ? "bg-yellow-600 text-white"
+                    : "bg-yellow-100 text-yellow-600"
+                    } hover:bg-yellow-200 transition-colors`}
                 >
                   <TriangleAlert size={20} />
                 </button>

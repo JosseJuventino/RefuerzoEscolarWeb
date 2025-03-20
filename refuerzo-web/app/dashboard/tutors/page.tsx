@@ -27,7 +27,6 @@ export default function TutorPage() {
 
     const DEFAULT_IMAGE = "https://refuerzo-mendoza.me/api/uploads/images/users/b706a946-4c4c-4745-b87d-eab8b4883138.webp"
 
-
     const [modalState, setModalState] = useState<{
         type: 'add' | 'edit' | 'delete' | null;
         selected: Tutor | null;
