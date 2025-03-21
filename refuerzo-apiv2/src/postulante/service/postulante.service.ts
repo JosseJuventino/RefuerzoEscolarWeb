@@ -399,8 +399,6 @@ export class PostulanteService {
       .build();
   }
 
-  //Traer los postulantes que haya recomendado un usuario en especifico
-
   async update(
     id: string,
     updatePostulanteDto: UpdatePostulanteDto,
@@ -455,6 +453,7 @@ export class PostulanteService {
 
   async remove(id: string): Promise<GeneralResponseDto<Postulante>> {
     const Postulante = await this.crudHelper.findByNameOrId(id);
+    
     await this.crudHelper.delete(Postulante, true);
     return new GeneralResponseBuilder<Postulante>()
       .setMessage('Postulante deleted successfully')

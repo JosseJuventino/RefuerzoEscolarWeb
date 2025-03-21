@@ -17,8 +17,8 @@ import { Permission } from 'src/common/decorators/permission.decorators';
 import { Public } from 'src/common/decorators/public.decorators';
 import { Resources, Scopes } from 'nest_autorization';
 import { UpdateAsistenciaDto } from '../dto/update-asistencia.dto';
-import { AsistenciaAddAlumnoDto } from '../dto/add-alumno.dto';
-import { AsistenciaAddEncargadoDto } from '../dto/add-encargado.dto';
+import { ArrayAsistenciaAddAlumnoDto } from '../dto/add-alumno.dto';
+import { ArrayAsistenciaAddEncargadoDto } from '../dto/add-encargado.dto';
 import { UpdateAlumnoRegistroDto } from '../dto/update-register.dto';
 import { UpdateEncargadoRegistroDto } from '../dto/update-register.dto';
 
@@ -181,12 +181,12 @@ export class AsistenciaController {
     description: 'Add alumno to asistencia by seccion id',
   })
   @ApiBearerAuth()
-  @Patch('alumno/:id')
+  @Post('alumno/:id')
   addAlumnoToAsistenciaBySeccionId(
     @Param('id') id: string,
-    @Body() addAlumnoDto: AsistenciaAddAlumnoDto,
+    @Body() addAlumnoDto: ArrayAsistenciaAddAlumnoDto,
   ) {
-    return this.AsistenciaService.addAlumnoToAsistenciaBySeccionId(
+    return this.AsistenciaService.addAlumnosToAsistenciaBySeccionId(
       id,
       addAlumnoDto,
     );
@@ -198,12 +198,12 @@ export class AsistenciaController {
     description: 'Add encargado to asistencia by seccion id',
   })
   @ApiBearerAuth()
-  @Patch('encargado/:id')
+  @Post('encargado/:id')
   addEncargadoToAsistenciaBySeccionId(
     @Param('id') id: string,
-    @Body() addEncargadoDto: AsistenciaAddEncargadoDto,
+    @Body() addEncargadoDto: ArrayAsistenciaAddEncargadoDto,
   ) {
-    return this.AsistenciaService.addEncargadoToAsistenciaBySeccionId(
+    return this.AsistenciaService.addEncargadosToAsistenciaBySeccionId(
       id,
       addEncargadoDto,
     );
