@@ -865,7 +865,6 @@ export class AsistenciaService {
 
     return new GeneralResponseBuilder<Asistencia>()
       .setMessage('Encargados agregados exitosamente')
-      .setData(asistencia)
       .build();
   }
 
