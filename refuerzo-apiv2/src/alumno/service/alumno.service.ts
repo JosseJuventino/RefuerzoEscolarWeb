@@ -60,14 +60,12 @@ export class AlumnoService {
   async create(
     createAlumnoDto: CreateAlumnoDto,
   ): Promise<GeneralResponseDto<Alumno>> {
-    const findAlumno = await this.crudHelper.findByIdOrUserId(
-      createAlumnoDto.userId,
-      false,
-      false,
-    );
-    if (findAlumno) {
+    const findAlumnoWithUserId = await this.alumnoRepository.findOne({
+      where: { userId: createAlumnoDto.userId },
+    });
+    if (findAlumnoWithUserId) {
       throw new ConflictException(
-        `Alumno with id ${createAlumnoDto.userId} already exists`,
+        `Alumno for that user already already exists`,
       );
     }
 
