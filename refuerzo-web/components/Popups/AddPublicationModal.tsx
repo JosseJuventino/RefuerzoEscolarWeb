@@ -5,7 +5,7 @@ import { Modal } from "./Modal";
 import { FilePublicacion, Image, Publicacion, FileNew } from "@/types/types";
 import { toast } from "@pheralb/toast";
 import { TextAreaField } from "../Fields/TextAreaField";
-import SelectFieldv2 from "../Fields/SelectFielv2";
+import SelectFieldV2 from "../Fields/SelectField2";
 import { ClipboardList, NotebookTextIcon } from "lucide-react";
 import MultiFileSelector from "../Fields/DocumentSelector";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -78,7 +78,7 @@ export const AddPublicationModal = ({
         mutationFn: updatePublication,
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ['course', courseSlug] 
+                queryKey: ['course', courseSlug]
             });
         },
     });
@@ -213,7 +213,7 @@ export const AddPublicationModal = ({
             const documentArray = processedFiles.filter(Boolean) as FilePublicacion[];
 
             const submissionData = { ...formData, files: documentArray };
-            
+
 
             if (initialData && initialData._id) {
                 await updatePublicationMutation.mutateAsync(submissionData);
@@ -270,7 +270,7 @@ export const AddPublicationModal = ({
                     isRequired={true}
                 />
 
-                <SelectFieldv2
+                <SelectFieldV2
                     label="Categoría"
                     options={optionsCategory}
                     defaultValue={formData.categoria || ""}

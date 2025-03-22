@@ -147,7 +147,7 @@ export default function TutorPage() {
                 ]}
             />
 
-            <ListGridLayout isCardView={isCardView} setIsCardView={setIsCardView} />
+            <ListGridLayout isTutorTable={true} isCardView={isCardView} setIsCardView={setIsCardView} />
 
             {isCardView ? (
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

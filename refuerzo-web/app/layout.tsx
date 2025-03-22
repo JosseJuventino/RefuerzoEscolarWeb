@@ -7,6 +7,7 @@ import { Toaster } from "@pheralb/toast";
 import type { Viewport } from 'next'
 import { SessionProvider } from "next-auth/react";
 import { setupAxiosInterceptor } from "@/lib/axios-interceptor";
+import { HeroUIProvider } from "@heroui/system";
 
 
 export const viewport: Viewport = {
@@ -33,15 +34,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <SessionProvider>
-          <NextUIProvider>
-            <ClientProviders>
-              <ClientInitializer />
-              {children}
-              <Toaster theme="light" />
-            </ClientProviders>
-          </NextUIProvider>
-        </SessionProvider>
+        <HeroUIProvider>
+          <SessionProvider>
+            <NextUIProvider>
+              <ClientProviders>
+                <ClientInitializer />
+                {children}
+                <Toaster theme="light" />
+              </ClientProviders>
+            </NextUIProvider>
+          </SessionProvider>
+        </HeroUIProvider>
       </body>
     </html>
   );

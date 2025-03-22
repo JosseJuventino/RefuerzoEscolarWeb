@@ -2,6 +2,7 @@ import { api } from "@/lib/api";
 
 import {
   Asistencia,
+  AsistenciaEncargado,
   AsistenciaResponse,
   HistoryAsistenciaResponse,
 } from "@/types/types";
@@ -96,4 +97,15 @@ export const getAsistenciaByDateAlumnos = async (
   );
   const data = response.data;
   return Array.isArray(data) ? data[0] : data;
+};
+
+export const addAsistenciaEncargadoIndividualy = async (
+  encargado: Partial<AsistenciaEncargado>,
+  id_section: string
+): Promise<Asistencia> => {
+  const response = await api.patch<Asistencia>(
+    `/asistencia/encargado/${id_section}`,
+    encargado
+  );
+  return response.data;
 };
