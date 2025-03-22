@@ -9,7 +9,7 @@ const Table = <T extends { _id: string }>({
   columns,
   onEdit,
   onDelete,
-  handleMove = () => {},
+  handleMove = () => { },
   hasMove = false,
   hasEdit = true,
 }: TableProps<T>) => {
@@ -71,6 +71,7 @@ const Table = <T extends { _id: string }>({
                           <Trash2 size={20} />
                         </button>
                       )}
+
                       {hasMove && (
                         <button
                           className="flex items-center justify-center w-8 h-8 text-yellow-500 hover:text-yellow-700 focus:outline-none"

@@ -9,15 +9,17 @@ import React, {
 import { CourseContext } from "@/app/contexts/course-context";
 import Image from "next/image";
 import { CircleUser, Check, X, TriangleAlert } from "lucide-react";
-import type { Asistencia } from "@/types/types";
+import type { Asistencia, AsistenciaEncargado } from "@/types/types";
 import {
   getAsistenciaByCourseId,
   updateAsistenciaById,
+  addAsistenciaEncargadoIndividualy
 } from "@/services/asistencia.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { capitalize } from "@/utils/utils";
 import { toast } from "@pheralb/toast";
 import { useWarnIfUnsavedChanges } from "@/hooks/useWarnUnsavedChanges";
+import { FormAsistenciaEncargado } from "@/components/Popups/AddEncargadoAsistenciaModal";
 
 type EstadoAsistencia = "asistió" | "falto" | "permiso";
 
@@ -34,6 +36,11 @@ export default function Asistencia() {
     encargados: [],
   });
 
+  const [modalState, setModalState] = useState<{
+    type: 'add' | 'edit' | 'delete' | null;
+    selected: Partial<AsistenciaEncargado> | null;
+  }>({ type: null, selected: null });
+
   const { data: asistenciaResponse } = useQuery<Asistencia>({
     queryKey: ["asistencia", course?._id],
     queryFn: () => getAsistenciaByCourseId(course?._id as string),
@@ -42,6 +49,12 @@ export default function Asistencia() {
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const initialAlumnosRef = useRef(localAsistencia.alumnos);
+  const initialEncargadosRef = useRef(localAsistencia.encargados);
+  const [view, setView] = useState("estudiante");
+
+  const handleView = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setView(e.target.value);
+  }
 
   useWarnIfUnsavedChanges(hasUnsavedChanges);
 
@@ -54,8 +67,19 @@ export default function Asistencia() {
     },
   });
 
+  const addAsistenciaEncargadoIndividualyMutation = useMutation<Asistencia, unknown, { encargado: Partial<AsistenciaEncargado>, id_section: string }>({
+    mutationFn: ({ encargado, id_section }) => addAsistenciaEncargadoIndividualy(encargado, id_section),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["asistencia", course?._id],
+      });
+    },
+  });
+
   useEffect(() => {
     if (asistenciaResponse) {
+      console.log("asistenciaResponse", asistenciaResponse);
+
       const todayAsistencias = {
         ...asistenciaResponse,
         alumnos: asistenciaResponse.alumnos.filter(
@@ -63,10 +87,16 @@ export default function Asistencia() {
             new Date(alumno.fecha).toISOString().split("T")[0] ===
             getCurrentDateString()
         ),
+        encargados: asistenciaResponse.encargados.filter(
+          (encargado: { fecha: string }) =>
+            new Date(encargado.fecha).toISOString().split("T")[0] ===
+            getCurrentDateString()
+        ),
       };
 
       setLocalAsistencia(todayAsistencias);
       initialAlumnosRef.current = todayAsistencias.alumnos;
+      initialEncargadosRef.current = todayAsistencias.encargados;
     }
   }, [asistenciaResponse]);
 
@@ -76,6 +106,45 @@ export default function Asistencia() {
       JSON.stringify(initialAlumnosRef.current);
     setHasUnsavedChanges(hasChanges);
   }, [localAsistencia.alumnos]);
+
+  const handleAdd = (formData: AsistenciaEncargado) => {
+    if (!modalState.selected) return;
+
+    const payload: AsistenciaEncargado = {
+      userId: modalState.selected._id || "",
+      fecha: new Date(formData.fecha).toISOString(),
+      estado: formData.estado,
+      hora_inicio: new Date(`${formData.fecha}T${formData.hora_inicio}`).toISOString(),
+      hora_fin: new Date(`${formData.fecha}T${formData.hora_fin}`).toISOString(),
+    };
+
+    const finalPromise = addAsistenciaEncargadoIndividualyMutation.mutateAsync({ encargado: payload, id_section: course?._id as string });
+
+    toast.loading({
+      text: "Registrando asistencia...",
+      options: {
+        promise: finalPromise,
+        success: "Asistencia registrada exitosamente 🎉",
+        error: "Error al guardar la asistencia 😢",
+        autoDismiss: true,
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["asistencia"] });
+          initialEncargadosRef.current = localAsistencia.encargados;
+          setHasUnsavedChanges(false);
+          setModalState({ type: null, selected: null });
+        },
+        onError: (error: unknown) => {
+          const err = error as { response?: { status: number, message: string } };
+          if (err.response && err.response.status === 409)
+            toast.error({ text: "El usuario tiene horarios solapados" });
+          else {
+            console.log(error);
+            toast.error({ text: "Error al guardar la asistencia" });
+          }
+        },
+      },
+    });
+  }
 
   const handleEstadoAsistencia = useCallback(
     (alumnoId: string, estado: EstadoAsistencia) => {
@@ -111,8 +180,13 @@ export default function Asistencia() {
     [course]
   );
 
+
+  const closeModal = () => setModalState({ type: null, selected: null, });
+
+
   const getEstadoColor = (estado: string) => {
     switch (estado) {
+      case "asistio":
       case "asistió":
         return "bg-green-100 text-green-800";
       case "falto":
@@ -172,8 +246,15 @@ export default function Asistencia() {
         </div>
       </div>
 
+      <div className="flex flex-row-reverse items-center gap-4 pb-5">
+        <select name="select" onChange={handleView} id="" className="bg-white outline-none text-blue_principal border border-gray-200 rounded-lg px-4 py-2">
+          <option value="estudiante">Estudiantes</option>
+          <option value="encargado">Encargados</option>
+        </select>
+      </div>
+
       <div className="space-y-4">
-        {course.alumnos.map((alumno) => {
+        {view == "estudiante" && course.alumnos.map((alumno) => {
           const asistencia = localAsistencia.alumnos.find(
             (a) => a.alumnoId === alumno._id
           );
@@ -254,6 +335,70 @@ export default function Asistencia() {
             </div>
           );
         })}
+
+        {view == "encargado" && course.encargados.map((alumno) => {
+          const asistencia = localAsistencia.encargados.find(
+            (a) => a.userId === alumno._id
+          );
+          return (
+            <div
+              key={alumno._id}
+              className="flex sm:flex-row flex-col  items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-100"
+            >
+              <div className="flex flex-row items-center gap-4 flex-1">
+                {alumno.image ? (
+                  <Image
+                    src={alumno.image}
+                    alt={alumno.nombre}
+                    width={48}
+                    height={48}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="p-2 rounded-full bg-gray-100">
+                    <CircleUser className="w-8 h-8 text-blue_principal" />
+                  </div>
+                )}
+                <div className="flex flex-row justify-end items-end gap-2">
+                  <div className="max-w-[150px] sm:max-w-[200px]">
+                    {" "}
+                    <p className="font-medium text-gray-900">{alumno.nombre}</p>
+                    <p className="text-sm text-gray-500 truncate">
+                      {alumno.email}
+                    </p>{" "}
+                  </div>
+                  {asistencia ? (
+                    <span
+                      className={`inline-block mt-1 px-2 py-1 rounded text-sm ${getEstadoColor(
+                        asistencia.estado
+                      )}`}
+                    >
+                      {capitalize(asistencia.estado)}
+                    </span>
+                  ) : (
+                    <span
+                      className={`inline-block mt-1 px-2 py-1 rounded text-center text-sm bg-gray-100 text-gray-800`}
+                    >
+                      No registrado
+                    </span>
+                  )}
+                </div>
+              </div>
+              <button onClick={() => setModalState({ type: 'add', selected: alumno })} className="px-3 py-2 rounded-lg bg-blue_principal text-white hover:bg-blue-800 transition-colors">
+                Registrar asistencia
+              </button>
+            </div>
+
+
+          );
+        })}
+
+        <FormAsistenciaEncargado
+          isOpen={modalState.type === 'add'}
+          title="Asistencia"
+          onClose={closeModal}
+          onSubmit={handleAdd}
+        />
       </div>
     </div>
   );
