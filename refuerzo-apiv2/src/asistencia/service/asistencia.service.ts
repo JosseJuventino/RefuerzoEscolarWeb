@@ -22,7 +22,7 @@ import { User } from 'src/users/entities/user.entity';
 import { Alumno } from 'src/alumno/entities/alumno.entity';
 import { Seccion } from 'src/seccion/entities/seccion.entity';
 import { ArrayAsistenciaAddAlumnoDto } from '../dto/add-alumno.dto';
-import { ArrayAsistenciaAddEncargadoDto } from '../dto/add-encargado.dto';
+import { AsistenciaAddEncargadoDto } from '../dto/add-encargado.dto';
 import {
   UpdateAlumnoRegistroDto,
   UpdateEncargadoRegistroDto,
@@ -778,9 +778,9 @@ export class AsistenciaService {
       .build();
   }
 
-  async addEncargadosToAsistenciaBySeccionId(
+  async addEncargadoToAsistenciaBySeccionId(
     seccionId: string,
-    addEncargadosDto: ArrayAsistenciaAddEncargadoDto,
+    encargadoDto: AsistenciaAddEncargadoDto, // Recibe el DTO directamente
   ): Promise<GeneralResponseDto<Asistencia>> {
     const asistencia = await this.AsistenciaRepository.findOne({
       where: { seccionId },
@@ -792,79 +792,93 @@ export class AsistenciaService {
       );
     }
 
-    const asistenciasToAdd = addEncargadosDto.asistencias;
-    const processedEncargados = [];
-    const seenKeys = new Set<string>();
+    // Validaciones de fechas (ahora trabajando con un solo objeto)
+    const fecha = this.validateDateString(
+      encargadoDto.fecha,
+      'Fecha del encargado',
+      'encargado',
+    );
+    const horaInicio = this.validateDateString(
+      encargadoDto.hora_inicio,
+      'Hora de inicio',
+      'encargado',
+    );
+    const horaFin = this.validateDateString(
+      encargadoDto.hora_fin,
+      'Hora de fin',
+      'encargado',
+    );
 
-    for (const encargadoDto of asistenciasToAdd) {
-      // Validaciones de fechas
-      const fecha = this.validateDateString(
-        encargadoDto.fecha,
-        'Fecha del encargado',
-        'encargado',
+    // Validación de consistencia horaria
+    if (horaInicio >= horaFin) {
+      throw new BadRequestException(
+        `La hora de inicio debe ser anterior a la hora de fin para el encargado ${encargadoDto.userId}`,
       );
-      const horaInicio = this.validateDateString(
-        encargadoDto.hora_inicio,
-        'Hora de inicio',
-        'encargado',
-      );
-      const horaFin = this.validateDateString(
-        encargadoDto.hora_fin,
-        'Hora de fin',
-        'encargado',
-      );
-
-      // Validación de consistencia horaria
-      if (horaInicio >= horaFin) {
-        throw new BadRequestException(
-          `La hora de inicio debe ser anterior a la hora de fin para el encargado ${encargadoDto.userId}`,
-        );
-      }
-
-      // Clave única para duplicados en la solicitud (userId + fecha + hora inicio + hora fin)
-      const requestKey = `${encargadoDto.userId}-${fecha.getTime()}-${horaInicio.getTime()}-${horaFin.getTime()}`;
-
-      if (seenKeys.has(requestKey)) {
-        throw new ConflictException(
-          `Encargado ${encargadoDto.userId} tiene registros duplicados en la solicitud`,
-        );
-      }
-      seenKeys.add(requestKey);
-
-      // Validar solapamiento con registros existentes
-      const existeSolapamiento = asistencia.encargados.some(
-        (e) =>
-          e.userId === encargadoDto.userId &&
-          ((horaInicio >= e.hora_inicio && horaInicio < e.hora_fin) ||
-            (horaFin > e.hora_inicio && horaFin <= e.hora_fin) ||
-            (horaInicio <= e.hora_inicio && horaFin >= e.hora_fin)),
-      );
-
-      if (existeSolapamiento) {
-        throw new ConflictException(
-          `El encargado ${encargadoDto.userId} tiene horarios solapados con registros existentes`,
-        );
-      }
-
-      processedEncargados.push({
-        ...encargadoDto,
-        fecha: fecha,
-        hora_inicio: horaInicio,
-        hora_fin: horaFin,
-      });
     }
 
-    // Crear nuevos encargados con IDs únicos
-    const newEncargados = processedEncargados.map((encargado) => ({
-      id: new ObjectId().toHexString(),
-      ...encargado,
-    }));
+    // Clave única para duplicados en la solicitud
+    const requestKey = `${encargadoDto.userId}-${fecha.getTime()}-${horaInicio.getTime()}-${horaFin.getTime()}`;
 
-    asistencia.encargados.push(...newEncargados);
+    const existeDuplicado = asistencia.encargados.some((e) => {
+      // Convertir fechas existentes a Date si son strings
+      const existingFecha =
+        typeof e.fecha === 'string' ? new Date(e.fecha) : e.fecha;
+      const existingHoraInicio =
+        typeof e.hora_inicio === 'string'
+          ? new Date(e.hora_inicio)
+          : e.hora_inicio;
+      const existingHoraFin =
+        typeof e.hora_fin === 'string' ? new Date(e.hora_fin) : e.hora_fin;
+
+      return (
+        `${e.userId}-${existingFecha.getTime()}-${existingHoraInicio.getTime()}-${existingHoraFin.getTime()}` ===
+        requestKey
+      );
+    });
+
+    if (existeDuplicado) {
+      throw new ConflictException(
+        `El encargado ${encargadoDto.userId} ya tiene un registro idéntico`,
+      );
+    }
+
+    const existeSolapamiento = asistencia.encargados.some((e) => {
+      // Convertir fechas existentes a Date si son strings
+      const existingHoraInicio =
+        typeof e.hora_inicio === 'string'
+          ? new Date(e.hora_inicio)
+          : e.hora_inicio;
+      const existingHoraFin =
+        typeof e.hora_fin === 'string' ? new Date(e.hora_fin) : e.hora_fin;
+
+      return (
+        e.userId === encargadoDto.userId &&
+        ((horaInicio >= existingHoraInicio && horaInicio < existingHoraFin) ||
+          (horaFin > existingHoraInicio && horaFin <= existingHoraFin) ||
+          (horaInicio <= existingHoraInicio && horaFin >= existingHoraFin))
+      );
+    });
+
+    if (existeSolapamiento) {
+      throw new ConflictException(
+        `El encargado ${encargadoDto.userId} tiene horarios solapados con registros existentes`,
+      );
+    }
+
+    // Crear nuevo encargado
+    const newEncargado = {
+      id: new ObjectId().toHexString(),
+      ...encargadoDto,
+      fecha: fecha,
+      hora_inicio: horaInicio,
+      hora_fin: horaFin,
+    };
+
+    asistencia.encargados.push(newEncargado);
     await this.crudHelper.update(asistencia, asistencia);
 
     return new GeneralResponseBuilder<Asistencia>()
-      .setMessage('Encargados agregados exitosamente')
+      .setMessage('Encargado agregado exitosamente')
       .build();
   }
 

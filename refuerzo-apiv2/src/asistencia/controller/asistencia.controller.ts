@@ -18,7 +18,7 @@ import { Public } from 'src/common/decorators/public.decorators';
 import { Resources, Scopes } from 'nest_autorization';
 import { UpdateAsistenciaDto } from '../dto/update-asistencia.dto';
 import { ArrayAsistenciaAddAlumnoDto } from '../dto/add-alumno.dto';
-import { ArrayAsistenciaAddEncargadoDto } from '../dto/add-encargado.dto';
+import { AsistenciaAddEncargadoDto } from '../dto/add-encargado.dto';
 import { UpdateAlumnoRegistroDto } from '../dto/update-register.dto';
 import { UpdateEncargadoRegistroDto } from '../dto/update-register.dto';
 
@@ -201,9 +201,9 @@ export class AsistenciaController {
   @Post('encargado/:id')
   addEncargadoToAsistenciaBySeccionId(
     @Param('id') id: string,
-    @Body() addEncargadoDto: ArrayAsistenciaAddEncargadoDto,
+    @Body() addEncargadoDto: AsistenciaAddEncargadoDto,
   ) {
-    return this.AsistenciaService.addEncargadosToAsistenciaBySeccionId(
+    return this.AsistenciaService.addEncargadoToAsistenciaBySeccionId(
       id,
       addEncargadoDto,
     );
