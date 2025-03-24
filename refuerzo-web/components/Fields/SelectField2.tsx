@@ -7,14 +7,14 @@ interface Option {
 }
 
 interface SelectFieldCustomProps {
-  label: string;
+  label?: string;
   options: Option[];
   placeholder?: string;
   onChange: (value: string) => void;
   defaultValue?: string;
 }
 
-const SelectFieldCustom: React.FC<SelectFieldCustomProps> = ({
+const SelectFieldV2: React.FC<SelectFieldCustomProps> = ({
   label,
   options,
   placeholder = "Seleccione una opción",
@@ -59,9 +59,7 @@ const SelectFieldCustom: React.FC<SelectFieldCustomProps> = ({
 
   return (
     <div className="flex flex-col space-y-2">
-      <label className="block text-medium text-blue_principal font-medium">
-        {label}
-      </label>
+      {label && <label className="text-sm font-medium text-gray-700">{label}</label>}
       {/* Contenedor relativo para el input y dropdown */}
       <div className="relative" ref={containerRef}>
         <div
@@ -99,4 +97,4 @@ const SelectFieldCustom: React.FC<SelectFieldCustomProps> = ({
   );
 };
 
-export default SelectFieldCustom;
+export default SelectFieldV2;

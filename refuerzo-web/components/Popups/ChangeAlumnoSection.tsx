@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Modal } from "./Modal";
 import { Estudiante, Grade } from "@/types/types";
-import SelectFieldv2 from "../Fields/SelectFielv2";
+import SelectFieldV2 from "../Fields/SelectField2";
 import { useQuery } from "@tanstack/react-query";
 import { Loading } from "../Loading";
 import { getGrades } from "@/services/grades.service";
@@ -52,7 +52,7 @@ export const ChangeAlumnoSection = ({
         })) || [];
     }, [cursos]);
 
-    
+
     const gradeOfStudent = useMemo(() => {
         return cursos?.find((c) => c.nombre === initialData?.grado);
     }, [cursos, initialData]);
@@ -101,7 +101,7 @@ export const ChangeAlumnoSection = ({
             }
         >
             <form className="space-y-4 px-6" onSubmit={handleSubmit}>
-                <SelectFieldv2
+                <SelectFieldV2
                     label="Grados"
                     options={optionsGrades}
                     defaultValue={gradeOfStudent?._id || ""}

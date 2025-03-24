@@ -134,7 +134,7 @@ const Sidenav: React.FC = () => {
           {isMenuOpen ? <XIcon className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
         </button>
         <Image
-          src="/LogoColorido.svg"
+          src="/Logov3.svg"
           alt="Company Logo"
           width={48}
           height={48}
@@ -147,11 +147,11 @@ const Sidenav: React.FC = () => {
         <div className="flex flex-col flex-1 overflow-hidden">
           <div className="flex justify-center">
             <Image
-              src="/LogoColorido.svg"
+              src="/Logov3.svg"
               alt="Company Logo"
-              width={112}
-              height={112}
-              className="w-28 h-28"
+              width={142}
+              height={142}
+              className="w-36 h-36"
               priority
             />
           </div>
@@ -242,7 +242,7 @@ const Sidenav: React.FC = () => {
             <div className="flex-1 overflow-hidden">
               <div className="flex justify-center">
                 <Image
-                  src="/LogoColorido.svg"
+                  src="/Logov3.svg"
                   alt="Company Logo"
                   width={112}
                   height={112}

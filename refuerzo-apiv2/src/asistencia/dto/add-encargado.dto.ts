@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsArray, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
-class AsistenciaAddEncargadoDto {
+export class AsistenciaAddEncargadoDto {
   @ApiProperty({
     example: '60d5f484f1d2b45c6c8f1d4a',
     description: 'ID del usuario encargado',
@@ -42,15 +42,4 @@ class AsistenciaAddEncargadoDto {
   @IsString()
   @IsNotEmpty()
   hora_fin: string;
-}
-
-export class ArrayAsistenciaAddEncargadoDto {
-  @ApiProperty({
-    type: [AsistenciaAddEncargadoDto],
-    description: 'Array de asistencia de encargados',
-  })
-  @IsArray() // Validar que es un array
-  @ValidateNested({ each: true }) // validar cada elemento
-  @Type(() => AsistenciaAddEncargadoDto) // Transformar a la instancia correcta
-  asistencias: AsistenciaAddEncargadoDto[];
 }

@@ -369,20 +369,23 @@ export interface AsistenciaAlumno {
   imagen: string;
 }
 
+export interface AsistenciaEncargado {
+  id?: string;
+  _id?: string;
+  userId: string;
+  fecha: string;
+  estado: string;
+  hora_inicio: string;
+  hora_fin: string;
+  nombre?: string;
+  imagen?: string;
+}
+
 export interface Asistencia {
   _id: string;
   seccionId: string;
   alumnos: AsistenciaAlumno[];
-  encargados: {
-    id?: string;
-    userId: string;
-    fecha: string;
-    estado: string;
-    hora_inicio: string;
-    hora_fin: string;
-    nombre: string;
-    imagen: string;
-  }[];
+  encargados: AsistenciaEncargado[];
 }
 export interface AsistenciaResponse {
   statusCode: number;
