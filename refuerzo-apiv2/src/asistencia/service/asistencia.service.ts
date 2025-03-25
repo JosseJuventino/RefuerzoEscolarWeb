@@ -724,7 +724,6 @@ export class AsistenciaService {
     const processedAlumnos = [];
     const seenKeys = new Set<string>();
 
-    // Validar cada alumno en el array
     for (const alumnoDto of asistenciasToAdd) {
       const fecha = this.validateDateString(
         alumnoDto.fecha,
@@ -732,10 +731,8 @@ export class AsistenciaService {
         'alumno',
       );
 
-      // Clave única para duplicados
       const key = `${alumnoDto.alumnoId}-${fecha.getTime()}`;
 
-      // Verificar duplicados en la solicitud
       if (seenKeys.has(key)) {
         throw new ConflictException(
           'Hay alumnos duplicados en la solicitud para la misma fecha',
@@ -743,44 +740,44 @@ export class AsistenciaService {
       }
       seenKeys.add(key);
 
-      // Verificar duplicados en la base de datos
-      const existeAlumno = asistencia.alumnos.some(
+      // Buscar registro existente por alumnoId y fecha (sin hora)
+      const existingIndex = asistencia.alumnos.findIndex(
         (a) =>
           a.alumnoId === alumnoDto.alumnoId &&
-          new Date(a.fecha).getTime() === fecha.getTime(),
+          a.fecha.toISOString().substring(0, 10) ===
+            fecha.toISOString().substring(0, 10),
       );
 
-      if (existeAlumno) {
-        throw new ConflictException(
-          `El alumno ${alumnoDto.alumnoId} ya tiene registrada esta fecha`,
-        );
+      if (existingIndex !== -1) {
+        // Actualizar fecha y estado del registro existente
+        asistencia.alumnos[existingIndex].fecha = fecha;
+        asistencia.alumnos[existingIndex].estado = alumnoDto.estado;
+      } else {
+        // Agregar a procesados para crear nuevo registro
+        processedAlumnos.push({
+          ...alumnoDto,
+          fecha: fecha,
+        });
       }
-
-      // Guardar datos procesados
-      processedAlumnos.push({
-        ...alumnoDto,
-        fecha: fecha,
-      });
     }
 
-    // Crear nuevos alumnos con IDs únicos
+    // Crear nuevos registros solo para alumnos no existentes
     const newAlumnos = processedAlumnos.map((alumno) => ({
       id: new ObjectId().toHexString(),
       ...alumno,
     }));
 
-    // Agregar todos los alumnos nuevos
     asistencia.alumnos.push(...newAlumnos);
     await this.crudHelper.update(asistencia, asistencia);
 
     return new GeneralResponseBuilder<Asistencia>()
-      .setMessage('Alumnos agregados exitosamente')
+      .setMessage('Alumnos agregados o actualizados exitosamente')
       .build();
   }
 
   async addEncargadoToAsistenciaBySeccionId(
     seccionId: string,
-    encargadoDto: AsistenciaAddEncargadoDto, // Recibe el DTO directamente
+    encargadoDto: AsistenciaAddEncargadoDto,
   ): Promise<GeneralResponseDto<Asistencia>> {
     const asistencia = await this.AsistenciaRepository.findOne({
       where: { seccionId },
@@ -792,7 +789,7 @@ export class AsistenciaService {
       );
     }
 
-    // Validaciones de fechas (ahora trabajando con un solo objeto)
+    // Validaciones de fechas
     const fecha = this.validateDateString(
       encargadoDto.fecha,
       'Fecha del encargado',
@@ -816,48 +813,43 @@ export class AsistenciaService {
       );
     }
 
-    // Clave única para duplicados en la solicitud
-    const requestKey = `${encargadoDto.userId}-${fecha.getTime()}-${horaInicio.getTime()}-${horaFin.getTime()}`;
-
-    const existeDuplicado = asistencia.encargados.some((e) => {
-      // Convertir fechas existentes a Date si son strings
-      const existingFecha =
-        typeof e.fecha === 'string' ? new Date(e.fecha) : e.fecha;
-      const existingHoraInicio =
-        typeof e.hora_inicio === 'string'
-          ? new Date(e.hora_inicio)
-          : e.hora_inicio;
-      const existingHoraFin =
-        typeof e.hora_fin === 'string' ? new Date(e.hora_fin) : e.hora_fin;
-
-      return (
-        `${e.userId}-${existingFecha.getTime()}-${existingHoraInicio.getTime()}-${existingHoraFin.getTime()}` ===
-        requestKey
-      );
-    });
-
-    if (existeDuplicado) {
-      throw new ConflictException(
-        `El encargado ${encargadoDto.userId} ya tiene un registro idéntico`,
-      );
-    }
-
-    const existeSolapamiento = asistencia.encargados.some((e) => {
-      // Convertir fechas existentes a Date si son strings
-      const existingHoraInicio =
-        typeof e.hora_inicio === 'string'
-          ? new Date(e.hora_inicio)
-          : e.hora_inicio;
-      const existingHoraFin =
-        typeof e.hora_fin === 'string' ? new Date(e.hora_fin) : e.hora_fin;
-
+    // Buscar registro existente por userId y fecha (solo día)
+    const existingIndex = asistencia.encargados.findIndex((e) => {
+      const existingFecha = new Date(e.fecha);
       return (
         e.userId === encargadoDto.userId &&
-        ((horaInicio >= existingHoraInicio && horaInicio < existingHoraFin) ||
-          (horaFin > existingHoraInicio && horaFin <= existingHoraFin) ||
-          (horaInicio <= existingHoraInicio && horaFin >= existingHoraFin))
+        existingFecha.toISOString().substring(0, 10) ===
+          fecha.toISOString().substring(0, 10)
       );
     });
+
+    // Función para verificar solapamientos
+    const checkSolapamiento = (entries: any[]): boolean => {
+      return entries.some((e) => {
+        const existingHoraInicio = new Date(e.hora_inicio);
+        const existingHoraFin = new Date(e.hora_fin);
+
+        return (
+          e.userId === encargadoDto.userId &&
+          ((horaInicio >= existingHoraInicio && horaInicio < existingHoraFin) ||
+            (horaFin > existingHoraInicio && horaFin <= existingHoraFin) ||
+            (horaInicio <= existingHoraInicio && horaFin >= existingHoraFin))
+        );
+      });
+    };
+
+    let existeSolapamiento = false;
+
+    if (existingIndex !== -1) {
+      // Verificar solapamiento excluyendo el registro actual
+      const otrosEncargados = asistencia.encargados.filter(
+        (_, index) => index !== existingIndex,
+      );
+      existeSolapamiento = checkSolapamiento(otrosEncargados);
+    } else {
+      // Verificar solapamiento con todos los registros
+      existeSolapamiento = checkSolapamiento(asistencia.encargados);
+    }
 
     if (existeSolapamiento) {
       throw new ConflictException(
@@ -865,20 +857,35 @@ export class AsistenciaService {
       );
     }
 
-    // Crear nuevo encargado
-    const newEncargado = {
-      id: new ObjectId().toHexString(),
-      ...encargadoDto,
-      fecha: fecha,
-      hora_inicio: horaInicio,
-      hora_fin: horaFin,
-    };
+    if (existingIndex !== -1) {
+      // Actualizar registro existente
+      asistencia.encargados[existingIndex] = {
+        ...asistencia.encargados[existingIndex],
+        fecha: fecha,
+        hora_inicio: horaInicio,
+        hora_fin: horaFin,
+        estado: encargadoDto.estado,
+      };
+    } else {
+      // Crear nuevo registro
+      const newEncargado = {
+        id: new ObjectId().toHexString(),
+        ...encargadoDto,
+        fecha: fecha,
+        hora_inicio: horaInicio,
+        hora_fin: horaFin,
+      };
+      asistencia.encargados.push(newEncargado);
+    }
 
-    asistencia.encargados.push(newEncargado);
     await this.crudHelper.update(asistencia, asistencia);
 
     return new GeneralResponseBuilder<Asistencia>()
-      .setMessage('Encargado agregado exitosamente')
+      .setMessage(
+        existingIndex !== -1
+          ? 'Registro de encargado actualizado exitosamente'
+          : 'Encargado agregado exitosamente',
+      )
       .build();
   }
 
