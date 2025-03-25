@@ -397,10 +397,10 @@ export interface AsistenciaResponse {
   limit: number;
 }
 
-export interface HistoryAsistenciaResponse {
+export interface HistoryAsistenciaResponse<T> {
   statusCode: number;
   message: string;
-  data: Record<string, AsistenciaAlumno[]>;
+  data: Record<string, T[]>;
 }
 
 export interface FormValues {

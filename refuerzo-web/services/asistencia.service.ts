@@ -2,6 +2,7 @@ import { api } from "@/lib/api";
 
 import {
   Asistencia,
+  AsistenciaAlumno,
   AsistenciaEncargado,
   AsistenciaResponse,
   HistoryAsistenciaResponse,
@@ -80,8 +81,8 @@ export const getAsistenciaByCourseId = async (
 export const updateAsistenciaById = async (
   asistencia: Partial<Asistencia>
 ): Promise<Asistencia> => {
-  const response = await api.patch<Asistencia>(
-    `/asistencia/${asistencia._id}`,
+  const response = await api.post<Asistencia>(
+    `/asistencia/alumno/${asistencia.seccionId}`,
     asistencia
   );
   return response.data;
@@ -91,21 +92,43 @@ export const getAsistenciaByDateAlumnos = async (
   id_section: string | undefined,
   month: string,
   year: string
-): Promise<HistoryAsistenciaResponse> => {
-  const response = await api.get<HistoryAsistenciaResponse>(
+): Promise<HistoryAsistenciaResponse<AsistenciaAlumno>> => {
+  const response = await api.get<HistoryAsistenciaResponse<AsistenciaAlumno>>(
     `/asistencia/seccion/${id_section}/alumnos-agrupados?month=${month}&year=${year}`
   );
-  const data = response.data;
-  return Array.isArray(data) ? data[0] : data;
+  return Array.isArray(response.data) ? response.data[0] : response.data;
+};
+
+export const getAsistenciaByDateEncargados = async (
+  id_section: string | undefined,
+  month: string,
+  year: string
+): Promise<HistoryAsistenciaResponse<AsistenciaEncargado>> => {
+  const response = await api.get<HistoryAsistenciaResponse<AsistenciaEncargado>>(
+    `/asistencia/seccion/${id_section}/encargados-agrupados?month=${month}&year=${year}`
+  );
+
+  console.log("Response nueva", response);
+  return Array.isArray(response.data) ? response.data[0] : response.data;
 };
 
 export const addAsistenciaEncargadoIndividualy = async (
   encargado: Partial<AsistenciaEncargado>,
   id_section: string
 ): Promise<Asistencia> => {
-  const response = await api.patch<Asistencia>(
+  const response = await api.post<Asistencia>(
     `/asistencia/encargado/${id_section}`,
     encargado
+  );
+  return response.data;
+};
+
+export const updateRegisterById = async (
+  asistencia: Partial<Asistencia>
+): Promise<Asistencia> => {
+  const response = await api.patch<Asistencia>(
+    `/asistencia/alumno/register/${asistencia._id}`,
+    asistencia
   );
   return response.data;
 };

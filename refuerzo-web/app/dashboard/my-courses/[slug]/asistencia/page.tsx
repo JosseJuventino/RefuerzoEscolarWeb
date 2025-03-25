@@ -7,8 +7,6 @@ import React, {
   useRef,
 } from "react";
 import { CourseContext } from "@/app/contexts/course-context";
-import Image from "next/image";
-import { CircleUser, Check, X, TriangleAlert } from "lucide-react";
 import type { Asistencia, AsistenciaEncargado } from "@/types/types";
 import {
   getAsistenciaByCourseId,
@@ -16,14 +14,15 @@ import {
   addAsistenciaEncargadoIndividualy
 } from "@/services/asistencia.service";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { capitalize } from "@/utils/utils";
 import { toast } from "@pheralb/toast";
 import { useWarnIfUnsavedChanges } from "@/hooks/useWarnUnsavedChanges";
 import { FormAsistenciaEncargado } from "@/components/Popups/AddEncargadoAsistenciaModal";
+import AsistenciaCard from "@/components/Asistencia/AsistenciaCard";
+import { getLocalTimeZone, today } from "@internationalized/date";
 
 type EstadoAsistencia = "asistió" | "falto" | "permiso";
 
-const getCurrentDateString = () => new Date().toISOString().split("T")[0];
+const getCurrentDateString = today(getLocalTimeZone())
 
 export default function Asistencia() {
   const course = useContext(CourseContext);
@@ -78,25 +77,25 @@ export default function Asistencia() {
 
   useEffect(() => {
     if (asistenciaResponse) {
-      console.log("asistenciaResponse", asistenciaResponse);
 
       const todayAsistencias = {
         ...asistenciaResponse,
         alumnos: asistenciaResponse.alumnos.filter(
           (alumno: { fecha: string }) =>
-            new Date(alumno.fecha).toISOString().split("T")[0] ===
-            getCurrentDateString()
+            alumno.fecha.split("T")[0] ==
+            getCurrentDateString.toString()
         ),
         encargados: asistenciaResponse.encargados.filter(
           (encargado: { fecha: string }) =>
-            new Date(encargado.fecha).toISOString().split("T")[0] ===
-            getCurrentDateString()
+            encargado.fecha.split("T")[0] ==
+            getCurrentDateString.toString()
         ),
       };
 
-      setLocalAsistencia(todayAsistencias);
       initialAlumnosRef.current = todayAsistencias.alumnos;
       initialEncargadosRef.current = todayAsistencias.encargados;
+
+      setLocalAsistencia(todayAsistencias);
     }
   }, [asistenciaResponse]);
 
@@ -128,7 +127,7 @@ export default function Asistencia() {
         error: "Error al guardar la asistencia 😢",
         autoDismiss: true,
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ["asistencia"] });
+          queryClient.invalidateQueries({ queryKey: ["asistencia", course?._id] });
           initialEncargadosRef.current = localAsistencia.encargados;
           setHasUnsavedChanges(false);
           setModalState({ type: null, selected: null });
@@ -137,6 +136,7 @@ export default function Asistencia() {
           const err = error as { response?: { status: number, message: string } };
           if (err.response && err.response.status === 409)
             toast.error({ text: "El usuario tiene horarios solapados" });
+
           else {
             console.log(error);
             toast.error({ text: "Error al guardar la asistencia" });
@@ -180,28 +180,16 @@ export default function Asistencia() {
     [course]
   );
 
-
   const closeModal = () => setModalState({ type: null, selected: null, });
 
-
-  const getEstadoColor = (estado: string) => {
-    switch (estado) {
-      case "asistio":
-      case "asistió":
-        return "bg-green-100 text-green-800";
-      case "falto":
-        return "bg-red-100 text-red-800";
-      case "permiso":
-        return "bg-yellow-100 text-yellow-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   const handleGuardar = () => {
-    const payload: Asistencia = {
-      ...localAsistencia,
+    const payload = {
       seccionId: course?._id || "",
+      asistencias: localAsistencia.alumnos.map(({ alumnoId, fecha, estado }) => ({
+        alumnoId,
+        fecha,
+        estado,
+      })),
     };
 
     const finalPromise = updateAsistenciaByIdMutation.mutateAsync(payload);
@@ -214,12 +202,18 @@ export default function Asistencia() {
         error: "Error al guardar la asistencia 😢",
         autoDismiss: true,
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ["asistencia"] });
+          queryClient.invalidateQueries({ queryKey: ["asistencia", course?._id] });
           initialAlumnosRef.current = localAsistencia.alumnos;
           setHasUnsavedChanges(false);
         },
-        onError: (error) => {
-          console.error("Detalles del error:", error);
+        onError: (error: unknown) => {
+          const err = error as { response?: { status: number, message: string } };
+          if (err.response && err.response.status === 409)
+            toast.error({ text: "El usuario tiene horarios solapados" });
+          else {
+            console.log(error);
+            toast.error({ text: "Error al guardar la asistencia" });
+          }
         },
       },
     });
@@ -235,13 +229,17 @@ export default function Asistencia() {
             <h1 className="sm:text-2xl my-1 text-base text-blue_principal font-bold">
               Registro de Asistencia
             </h1>
-            <button
-              onClick={handleGuardar}
-              className="bg-blue_principal text-white sm:px-6 sm:py-0 px-2 py-0 rounded-lg transition-colors disabled:bg-gray-300"
-              disabled={!hasUnsavedChanges}
-            >
-              Guardar Asistencias
-            </button>
+            {view == "estudiante" && (
+              <button
+                onClick={handleGuardar}
+                className="bg-blue_principal text-white sm:px-6 sm:py-0 px-2 py-0 rounded-lg transition-colors disabled:bg-gray-300"
+                disabled={!hasUnsavedChanges}
+              >
+                Guardar Asistencias
+              </button>
+            )
+            }
+
           </div>
         </div>
       </div>
@@ -254,144 +252,13 @@ export default function Asistencia() {
       </div>
 
       <div className="space-y-4">
-        {view == "estudiante" && course.alumnos.map((alumno) => {
-          const asistencia = localAsistencia.alumnos.find(
-            (a) => a.alumnoId === alumno._id
-          );
-          return (
-            <div
-              key={alumno._id}
-              className="flex sm:flex-row flex-col  items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-100"
-            >
-              <div className="flex flex-row items-center gap-4 flex-1">
-                {alumno.image ? (
-                  <Image
-                    src={alumno.image}
-                    alt={alumno.nombre}
-                    width={48}
-                    height={48}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="p-2 rounded-full bg-gray-100">
-                    <CircleUser className="w-8 h-8 text-blue_principal" />
-                  </div>
-                )}
-                <div className="flex flex-row justify-end items-end gap-2">
-                  <div className="max-w-[150px] sm:max-w-[200px]">
-                    {" "}
-                    <p className="font-medium text-gray-900">{alumno.nombre}</p>
-                    <p className="text-sm text-gray-500 truncate">
-                      {alumno.email}
-                    </p>{" "}
-                  </div>
-                  {asistencia ? (
-                    <span
-                      className={`inline-block mt-1 px-2 py-1 rounded text-sm ${getEstadoColor(
-                        asistencia.estado
-                      )}`}
-                    >
-                      {capitalize(asistencia.estado)}
-                    </span>
-                  ) : (
-                    <span
-                      className={`inline-block mt-1 px-2 py-1 rounded text-center text-sm bg-gray-100 text-gray-800`}
-                    >
-                      No registrado
-                    </span>
-                  )}
-                </div>
-              </div>
+        {view == "estudiante" && course.alumnos.map((alumno) => (
+          <AsistenciaCard key={alumno._id} isAlumno={true} localAsistencia={localAsistencia} alumno={alumno} handleEstadoAsistencia={handleEstadoAsistencia} />
+        ))}
 
-              <div className="flex gap-2 sm:mt-0 mt-3">
-                <button
-                  onClick={() => handleEstadoAsistencia(alumno._id, "asistió")}
-                  className={`px-3 py-2 rounded-lg ${asistencia?.estado === "asistió"
-                    ? "bg-green-600 text-white"
-                    : "bg-green-100 text-green-600"
-                    } hover:bg-green-200 transition-colors`}
-                >
-                  <Check size={20} />
-                </button>
-                <button
-                  onClick={() => handleEstadoAsistencia(alumno._id, "falto")}
-                  className={`px-3 py-2 rounded-lg ${asistencia?.estado === "falto"
-                    ? "bg-red-600 text-white"
-                    : "bg-red-100 text-red-600"
-                    } hover:bg-red-200 transition-colors`}
-                >
-                  <X size={20} />
-                </button>
-                <button
-                  onClick={() => handleEstadoAsistencia(alumno._id, "permiso")}
-                  className={`px-3 py-2 rounded-lg ${asistencia?.estado === "permiso"
-                    ? "bg-yellow-600 text-white"
-                    : "bg-yellow-100 text-yellow-600"
-                    } hover:bg-yellow-200 transition-colors`}
-                >
-                  <TriangleAlert size={20} />
-                </button>
-              </div>
-            </div>
-          );
-        })}
-
-        {view == "encargado" && course.encargados.map((alumno) => {
-          const asistencia = localAsistencia.encargados.find(
-            (a) => a.userId === alumno._id
-          );
-          return (
-            <div
-              key={alumno._id}
-              className="flex sm:flex-row flex-col  items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-100"
-            >
-              <div className="flex flex-row items-center gap-4 flex-1">
-                {alumno.image ? (
-                  <Image
-                    src={alumno.image}
-                    alt={alumno.nombre}
-                    width={48}
-                    height={48}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="p-2 rounded-full bg-gray-100">
-                    <CircleUser className="w-8 h-8 text-blue_principal" />
-                  </div>
-                )}
-                <div className="flex flex-row justify-end items-end gap-2">
-                  <div className="max-w-[150px] sm:max-w-[200px]">
-                    {" "}
-                    <p className="font-medium text-gray-900">{alumno.nombre}</p>
-                    <p className="text-sm text-gray-500 truncate">
-                      {alumno.email}
-                    </p>{" "}
-                  </div>
-                  {asistencia ? (
-                    <span
-                      className={`inline-block mt-1 px-2 py-1 rounded text-sm ${getEstadoColor(
-                        asistencia.estado
-                      )}`}
-                    >
-                      {capitalize(asistencia.estado)}
-                    </span>
-                  ) : (
-                    <span
-                      className={`inline-block mt-1 px-2 py-1 rounded text-center text-sm bg-gray-100 text-gray-800`}
-                    >
-                      No registrado
-                    </span>
-                  )}
-                </div>
-              </div>
-              <button onClick={() => setModalState({ type: 'add', selected: alumno })} className="px-3 py-2 rounded-lg bg-blue_principal text-white hover:bg-blue-800 transition-colors">
-                Registrar asistencia
-              </button>
-            </div>
-
-
-          );
-        })}
+        {view == "encargado" && course.encargados.map((alumno) => (
+          <AsistenciaCard key={alumno._id} isAlumno={false} localAsistencia={localAsistencia} alumno={alumno} setModalState={setModalState} />
+        ))}
 
         <FormAsistenciaEncargado
           isOpen={modalState.type === 'add'}
