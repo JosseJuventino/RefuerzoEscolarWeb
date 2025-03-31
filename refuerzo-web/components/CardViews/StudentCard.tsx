@@ -18,8 +18,9 @@ export default function CardStudent({ alumno, setModalState }: RecomendadorCardP
                     src={alumno.image}
                     alt={`Avatar de ${alumno.nombre}`}
                     className="w-14 h-14 rounded-full object-cover border-2 border-blue-100"
-                    width={56}
-                    height={56}
+                    width={300}
+                    height={300}
+                    quality={100}
                 />
                 <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-800">{alumno.nombre}</h3>

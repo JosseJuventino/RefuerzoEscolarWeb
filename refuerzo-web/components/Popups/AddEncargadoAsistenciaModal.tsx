@@ -138,7 +138,7 @@ export const FormAsistenciaEncargado = ({
                 </div>
             }
         >
-            <form className="space-y-4 px-6" onSubmit={handleSubmit}>
+            <form className=" px-6" onSubmit={handleSubmit}>
                 <SelectFieldV2
                     label="Estado"
                     options={optionsCategory}

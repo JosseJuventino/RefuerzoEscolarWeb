@@ -19,8 +19,10 @@ export default function CardTutor({ tutor, setModalState }: TutorCardProps) {
                     src={tutor.image}
                     alt={`Avatar de ${tutor.nombre}`}
                     className="w-14 h-14 rounded-full object-cover border-2 border-blue-100"
-                    width={56}
-                    height={56}
+                    width={300}
+                    height={300}
+                    quality={100}
+                    priority
                 />
                 <div className="flex-1">
                     <h3 className="text-lg font-semibold  truncate max-w-[150px] inline-block text-blue_principal">{tutor.nombre}</h3>

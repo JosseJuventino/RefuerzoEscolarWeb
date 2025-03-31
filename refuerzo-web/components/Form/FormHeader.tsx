@@ -6,8 +6,9 @@ export const Header = () => (
             src="/Logov3.svg"
             alt="Logo"
             className="w-24 mx-auto mb-2"
-            width={96}
-            height={96}
+            width={300}
+            height={300}
+            quality={100}
         />
         <h1 className="text-[28px] font-semibold text-[#003C71] mb-2">
             Formulario de Inscripción

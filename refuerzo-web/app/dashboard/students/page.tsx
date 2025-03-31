@@ -123,8 +123,9 @@ export default function Page() {
           src={row.image}
           alt={`Avatar de ${row.image}`}
           className="w-10 h-10 rounded-full object-cover"
-          width={40}
-          height={40}
+          width={300}
+          height={300}
+          quality={100}
           priority
         />
       )

@@ -1,23 +1,24 @@
 "use client";
-import React, { useContext, useMemo, useState } from "react";
-import { HistoryAsistenciaResponse } from "@/types/types";
-import { getAsistenciaByDateAlumnos } from "@/services/asistencia.service";
+import React, { useCallback, useContext, useMemo, useState } from "react";
+import { AsistenciaAlumno, AsistenciaEncargado, HistoryAsistenciaResponse } from "@/types/types";
+import { getAsistenciaByDateAlumnos, getAsistenciaByDateEncargados } from "@/services/asistencia.service";
 import { useQuery } from "@tanstack/react-query";
 import { CourseContext } from "@/app/contexts/course-context";
 import { Check, TriangleAlert, X } from "lucide-react";
-import Image from "next/image";
+import { Tooltip as ReactTooltip } from "react-tooltip";
+import HistoryTable from "@/components/Asistencia/HistoryTable";
 
 export default function HistorialAsistencia() {
   const [mes, setMes] = useState(new Date().getMonth() + 1);
   const [anio, setAnio] = useState(new Date().getFullYear());
   const course = useContext(CourseContext);
+  const [view, setView] = useState("estudiante");
 
-  const queryKey = useMemo(
-    () => ['course', course?._id, mes, anio],
-    [course?._id, mes, anio]
-  );
+  const handleView = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setView(e.target.value);
+  }
 
-  const fetchAsistencias = React.useCallback(async () => {
+  const fetchAsistencias = useCallback(async () => {
     if (!course?._id) {
       throw new Error("No course id available");
     }
@@ -28,10 +29,31 @@ export default function HistorialAsistencia() {
     );
   }, [course?._id, mes, anio]);
 
-  const { data: asistencias } = useQuery<HistoryAsistenciaResponse>({
-    queryKey,
+  const fetchAsistenciasEncargados = useCallback(async () => {
+    if (!course?._id) {
+      throw new Error("No course id available");
+    }
+
+    return await getAsistenciaByDateEncargados(
+      course._id,
+      mes.toString(),
+      anio.toString()
+    );
+  }, [course?._id, mes, anio]);
+
+  const { data: asistencias } = useQuery<HistoryAsistenciaResponse<AsistenciaAlumno>>({
+    queryKey: ['course-alumnos', course?._id, mes, anio], // Key única
     queryFn: fetchAsistencias,
   });
+
+  // Para encargados
+  const { data: asistenciasEncargado } = useQuery<HistoryAsistenciaResponse<AsistenciaEncargado>>({
+    queryKey: ['course-encargados', course?._id, mes, anio], // Key única
+    queryFn: fetchAsistenciasEncargados,
+  });
+
+  console.log("asistenciasEncargados", asistenciasEncargado);
+
 
   const getSabaditosDelMes = (() => {
     const cache = new Map<string, Date[]>();
@@ -70,10 +92,19 @@ export default function HistorialAsistencia() {
     return registro?.estado || null;
   };
 
+  const getEstadoAsistenciaEncargados = (alumnoId: string, fecha: Date): string | null => {
+    const fechaKey = formatDate(fecha);
+    const registro = asistenciasEncargado?.data[fechaKey]?.find(
+      (asistencia) => asistencia.userId === alumnoId
+    );
+    return registro?.estado || null;
+  };
+
 
   const iconosEstado = React.useMemo(
     () => ({
       'asistió': <Check className="w-5 h-5 text-green-500" />,
+      'asistio': <Check className="w-5 h-5 text-green-500" />,
       'falto': <X className="w-5 h-5 text-red-500" />,
       'permiso': <TriangleAlert className="w-5 h-5 text-yellow-500" />,
     }),
@@ -92,7 +123,7 @@ export default function HistorialAsistencia() {
           <select
             value={mes - 1}
             onChange={(e) => setMes(parseInt(e.target.value) + 1)}
-            className="bg-white border border-gray-300 rounded-lg px-4 py-2"
+            className="bg-white outline-none text-blue_principal border border-gray-200 rounded-lg px-4 py-2"
           >
             {[
               "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -106,60 +137,52 @@ export default function HistorialAsistencia() {
           <input
             type="number"
             value={anio}
-            onChange={(e) => setAnio(parseInt(e.target.value))}
-            className="bg-white border border-gray-300 rounded-lg px-4 py-2 w-24"
+            min="2025"
+            onChange={(e) => {
+              const nuevoAnio = parseInt(e.target.value);
+              setAnio(nuevoAnio >= 2025 ? nuevoAnio : 2025);
+            }}
+            className="bg-white border text-blue_principal border-gray-300 rounded-lg px-4 py-2 w-24"
           />
+        </div>
+        <div>
+          <select name="select" onChange={handleView} id="" className="bg-white outline-none text-blue_principal border border-gray-200 rounded-lg px-4 py-2">
+            <option value="estudiante">Estudiantes</option>
+            <option value="encargado">Encargados</option>
+          </select>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full overflow-hidden bg-white shadow rounded-lg">
-          <thead className="bg-blue_principal text-white">
-            <tr>
-              <th className="py-3 px-4 border-b">Imagen</th>
-              <th className="py-3 px-4 border-b">Nombre</th>
-              {sabadosDelMes.map((sabado, index) => (
-                <th key={index} className="py-2 px-4 border-b">
-                  {sabado.toLocaleDateString()}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {course?.alumnos?.map((alumno) => (
-              <tr key={alumno._id} className="hover:bg-gray-50">
-                <td className="py-2 flex flex-row justify-center gap-2 px-4 border-b">
-                  <div>
-                    <Image
-                      src={alumno.image}
-                      alt={`Avatar de ${alumno.nombre}`}
-                      className="w-10 h-10 rounded-full object-cover"
-                      width={40}
-                      height={40}
-                      priority
-                    />
-                  </div>
-                </td>
 
-                <td className="py-2 gap-2 px-4 border-b text-center">
-                  {alumno.nombre}
-                </td>
 
-                {sabadosDelMes.map((sabado, idx) => {
-                  const estado = getEstadoAsistencia(alumno._id, sabado);
-                  return (
-                    <td key={idx} className="py-2 px-4 border-b text-center">
-                      <div className="relative flex flex-row justify-center group">
-                        {getIconoEstado(estado)}
-                      </div>
-                    </td>
-                  );
-                })}
-              </tr>
+      <table className="min-w-full overflow-hidden bg-white shadow rounded-lg">
+        <thead className="bg-blue_principal text-white">
+          <tr>
+            <th className="py-3 px-4 border-b">Imagen</th>
+            <th className="py-3 px-4 border-b">Nombre</th>
+            {sabadosDelMes.map((sabado, index) => (
+              <th key={index} className="py-2 px-4 border-b">
+                {sabado.toLocaleDateString()}
+              </th>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </tr>
+        </thead>
+        <tbody>
+          {view == "estudiante" && course?.alumnos?.map((alumno) => (
+            <HistoryTable isAlumno={true} alumno={alumno} sabadosDelMes={sabadosDelMes} getEstadoAsistencia={getEstadoAsistencia} getIconoEstado={getIconoEstado} key={alumno._id} />
+          ))}
+
+          {view == "encargado" && course?.encargados?.map((alumno) => (
+            <HistoryTable isAlumno={false} alumno={alumno} sabadosDelMes={sabadosDelMes} getEstadoAsistencia={getEstadoAsistenciaEncargados} getIconoEstado={getIconoEstado} key={alumno._id} />
+          ))}
+        </tbody>
+      </table>
+
+      <ReactTooltip
+        id="avatar-tooltip"
+        className="z-50"
+        place="top"
+      />
     </div>
   );
 }

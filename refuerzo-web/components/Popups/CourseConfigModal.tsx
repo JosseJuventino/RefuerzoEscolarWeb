@@ -9,7 +9,6 @@ import { toast } from "@pheralb/toast";
 import SelectFieldMultiple from "@/components/Fields/SelectFieldMultiple";
 import { getTutors } from "@/services/tutors.service";
 import { getTeacher } from "@/services/teacher.service";
-//import { updateCourse } from "@/services/courses.service";
 
 interface FormModalProps {
   isOpen: boolean;

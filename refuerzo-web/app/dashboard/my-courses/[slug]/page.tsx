@@ -237,9 +237,8 @@ export default function Tablon() {
                         </span>
                       </div>
                       <p
-                        className={`text-gray-600 ${
-                          openId === novedad._id ? "" : "line-clamp-2"
-                        } text-opacity-90`}
+                        className={`text-gray-600 ${openId === novedad._id ? "" : "line-clamp-2"
+                          } text-opacity-90`}
                       >
                         {novedad.descripcion || "Sin descripción disponible."}
                       </p>
@@ -336,49 +335,65 @@ export default function Tablon() {
               ))}
         </div>
       </div>
+      <RoleGuard
+        allowedRoles={[ROLES.ADMIN, ROLES.PROFESOR, ROLES.TUTOR]}
+      >
+        <CourseConfigModal
+          isOpen={modalState.type === "edit"}
+          title="Editar curso"
+          initialData={modalState.selected!}
+          onClose={closeModal}
+          onSubmit={handleEdit}
+        />
+      </RoleGuard>
 
-      <CourseConfigModal
-        isOpen={modalState.type === "edit"}
-        title="Editar curso"
-        initialData={modalState.selected!}
-        onClose={closeModal}
-        onSubmit={handleEdit}
-      />
+      <RoleGuard
+        allowedRoles={[ROLES.ADMIN, ROLES.PROFESOR, ROLES.TUTOR]}
+      >
+        <AddPublicationModal
+          isOpen={modalStatePublication.type === "add"}
+          title="Agregar publicación"
+          initialData={modalStatePublication.selected!}
+          onClose={closeModal}
+          courseId={course?._id}
+          courseSlug={course?.slug}
+        />
+      </RoleGuard>
 
-      <AddPublicationModal
-        isOpen={modalStatePublication.type === "add"}
-        title="Agregar publicación"
-        initialData={modalStatePublication.selected!}
-        onClose={closeModal}
-        courseId={course?._id}
-        courseSlug={course?.slug}
-      />
+      <RoleGuard
+        allowedRoles={[ROLES.ADMIN, ROLES.PROFESOR, ROLES.TUTOR]}
+      >
+        <AddPublicationModal
+          isOpen={modalStatePublication.type === "edit"}
+          title="Editar publicación"
+          initialData={modalStatePublication.selected!}
+          onClose={closeModal}
+          courseId={course?._id}
+          courseSlug={course?.slug}
+        />
+      </RoleGuard>
 
-      <AddPublicationModal
-        isOpen={modalStatePublication.type === "edit"}
-        title="Editar publicación"
-        initialData={modalStatePublication.selected!}
-        onClose={closeModal}
-        courseId={course?._id}
-        courseSlug={course?.slug}
-      />
 
-      <DeleteModal<Publicacion>
-        isOpen={modalStatePublication.type === "delete"}
-        title="Eliminar publicación"
-        item={modalStatePublication.selected!}
-        onClose={closeModal}
-        onConfirm={handleDelete}
-        description={() => (
-          <p>
-            ¿Estás seguro de eliminar la publicación?
-            <br />
-            <span className="text-sm text-gray-500">
-              Esta acción no se puede deshacer
-            </span>
-          </p>
-        )}
-      />
+      <RoleGuard
+        allowedRoles={[ROLES.ADMIN, ROLES.PROFESOR, ROLES.TUTOR]}
+      >
+        <DeleteModal<Publicacion>
+          isOpen={modalStatePublication.type === "delete"}
+          title="Eliminar publicación"
+          item={modalStatePublication.selected!}
+          onClose={closeModal}
+          onConfirm={handleDelete}
+          description={() => (
+            <p>
+              ¿Estás seguro de eliminar la publicación?
+              <br />
+              <span className="text-sm text-gray-500">
+                Esta acción no se puede deshacer
+              </span>
+            </p>
+          )}
+        />
+      </RoleGuard>
     </div>
   );
 }
