@@ -23,6 +23,9 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import { ProtectedNavItem } from "./NavItem";
 import { ROLES } from "@/app/constants/roles";
+import { useQuery } from "@tanstack/react-query";
+import { Course } from "@/types/types";
+import { getMySections } from "@/services/courses.service";
 
 const Sidenav: React.FC = () => {
   const pathName = usePathname();
@@ -32,6 +35,13 @@ const Sidenav: React.FC = () => {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const { data: session } = useSession();
   const user = session?.user;
+
+  const {
+    data: mis_cursos,
+  } = useQuery<Course[], Error>({
+    queryKey: ["cursos"],
+    queryFn: getMySections,
+  });
 
   useEffect(() => {
     setIsMounted(true);
@@ -47,9 +57,10 @@ const Sidenav: React.FC = () => {
   }, []);
 
 
-  const userCourses = [
-    { name: "Matemática", path: '/dashboard/my-courses/matematica' },
-  ];
+  const userCourses = mis_cursos?.map(course => ({
+    name: course.nombre,
+    path: `/dashboard/my-courses/${course.slug}`,
+  })) || [];
 
   const users = [
     { name: "Alumnos", path: '/dashboard/students', icon: UserIcon },
@@ -173,12 +184,13 @@ const Sidenav: React.FC = () => {
                 allowedRoles={[ROLES.ADMIN]}
               />
 
-              <NavItem
+              <ProtectedNavItem
                 icon={BookOpen}
                 label="Mis cursos"
                 isActive={pathName.startsWith("/dashboard/my-courses")}
                 subItems={userCourses}
                 currentPath={pathName}
+                allowedRoles={[ROLES.ALUMNO, ROLES.TUTOR, ROLES.PROFESOR]}
               />
               <ProtectedNavItem
                 link="/dashboard/courses"
@@ -214,8 +226,9 @@ const Sidenav: React.FC = () => {
                 src={user.image}
                 alt="User avatar"
                 className="w-8 h-8 object-cover rounded-full"
-                width={32}
-                height={32}
+                width={300}
+                height={300}
+                quality={100}
               />
             ) : (
               <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">

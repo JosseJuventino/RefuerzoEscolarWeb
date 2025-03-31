@@ -46,8 +46,9 @@ export default function AsistenciaCard({
                         <Image
                             src={alumno.image}
                             alt={alumno.nombre}
-                            width={48}
-                            height={48}
+                            width={300}
+                            height={300}
+                            quality={100}
                             className="w-12 h-12 rounded-full object-cover"
                         />
                     ) : (

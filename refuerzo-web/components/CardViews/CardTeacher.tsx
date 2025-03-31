@@ -19,8 +19,9 @@ export default function CardTeacher({ teacher, setModalState }: TutorCardProps) 
                     src={teacher.image}
                     alt={`Avatar de ${teacher.nombre}`}
                     className="w-14 h-14 rounded-full object-cover border-2 border-blue-100"
-                    width={56}
-                    height={56}
+                    width={300}
+                    height={300}
+                    quality={100}
                 />
                 <div className="flex-1">
                     <h3 className="text-lg font-semibold truncate max-w-[150px] inline-block text-blue_principal">{teacher.nombre}</h3>
@@ -29,7 +30,7 @@ export default function CardTeacher({ teacher, setModalState }: TutorCardProps) 
                             <Mail className="w-4 h-4 mr-2 text-blue-500" />
                             <span className="truncate max-w-[150px] inline-block">
                                 {teacher.email}
-                           </span>
+                            </span>
                         </div>
                         <div className="flex items-center text-sm text-gray-600">
                             <Phone className="w-4 h-4 mr-2 text-green-500" />
