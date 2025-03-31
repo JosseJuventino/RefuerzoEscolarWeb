@@ -13,26 +13,28 @@ export const AuthService = {
     }
   },
 
-  async login(credentials: { email: string; password: string }): Promise<Session | null> {
+  async login(credentials: {
+    email: string;
+    password: string;
+  }): Promise<Session | null> {
     const response = await signIn("credentials", {
       redirect: false,
       ...credentials,
     });
     console.log(response);
     if (response?.error) throw new Error(response.error);
-    
+
     const session = await getSession();
     return session;
   },
 
   async logout(): Promise<void> {
-    await signOut({ redirect: false });
+    await signOut({ redirect: true, callbackUrl: "/" });
   },
-
 };
 
 api.interceptors.request.use(async (config) => {
-  console.log("Request interceptor")
+  console.log("Request interceptor");
   if (typeof window !== "undefined") {
     try {
       const token = await AuthService.getAccessToken();
