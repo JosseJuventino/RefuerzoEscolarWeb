@@ -71,7 +71,7 @@ const Sidenav: React.FC = () => {
 
   // Handlers
   const toggleMobileMenu = () => setIsMenuOpen((prev) => !prev);
-  const handleLogout = () => signOut({ callbackUrl: '/' });
+  const handleLogout = () => signOut({ callbackUrl: 'https://refuerzo-mendoza.me/' });
 
 
   if (!isMounted) {

@@ -52,8 +52,6 @@ export const authOptions = {
             password: credentials.password,
           });
 
-          console.log("response", response);
-
           const { data } = response.data;
           if (!data?.token || !data?.info) return null;
 
