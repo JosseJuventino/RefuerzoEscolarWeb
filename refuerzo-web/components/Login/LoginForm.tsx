@@ -48,6 +48,12 @@ const LoginForm: React.FC = () => {
         password
       });
 
+      console.log(result)
+
+      if (!executeRecaptcha) {
+        throw new Error("reCAPTCHA no está disponible.");
+      }
+
       if (result?.error) {
         throw new Error(result.error);
       }
@@ -57,13 +63,11 @@ const LoginForm: React.FC = () => {
       router.push("/dashboard");
 
     } catch (err) {
-
-      let errorMessage = "Error de autenticación. Por favor intenta de nuevo.";
-      if (err instanceof Error) {
-        errorMessage = err.message;
+      if (err instanceof Error && err.message === "CredentialsSignin") {
+        toast.error({ text: 'Credenciales invalidas', description: 'Revisa tu correo o contraseña' });
+      } else if (err instanceof Error) {
+        toast.error({ text: 'Error de inicio de sesión', description: err.message });
       }
-      setError(errorMessage);
-
     }
     finally {
       setLoading(false);
@@ -93,7 +97,7 @@ const LoginForm: React.FC = () => {
         setShowForgotPasswordPopup(false);
       }
     } catch {
-      setError("Error al enviar el enlace de recuperación. Intenta nuevamente.");
+      toast.error({ text: 'Error al enviar el enlace de recuperación', description: 'Por favor, intenta nuevamente.' });
     } finally {
       setResetLoading(false);
     }

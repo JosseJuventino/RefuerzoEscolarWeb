@@ -102,8 +102,6 @@ export default function RegistrationForm() {
         }
     };
 
-
-
     if (isChecking) {
         return <Loading />;
     }
