@@ -29,8 +29,8 @@ const optionsCategory = [
         icon: <ClipboardList size={18} className="text-beige_secondary" />,
     },
     {
-        value: "guia",
-        label: "Guia",
+        value: "material de apoyo",
+        label: "Material de apoyo",
         icon: <NotebookTextIcon size={18} className="text-blue_principal" />,
     },
 ];
@@ -59,7 +59,6 @@ export const AddPublicationModal = ({
     const queryClient = useQueryClient();
 
     useEffect(() => {
-        console.log("initialData", initialData);
         setFormData(initialData || emptyForm);
     }, [initialData, emptyForm]);
 

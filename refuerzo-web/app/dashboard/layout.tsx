@@ -34,8 +34,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         return <Loading />;
     }
 
-    console.log(user);
-
     if (user && user.isActive === false) {
         return <UpdateRequiredForm username={user.name} />
     }

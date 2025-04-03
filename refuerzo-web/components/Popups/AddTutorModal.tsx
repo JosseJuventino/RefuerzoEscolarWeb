@@ -56,7 +56,8 @@ export const FormModalTutor = ({
             buttons={
                 <div className="flex gap-2">
                     <button
-                        onClick={onClose}
+                        onClick={handleCancel}
+                        aria-label="Cerrar modal"
                         className="px-4 py-2 text-blue_principal rounded"
                     >
                         Cancelar

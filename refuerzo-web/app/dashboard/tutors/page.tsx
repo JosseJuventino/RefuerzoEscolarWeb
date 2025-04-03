@@ -77,9 +77,9 @@ export default function TutorPage() {
                             data-tooltip-id="avatar-tooltip"
                             data-tooltip-content={seccion}
                         >
-                            <div className="w-8 h-8 rounded-full bg-blue-100 border-2 border-white flex items-center justify-center shadow-sm">
+                            <div className="w-10 h-10 rounded-full bg-blue-100 border-2 border-white flex items-center justify-center shadow-sm">
                                 <span className="text-xs font-medium text-blue-600">
-                                    {seccion.split(' ').map(n => n[0]).join('')}
+                                    {seccion.split(/[\s-]+/).map(n => n[0]).join('')}
                                 </span>
                             </div>
                         </div>
@@ -126,7 +126,10 @@ export default function TutorPage() {
     };
 
 
-    const closeModal = () => setModalState({ type: null, selected: null, });
+    const closeModal = () => {
+        setModalState({ type: null, selected: null, })
+        queryClient.invalidateQueries({ queryKey: ['tutor'] });
+    };
 
     if (isLoading) return <Loading />;
 
@@ -148,7 +151,7 @@ export default function TutorPage() {
                 ]}
             />
 
-            <ListGridLayout isTutorTable={true} isCardView={isCardView} setIsCardView={setIsCardView} />
+            <ListGridLayout isCardView={isCardView} setIsCardView={setIsCardView} />
 
             {isCardView ? (
                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -201,6 +204,16 @@ export default function TutorPage() {
                     </p>
                 )}
             />
+
+            <div className="fixed bottom-4 right-4 md:hidden z-50">
+                <button
+                    onClick={() => setModalState({ type: 'add', selected: null })}
+                    className="bg-blue_principal text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-transform hover:scale-105 flex items-center justify-center"
+                >
+                    <Plus size={24} />
+                    <span className="sr-only">Agregar nuevo tutor</span>
+                </button>
+            </div>
 
             <ReactTooltip
                 id="professor-tooltip"

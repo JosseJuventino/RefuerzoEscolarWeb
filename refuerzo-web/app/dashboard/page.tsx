@@ -24,18 +24,16 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="px-4 md:px-20 py-3 md:mt-0 mt-0">
-
+    <div className="px-4 md:px-20 py-3">
       <h1 className="text-2xl font-bold text-center text-blue_principal">
         Refuerzo escolar Ing. William Mendoza
       </h1>
       <h2 className="text-lg text-center italic font-normal text-gray-500">
-        &#8220;La educación es el arte de hacer visibles las cosas
-        invisibles&#8221; &#40;Jean-François Lyotard&#41;
+        &#8220;La educación es el arte de hacer visibles las cosas invisibles&#8221; &#40;Jean-François Lyotard&#41;
       </h2>
 
       <div className="px-4 md:px-32">
-        <div className="mt-6 w-full relative h-[200px] md:h-[350px] overflow-hidden">
+        <div className="mt-6 w-full relative h-[200px] md:h-[300px] overflow-hidden">
           <Image
             src={images[currentImageIndex]}
             alt={`Imagen ${currentImageIndex + 1}`}
@@ -45,14 +43,14 @@ export default function Dashboard() {
 
           <button
             onClick={goToPreviousImage}
-            className="hidden md:block absolute top-1/2 left-4 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100"
+            className="absolute top-1/2 left-2 md:left-4 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100"
           >
             &#10094;
           </button>
 
           <button
             onClick={goToNextImage}
-            className="hidden md:block absolute top-1/2 right-4 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100"
+            className="absolute top-1/2 right-2 md:right-4 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100"
           >
             &#10095;
           </button>
@@ -62,11 +60,10 @@ export default function Dashboard() {
               <button
                 key={index}
                 onClick={() => setCurrentImageIndex(index)}
-                className={`w-2 h-2 md:w-3 md:h-3 rounded-full ${
-                  index === currentImageIndex
-                    ? "bg-blue_principal"
-                    : "bg-gray-300"
-                }`}
+                className={`w-2 h-2 md:w-3 md:h-3 rounded-full ${index === currentImageIndex
+                  ? "bg-blue_principal"
+                  : "bg-gray-300"
+                  }`}
               />
             ))}
           </div>
@@ -77,9 +74,15 @@ export default function Dashboard() {
         <h3 className="text-xl font-bold text-center text-blue_principal">
           Historia
         </h3>
-        <p className="font-normal italic text-center mt-5">Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestias blanditiis obcaecati quidem quo aperiam, magnam ducimus pariatur molestiae? Rem quasi at magnam, quidem voluptate ut doloremque. Dolore quo recusandae aspernatur ab error excepturi omnis odio neque laboriosam consectetur sunt quos fuga harum ipsam dolor blanditiis molestias minus possimus, labore sapiente.</p>
-        <p className="font-normal italic text-center mt-5">Lorem ipsum dolor sit, amet consectetur adipisicing elit. Labore id culpa distinctio natus? Molestias neque eveniet fugit veritatis et, temporibus est iste accusamus quas quisquam sed? Id architecto earum nam beatae saepe, dignissimos, cumque quasi sit, aliquam ducimus eveniet nobis. Architecto facere, ratione accusantium aperiam quos eius itaque cupiditate deleniti iste culpa dolores a doloremque fugiat facilis tempore! Ea tempore maiores accusantium odio labore inventore doloribus repellat quaerat voluptatem hic?.</p>
-        <p className="font-normal italic text-center mt-5">Lorem ipsum dolor sit amet consectetur adipisicing elit. Vitae voluptas molestias reprehenderit in consequatur autem suscipit, obcaecati tempora repudiandae aliquam neque a accusantium nisi, animi cumque nesciunt doloribus debitis optio ipsam quasi. Reprehenderit minus nisi suscipit harum dolore perferendis nam earum modi recusandae dolores atque similique temporibus iure, consectetur repudiandae.</p>
+        <p className="font-normal italic text-center mt-5">
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestias blanditiis obcaecati quidem quo aperiam, magnam ducimus pariatur molestiae? Rem quasi at magnam, quidem voluptate ut doloremque.
+        </p>
+        <p className="font-normal italic text-center mt-5">
+          Lorem ipsum dolor sit, amet consectetur adipisicing elit. Labore id culpa distinctio natus? Molestias neque eveniet fugit veritatis et, temporibus est iste accusamus quas quisquam sed? Id architecto earum nam beatae saepe, dignissimos, cumque quasi sit, aliquam ducimus eveniet nobis.
+        </p>
+        <p className="font-normal italic text-center mt-5">
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Vitae voluptas molestias reprehenderit in consequatur autem suscipit, obcaecati tempora repudiandae aliquam neque a accusantium nisi, animi cumque nesciunt doloribus debitis optio ipsam quasi.
+        </p>
       </div>
     </div>
   );

@@ -7,9 +7,10 @@ import {
   Settings,
   Edit2Icon,
   Trash2,
+  ImageIcon,
+  File,
 } from "lucide-react";
 import { useState } from "react";
-import { FaRegFilePdf } from "react-icons/fa6";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Course, Image, Publicacion } from "@/types/types";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
@@ -82,7 +83,7 @@ export default function Tablon() {
     if (message.includes("anuncio")) {
       return <ClipboardList className="text-beige_secondary w-6 h-6" />;
     }
-    if (message.includes("guía")) {
+    if (message.includes("material de apoyo")) {
       return <FileText className="text-blue_principal w-6 h-6" />;
     }
     return null;
@@ -219,15 +220,15 @@ export default function Tablon() {
                   key={novedad._id}
                   className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100/50"
                 >
-                  <div
-                    className="p-6 flex items-start gap-5 cursor-pointer"
-                    onClick={() => handleToggle(novedad._id)}
-                  >
-                    <div className="sm:p-3.5 p-1 rounded-xl bg-blue_principal/10 shadow-inner">
+                  <div className="p-6 flex flex-wrap md:flex-nowrap items-start gap-5 cursor-pointer relative"
+                    onClick={() => handleToggle(novedad._id)}>
+                    {/* Icono */}
+                    <div className="sm:p-3.5 p-1 rounded-xl bg-blue_principal/10 shadow-inner flex-shrink-0">
                       {getIconByMessage(novedad.categoria)}
                     </div>
 
-                    <div className="flex-1">
+                    {/* Contenido principal */}
+                    <div className="flex-1 min-w-[60%]">
                       <div className="flex flex-col md:flex-row gap-0 md:gap-3 mb-2">
                         <h3 className="md:text-xl text-sm font-semibold text-gray-900">
                           {novedad.titulo}
@@ -238,60 +239,51 @@ export default function Tablon() {
                       </div>
                       <p
                         className={`text-gray-600 ${openId === novedad._id ? "" : "line-clamp-2"
-                          } text-opacity-90`}
+                          } text-opacity-90 break-words pr-4`}
                       >
                         {novedad.descripcion || "Sin descripción disponible."}
                       </p>
                     </div>
 
-                    <div className="flex sm:flex-row flex-col sm:gap-5 gap-0 justify-center items-center">
-                      <div className="text-gray-400 pt-1.5">
-                        <RoleGuard
-                          allowedRoles={[
-                            ROLES.ADMIN,
-                            ROLES.PROFESOR,
-                            ROLES.TUTOR,
-                          ]}
+                    {/* Botones de acción */}
+                    <div className="flex flex-row gap-3 md:gap-5 items-center md:absolute md:right-6 md:top-6 ml-auto flex-shrink-0">
+                      <RoleGuard
+                        allowedRoles={[ROLES.ADMIN, ROLES.PROFESOR, ROLES.TUTOR]}
+                      >
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setModalStatePublication({
+                              type: "edit",
+                              selected: novedad || null,
+                            });
+                          }}
+                          className="text-gray-400 hover:text-blue-500 transition-colors"
                         >
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setModalStatePublication({
-                                type: "edit",
-                                selected: novedad || null,
-                              });
-                            }}
-                          >
-                            <Edit2Icon size={20} />
-                          </button>
-                        </RoleGuard>
-                      </div>
+                          <Edit2Icon size={20} />
+                        </button>
+                      </RoleGuard>
 
-                      <div className="text-gray-400 pt-1.5">
-                        <RoleGuard
-                          allowedRoles={[
-                            ROLES.ADMIN,
-                            ROLES.PROFESOR,
-                            ROLES.TUTOR,
-                          ]}
+                      <RoleGuard
+                        allowedRoles={[ROLES.ADMIN, ROLES.PROFESOR, ROLES.TUTOR]}
+                      >
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setModalStatePublication({
+                              type: "delete",
+                              selected: novedad || null,
+                            });
+                          }}
+                          className="text-gray-400 hover:text-red-500 transition-colors"
                         >
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setModalStatePublication({
-                                type: "delete",
-                                selected: novedad || null,
-                              });
-                            }}
-                          >
-                            <Trash2 size={20} />
-                          </button>
-                        </RoleGuard>
-                      </div>
+                          <Trash2 size={20} />
+                        </button>
+                      </RoleGuard>
 
-                      <div className="text-gray-400 pt-1.5">
+                      <div className="text-gray-400">
                         {openId === novedad._id ? (
                           <ChevronUp className="w-7 h-7" />
                         ) : (
@@ -301,23 +293,28 @@ export default function Tablon() {
                     </div>
                   </div>
 
+                  {/* Sección de archivos (mantener igual) */}
                   {openId === novedad._id && (
                     <div className="px-8 pb-6 border-t border-gray-100/50">
                       <div className="sm:pl-16 pl-10 sm:pr-8 pr-10">
                         {novedad.files.length > 0 ? (
-                          <div className="flex flex-wrap gap-4 md:mt-5">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:mt-5">
                             {novedad.files.map((file, index) => (
                               <a
                                 key={index}
                                 href={`${file.url}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-3 px-4 md:px-5 py-1 md:py-3 bg-blue_principal/5 hover:bg-blue_principal/10 transition-colors rounded-xl border border-blue_principal/20 group w-full sm:w-auto"
+                                className="flex items-center gap-3 px-4 md:px-5 py-1 md:py-3 bg-blue_principal/5 hover:bg-blue_principal/10 transition-colors rounded-xl border border-blue_principal/20 group w-full"
                               >
-                                <div className="p-2 bg-white rounded-lg shadow-sm">
-                                  <FaRegFilePdf className="md:w-6 md:h-6 text-blue_principal" />
+                                <div className="p-2 bg-white rounded-lg shadow-sm flex-shrink-0">
+                                  {file.tipo === "documento" ? (
+                                    <File className="w-5 h-5 md:w-6 md:h-6 text-blue_principal" />
+                                  ) : (
+                                    <ImageIcon className="w-5 h-5 md:w-6 md:h-6 text-blue_principal" />
+                                  )}
                                 </div>
-                                <span className="text-sm font-medium text-gray-700 truncate max-w-full sm:max-w-[200px] group-hover:text-blue_principal transition-colors">
+                                <span className="text-sm font-medium text-gray-700 truncate break-all max-w-[180px] md:max-w-[240px] group-hover:text-blue_principal transition-colors">
                                   {file.originalFileName}
                                 </span>
                               </a>

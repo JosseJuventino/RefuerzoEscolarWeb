@@ -23,16 +23,18 @@ export default function CardRecomendador({ recomendador, setModalState }: Recome
                     quality={100}
                     priority
                 />
-                <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-800">{recomendador.nombre}</h3>
+                <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold text-gray-800 truncate">
+                        {recomendador.nombre}
+                    </h3>
                     <div className="mt-2 space-y-1">
-                        <div className="flex items-center text-sm text-gray-600">
-                            <Mail className="w-4 h-4 mr-2 text-blue-500" />
-                            {recomendador.email}
+                        <div className="flex items-center text-sm text-gray-600 min-w-0"> {/* Added min-w-0 */}
+                            <Mail className="w-4 h-4 mr-2 text-blue-500 shrink-0" /> {/* Added shrink-0 */}
+                            <span className="truncate">{recomendador.email}</span>
                         </div>
                         <div className="flex items-center text-sm text-gray-600">
                             <Phone className="w-4 h-4 mr-2 text-green-500" />
-                            {recomendador.telefono}
+                            {recomendador.telefono ? recomendador.telefono : 'No disponible'}
                         </div>
                     </div>
                 </div>
