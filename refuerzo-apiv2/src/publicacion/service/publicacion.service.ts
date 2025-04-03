@@ -71,7 +71,7 @@ export class PublicacionService {
     userId: string,
     createPublicacionDto: CreatePublicacionDto,
   ) {
-    const categorias = ['anuncio', 'guia'];
+    const categorias = ['anuncio', 'material de apoyo'];
 
     if (!categorias.includes(createPublicacionDto.categoria)) {
       throw new BadRequestException(
