@@ -136,7 +136,7 @@ export const MultiFileSelector: React.FC<MultiFileSelectorProps> = ({
               ) : (
                 <File className="w-5 h-5 text-gray-400" />
               )}
-              <p className="text-xs line-clamp-1">
+              <p className="text-xs max-w-full truncate px-1">
                 {"originalFileName" in item ? item.originalFileName : (item as File).name}
               </p>
 

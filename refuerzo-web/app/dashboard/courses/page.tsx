@@ -31,7 +31,7 @@ const CourseCard = ({ course }: { course: Course }) => (
                 </h3>
 
                 <div className="flex flex-wrap gap-1 text-white/90 text-sm">
-                    {course.encargados.map((professor) => (
+                    {course.encargados.slice(0, 3).map((professor) => (
                         <span
                             key={professor._id}
                             className="px-3 py-1 bg-black/20 rounded-full backdrop-blur-sm hover:bg-black/30 transition-colors"
@@ -41,6 +41,18 @@ const CourseCard = ({ course }: { course: Course }) => (
                             {professor.nombre.split(' ').map(n => n[0]).join('')}
                         </span>
                     ))}
+                    {course.encargados.length > 3 && (
+                        <span
+                            className="px-3 py-1 bg-black/20 rounded-full backdrop-blur-sm"
+                            data-tooltip-id="remaining-tooltip"
+                            data-tooltip-content={course.encargados
+                                .slice(3)
+                                .map(e => e.nombre)
+                                .join(', ')}
+                        >
+                            +{course.encargados.length - 3} más
+                        </span>
+                    )}
                 </div>
             </div>
         </div>

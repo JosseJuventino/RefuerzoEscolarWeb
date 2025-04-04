@@ -3,10 +3,9 @@ import { LayoutGrid, LayoutList } from "lucide-react";
 interface ListGridLayoutProps {
     isCardView: boolean;
     setIsCardView: (isCardView: boolean) => void;
-    isTutorTable?: boolean;
 }
 
-export default function ListGridLayout({ isCardView, setIsCardView, isTutorTable }: ListGridLayoutProps) {
+export default function ListGridLayout({ isCardView, setIsCardView }: ListGridLayoutProps) {
     return (
         <div className="flex flex-row-reverse items-center gap-4">
             <button
@@ -18,18 +17,6 @@ export default function ListGridLayout({ isCardView, setIsCardView, isTutorTable
             >
                 {isCardView ? <LayoutList size={18} /> : <LayoutGrid size={18} />}
             </button>
-
-            {
-                isTutorTable == true && (
-                    <button
-                        onClick={() => setIsCardView(!isCardView)}
-                        className={`ml-2 text-blue_principal bg-white font-medium px-4 py-2 rounded-lg shadow transition-all`}
-                    >
-                        Agregar asistencias
-                    </button>
-                )
-            }
-
         </div>
     );
 }
