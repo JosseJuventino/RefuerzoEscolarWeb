@@ -9,7 +9,8 @@ import { Loading } from '@/components/Loading';
 import { useQuery } from '@tanstack/react-query';
 import { CourseContext } from '@/app/contexts/course-context';
 import { ROLES } from "@/app/constants/roles";
-import { useAuth } from '@/hooks/useAuth';
+import { useSession } from 'next-auth/react';
+
 
 //Este contexto se ha creado para poder compartir los datos del curso por las diferentes tabs y 
 // asi no tener que hacer peticiones a la API en cada tab.
@@ -19,6 +20,7 @@ export default function CourseLayout({ children }: { children: React.ReactNode }
   const { slug } = useParams();
 
   const pathname = usePathname();
+  const { data: session } = useSession();
 
   const {
     data: course,
@@ -34,14 +36,13 @@ export default function CourseLayout({ children }: { children: React.ReactNode }
 
   // Assuming you have a hook or context to get the current user’s role
 
-  const { user } = useAuth();
+  const user = session?.user;
 
   const tabs = [
     { id: 1, name: 'Tablón', href: `/dashboard/my-courses/${slug}` },
     { id: 3, name: 'Personas', href: `/dashboard/my-courses/${slug}/personas` },
   ];
 
-  // Only include "Registrar asistencia" and "Historial de asistencia" if the user has the right role
   if (user && [ROLES.ADMIN, ROLES.PROFESOR, ROLES.TUTOR].includes(user.role as "admin" | "profesor" | "tutor")) {
     tabs.push(
       { id: 4, name: 'Registrar asistencia', href: `/dashboard/my-courses/${slug}/asistencia` },

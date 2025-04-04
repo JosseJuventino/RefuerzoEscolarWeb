@@ -8,7 +8,7 @@ import {
   Edit2Icon,
   Trash2,
   ImageIcon,
-  File,
+  File as FileIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -127,8 +127,13 @@ export default function Tablon() {
       const finalPromise = imageUploadPromise.then(async () => {
         updateData.nombre = updated.nombre;
         updateData.encargados = updated.encargados;
-        return await updateCourseMutation.mutateAsync(updateData);
+        console.log("updateData", updateData);
+        const response = updateCourseMutation.mutateAsync(updateData);
+        console.log("response", response);
+        return response;
       });
+
+      console.log("finalPromise", finalPromise);
 
       toast.loading({
         text: "Actualizando curso...",
@@ -146,7 +151,8 @@ export default function Tablon() {
           },
         },
       });
-    } catch {
+    } catch (error) {
+      console.log(error);
       toast.error({
         text: "Error de validación",
         description: "Ha ocurrido un error al ingresar el curso",
@@ -222,12 +228,9 @@ export default function Tablon() {
                 >
                   <div className="p-6 flex flex-wrap md:flex-nowrap items-start gap-5 cursor-pointer relative"
                     onClick={() => handleToggle(novedad._id)}>
-                    {/* Icono */}
                     <div className="sm:p-3.5 p-1 rounded-xl bg-blue_principal/10 shadow-inner flex-shrink-0">
                       {getIconByMessage(novedad.categoria)}
                     </div>
-
-                    {/* Contenido principal */}
                     <div className="flex-1 min-w-[60%]">
                       <div className="flex flex-col md:flex-row gap-0 md:gap-3 mb-2">
                         <h3 className="md:text-xl text-sm font-semibold text-gray-900">
@@ -309,7 +312,7 @@ export default function Tablon() {
                               >
                                 <div className="p-2 bg-white rounded-lg shadow-sm flex-shrink-0">
                                   {file.tipo === "documento" ? (
-                                    <File className="w-5 h-5 md:w-6 md:h-6 text-blue_principal" />
+                                    <FileIcon className="w-5 h-5 md:w-6 md:h-6 text-blue_principal" />
                                   ) : (
                                     <ImageIcon className="w-5 h-5 md:w-6 md:h-6 text-blue_principal" />
                                   )}

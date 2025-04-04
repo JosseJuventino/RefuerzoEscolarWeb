@@ -7,6 +7,11 @@ export const getTutors = async (): Promise<Tutor[]> => {
   return response.data.data;
 };
 
+export const getTutorsWithoutPagination = async (): Promise<Tutor[]> => {
+  const response = await api.get<TutorResponse>("/tutores");
+  return response.data.data;
+}
+
 export const addTutor = async (
   recomendador: Tutor
 ): Promise<Partial<Tutor>> => {

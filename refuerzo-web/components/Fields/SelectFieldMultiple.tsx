@@ -79,20 +79,20 @@ const SelectFieldCustom: React.FC<SelectFieldCustomProps> = ({
       <div className="relative" ref={containerRef}>
         {/* Campo de selección */}
         <div
-          className="p-2 border border-gray-300 rounded-lg bg-white cursor-pointer min-h-[40px] flex items-center flex-wrap gap-2"
+          className="p-2 border border-gray-300 rounded-lg bg-white cursor-pointer min-h-[40px] flex items-center flex-wrap gap-2 max-h-32 overflow-y-auto"
           onClick={() => setIsOpen(!isOpen)}
         >
           {selectedOptions.length > 0 ? (
             selectedOptions.map((option) => (
               <div
-                key={option.value} 
+                key={option.value}
                 className="flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm"
               >
                 <span className="ml-1">{option.label}</span>
                 <button
                   className="ml-2 text-red-500 hover:text-red-700"
                   onClick={(e) => {
-                    e.stopPropagation(); 
+                    e.stopPropagation();
                     removeSelection(option.value);
                   }}
                 >
@@ -107,16 +107,15 @@ const SelectFieldCustom: React.FC<SelectFieldCustomProps> = ({
 
         {/* Dropdown de opciones */}
         {isOpen && (
-          <ul className="absolute top-full left-0 z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg">
+          <ul className="absolute top-full left-0 z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
             {options.map((option) => (
               <li
-                key={option.value} 
+                key={option.value}
                 onClick={() => handleOptionClick(option)}
-                className={`px-2 py-1 flex items-center cursor-pointer hover:bg-gray-100 ${
-                  selectedOptions.some((selected) => selected.value === option.value)
-                    ? "bg-gray-200"
-                    : ""
-                }`}
+                className={`px-2 py-1 flex items-center cursor-pointer hover:bg-gray-100 ${selectedOptions.some((selected) => selected.value === option.value)
+                  ? "bg-gray-200"
+                  : ""
+                  }`}
               >
                 <span className="ml-2">{option.label}</span>
               </li>

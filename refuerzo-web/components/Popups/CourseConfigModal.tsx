@@ -7,7 +7,7 @@ import { InputField } from "../Fields/InputField";
 import { ImageSelector } from "../Fields/ImageSelector";
 import { toast } from "@pheralb/toast";
 import SelectFieldMultiple from "@/components/Fields/SelectFieldMultiple";
-import { getTutors } from "@/services/tutors.service";
+import { getTutorsWithoutPagination } from "@/services/tutors.service";
 import { getTeacher } from "@/services/teacher.service";
 
 interface FormModalProps {
@@ -44,7 +44,7 @@ export const CourseConfigModal = ({
   useEffect(() => {
     const fetchTutors = async () => {
       try {
-        const response = await getTutors();
+        const response = await getTutorsWithoutPagination();
         const mappedTutors = response.map((tutor) => ({
           value: tutor._id,
           label: tutor.nombre,
@@ -97,7 +97,7 @@ export const CourseConfigModal = ({
     if (initialData?.encargados) {
       initialData.encargados.forEach((encargado) => {
         const encargadoId = typeof encargado === 'string' ? encargado : encargado._id;
-        
+
         if (tutors.find((tutor) => tutor.value === encargadoId)) {
           setSelectedTutors((prev) => [...prev, encargadoId]);
         } else if (teachers.find((teacher) => teacher.value === encargadoId)) {
@@ -140,7 +140,7 @@ export const CourseConfigModal = ({
         email: teacher.email,
         telefono: teacher.telefono
       }));
-    
+
     return [...selectedTutorObjects, ...selectedTeacherObjects];
   };
 
@@ -156,7 +156,7 @@ export const CourseConfigModal = ({
     if (!formData.nombre || formData.nombre.trim() === "") {
       toast.error({
         text: "Error",
-        description: "EL nombre no puede quedar vacio",
+        description: "El nombre no puede quedar vacio",
       })
       return;
     }
