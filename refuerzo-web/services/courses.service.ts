@@ -3,9 +3,19 @@ import { api } from "@/lib/api";
 import { Course, CourseResponse } from "@/types/types";
 
 export const getCourses = async (): Promise<Course[]> => {
-  const response = await api.get<CourseResponse>("/seccion");
-  const data = response.data.data;
-  return Array.isArray(data) ? data : [data];
+  try {
+    const response = await api.get<CourseResponse>("/seccion");
+    const data = response.data.data;
+
+    if (!data) {
+      throw new Error("Datos no disponibles");
+    }
+
+    return Array.isArray(data) ? data : [data];
+  } catch (error) {
+    console.error("Error fetching courses:", error);
+    throw error;
+  }
 };
 
 export const getCourseBySlug = async (slug: string): Promise<Course> => {

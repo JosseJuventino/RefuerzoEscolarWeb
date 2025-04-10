@@ -115,15 +115,15 @@ export default function HistorialAsistencia() {
     estado ? iconosEstado[estado as keyof typeof iconosEstado] ?? null : null;
 
   return (
-    <div className="sm:p-0 p-2">
-      <h1 className="text-2xl font-bold mb-4 text-blue_principal">Historial de Asistencia</h1>
+    <div className="sm:p-4 p-2">
+      <h1 className="text-2xl md:text-3xl font-bold mb-6 text-blue_principal">Historial de Asistencia</h1>
 
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <select
             value={mes - 1}
             onChange={(e) => setMes(parseInt(e.target.value) + 1)}
-            className="bg-white outline-none text-blue_principal border border-gray-200 rounded-lg px-4 py-2"
+            className="w-full sm:w-auto bg-white outline-none text-blue_principal border border-gray-200 rounded-lg px-4 py-2"
           >
             {[
               "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -142,41 +142,46 @@ export default function HistorialAsistencia() {
               const nuevoAnio = parseInt(e.target.value);
               setAnio(nuevoAnio >= 2025 ? nuevoAnio : 2025);
             }}
-            className="bg-white border text-blue_principal border-gray-300 rounded-lg px-4 py-2 w-24"
+            className="w-full sm:w-24 bg-white border text-blue_principal border-gray-300 rounded-lg px-4 py-2"
           />
         </div>
         <div>
-          <select name="select" onChange={handleView} id="" className="bg-white outline-none text-blue_principal border border-gray-200 rounded-lg px-4 py-2">
+          <select 
+            name="select" 
+            onChange={handleView} 
+            id="" 
+            className="w-full sm:w-auto bg-white outline-none text-blue_principal border border-gray-200 rounded-lg px-4 py-2"
+          >
             <option value="estudiante">Estudiantes</option>
             <option value="encargado">Encargados</option>
           </select>
         </div>
       </div>
 
-
-
-      <table className="min-w-full overflow-hidden bg-white shadow rounded-lg">
-        <thead className="bg-blue_principal text-white">
-          <tr>
-            <th className="py-3 px-4 border-b">Imagen</th>
-            <th className="py-3 px-4 border-b">Nombre</th>
-            {sabadosDelMes.map((sabado, index) => (
-              <th key={index} className="py-2 px-4 border-b">
-                {sabado.toLocaleDateString()}
-              </th>
+      <div className="overflow-x-auto rounded-lg">
+        <table className="min-w-full bg-white shadow">
+          <thead className="bg-blue_principal text-white">
+            <tr>
+              <th className="py-3 px-4 border-b whitespace-nowrap">Imagen</th>
+              <th className="py-3 px-4 border-b whitespace-nowrap">Nombre</th>
+              {sabadosDelMes.map((sabado, index) => (
+                <th key={index} className="py-2 px-4 border-b whitespace-nowrap">
+                  {sabado.toLocaleDateString()}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {view == "estudiante" && course?.alumnos?.map((alumno) => (
+              <HistoryTable isAlumno={true} alumno={alumno} sabadosDelMes={sabadosDelMes} getEstadoAsistencia={getEstadoAsistencia} getIconoEstado={getIconoEstado} key={alumno._id} />
             ))}
-          </tr>
-        </thead>
-        <tbody>
-          {view == "estudiante" && course?.alumnos?.map((alumno) => (
-            <HistoryTable isAlumno={true} alumno={alumno} sabadosDelMes={sabadosDelMes} getEstadoAsistencia={getEstadoAsistencia} getIconoEstado={getIconoEstado} key={alumno._id} />
-          ))}
 
-          {view == "encargado" && course?.encargados?.map((alumno) => (
-            <HistoryTable isAlumno={false} alumno={alumno} sabadosDelMes={sabadosDelMes} getEstadoAsistencia={getEstadoAsistenciaEncargados} getIconoEstado={getIconoEstado} key={alumno._id} />
-          ))}
-        </tbody>
-      </table>
+            {view == "encargado" && course?.encargados?.map((alumno) => (
+              <HistoryTable isAlumno={false} alumno={alumno} sabadosDelMes={sabadosDelMes} getEstadoAsistencia={getEstadoAsistenciaEncargados} getIconoEstado={getIconoEstado} key={alumno._id} />
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <ReactTooltip
         id="avatar-tooltip"

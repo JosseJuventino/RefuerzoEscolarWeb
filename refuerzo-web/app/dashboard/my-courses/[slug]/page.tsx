@@ -9,10 +9,11 @@ import {
   Trash2,
   ImageIcon,
   File as FileIcon,
+  Plus,
 } from "lucide-react";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Course, Image, Publicacion } from "@/types/types";
+import { Course, Image as ImageFile, Publicacion } from "@/types/types";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import { updateCourse } from "@/services/courses.service";
 import { CourseConfigModal } from "@/components/Popups/CourseConfigModal";
@@ -25,6 +26,7 @@ import { DeleteModal } from "@/components/Popups/DeleteModal";
 import { RoleGuard } from "@/components/RoleGuard";
 import { ROLES } from "@/app/constants/roles";
 import { toast } from "@pheralb/toast";
+import Image from 'next/image';
 
 export default function Tablon() {
   const [openId, setOpenId] = useState<string | null>(null);
@@ -109,7 +111,7 @@ export default function Tablon() {
           throw new Error("Tamaño máximo de imagen: 5MB");
         }
 
-        const imagen: Image = {
+        const imagen: ImageFile = {
           originalFilename: image.name,
           category: "section_images",
           file: image,
@@ -161,58 +163,63 @@ export default function Tablon() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="relative group h-40 md:h-72 rounded-2xl bg-center shadow-2xl overflow-hidden mb-2 md:mb-10 transition-all duration-300">
-        <div
-          className="absolute inset-0 bg-cover  bg-center"
-          style={{ backgroundImage: `url(${course?.backgroundImage})` }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
-            <RoleGuard
-              allowedRoles={[ROLES.ADMIN, ROLES.PROFESOR, ROLES.TUTOR]}
+    <div className="min-h-screen">
+      <div className="relative h-48 sm:h-64 md:h-80 overflow-hidden rounded-b-2xl">
+        <div className="absolute inset-0">
+          <Image
+            src={course?.backgroundImage || "/placeholder-course.jpg"}
+            alt={course?.nombre || "Course image"}
+            fill
+            className="object-cover"
+            priority
+          />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+          <RoleGuard
+            allowedRoles={[ROLES.ADMIN, ROLES.PROFESOR, ROLES.TUTOR]}
+          >
+            <button
+              onClick={() =>
+                setModalState({ type: "edit", selected: course || null })
+              }
+              className="absolute top-2 sm:top-4 right-2 sm:right-4 outline-none flex items-center gap-2 bg-white text-blue_principal px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base"
             >
-              <button
-                onClick={() =>
-                  setModalState({ type: "edit", selected: course || null })
-                }
-                className="absolute top-4 right-4 outline-none flex items-center gap-2 bg-white text-blue_principal  px-4 py-2 rounded-lg "
-              >
-                <Settings className="w-5 h-5" />
-              </button>
-            </RoleGuard>
+              <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Editar</span>
+            </button>
+          </RoleGuard>
 
-            <div className="absolute bottom-8 left-8">
-              <h1 className="text-xl md:text-5xl font-bold text-white mb-2">
-                {course?.nombre}
-              </h1>
-            </div>
+          <div className="absolute bottom-4 sm:bottom-8 left-4 sm:left-8 right-4 sm:right-8">
+            <h1 className="text-xl sm:text-3xl md:text-5xl font-bold text-white mb-2 line-clamp-2">
+              {course?.nombre}
+            </h1>
           </div>
         </div>
       </div>
 
-      <div className="md:pb-10 pb-2">
-        <div className="flex items-center px-2 md:px-0 justify-between mb-2 md:mb-10">
-          <h2 className="md:text-3xl text-base font-bold text-blue_principal flex flex-col gap-1 relative">
-            <span className="relative md:text-xl text-sm z-10 mr-3">
+      <div className="md:pb-10 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 lg:px-8 justify-between mb-4 sm:mb-8 md:mb-10 space-y-4 sm:space-y-0">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-lg sm:text-2xl md:text-3xl font-bold text-blue_principal">
               Últimas publicaciones
-            </span>
-            <span className="text-gray-500 text-sm">
+            </h2>
+            <span className="text-sm sm:text-base text-gray-500">
               {course?.publicaciones?.length} publicaciones
             </span>
-          </h2>
+          </div>
+
           <RoleGuard allowedRoles={[ROLES.ADMIN, ROLES.PROFESOR, ROLES.TUTOR]}>
             <button
-              onClick={() =>
-                setModalStatePublication({ type: "add", selected: null })
-              }
-              className="text-blue_principal md:text-xl sm:text-sm bg-white font-medium px-4 py-2 rounded-lg shadow transition-transform hover:scale-105"
+              onClick={() => setModalStatePublication({ type: "add", selected: null })}
+              className="inline-flex items-center gap-2 bg-blue_principal text-white px-4 py-2 rounded-lg text-sm sm:text-base hover:bg-blue-700 transition-colors"
             >
-              <span className="text-sm">Agregar publicación</span>
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+              Nueva publicación
             </button>
           </RoleGuard>
         </div>
 
-        <div className="space-y-8">
+        <div className="px-4 sm:px-6 lg:px-8 space-y-4">
           {course &&
             course.publicaciones
               ?.slice()
@@ -372,7 +379,6 @@ export default function Tablon() {
           courseSlug={course?.slug}
         />
       </RoleGuard>
-
 
       <RoleGuard
         allowedRoles={[ROLES.ADMIN, ROLES.PROFESOR, ROLES.TUTOR]}

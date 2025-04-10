@@ -113,17 +113,23 @@ export default function CoursesPage() {
         data: cursos,
         isLoading,
         isError,
-    } = useQuery<Course[], Error>({
-        queryKey: ["cursos"],
+    } = useQuery<Course[]>({
+        queryKey: ["cursosNuevos"],
         queryFn: getCourses,
+        staleTime: 60 * 1000, // 1 minuto sin re-fetch automático
     });
 
+    if (isLoading) {
+        return <Loading />;
+    }
 
+    if (isError) {
+        return <ServerErrorPage />;
+    }
 
-
-    if (isLoading) return <Loading />
-
-    if (isError) return <ServerErrorPage />
+    if (!cursos || cursos.length === 0) {
+        return <div className="p-10 text-center">No tienes cursos asignados</div>;
+    }
 
     return (
         <div className='p-10'>
