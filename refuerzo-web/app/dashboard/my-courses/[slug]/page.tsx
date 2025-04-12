@@ -73,7 +73,7 @@ export default function Tablon() {
   const uploadImageMutation = useMutation({
     mutationFn: uploadImage,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["image"] });
+      queryClient.invalidateQueries({ queryKey: ["course", course?.slug] });
     },
   });
 
@@ -100,7 +100,7 @@ export default function Tablon() {
     const updateData: Partial<Course> = { _id: updated._id };
 
     try {
-      let imageUploadPromise: Promise<void> = Promise.resolve();
+      let imageUrl = updated.backgroundImage;
 
       if (image instanceof File) {
         if (!image.type.startsWith("image/")) {
@@ -116,49 +116,43 @@ export default function Tablon() {
           category: "section_images",
           file: image,
         };
+  
+        const imageResponse = await uploadImageMutation.mutateAsync(imagen);
+        imageUrl = imageResponse.data.url;
+        console.log("Respuesta de la imagen:", imageResponse.data.url);
 
-        imageUploadPromise = uploadImageMutation
-          .mutateAsync(imagen)
-          .then((response) => {
-            updateData.backgroundImage = response.data.url;
-          });
       } else if (typeof image === "string") {
         updateData.backgroundImage = image;
       }
 
-      const finalPromise = imageUploadPromise.then(async () => {
-        updateData.nombre = updated.nombre;
-        updateData.encargados = updated.encargados;
-        console.log("updateData", updateData);
-        const response = updateCourseMutation.mutateAsync(updateData);
-        console.log("response", response);
-        return response;
-      });
+      updateData.backgroundImage = imageUrl;
+      updateData.nombre = updated.nombre;
+      updateData.encargados = updated.encargados;
 
-      console.log("finalPromise", finalPromise);
+      console.log("Datos a actualizar:", updateData);
 
-      toast.loading({
-        text: "Actualizando curso...",
-        options: {
-          promise: finalPromise,
-          success: "Curso actualizado exitosamente 🎉",
-          error: "Error al actualizar el curso",
-          autoDismiss: true,
-          onSuccess: () => {
-            closeModal();
-            queryClient.invalidateQueries({ queryKey: ["cursos"] });
-          },
-          onError: (error) => {
-            console.error("Detalles del error:", error);
-          },
-        },
-      });
-    } catch (error) {
-      console.log(error);
-      toast.error({
-        text: "Error de validación",
-        description: "Ha ocurrido un error al ingresar el curso",
-      });
+      const courseResponse = await updateCourseMutation.mutateAsync(updateData);
+
+      console.log("Respuesta del curso:", courseResponse);
+    
+    // 4. Cerrar modal y mostrar feedback
+    toast.success({
+      text: "Curso actualizado exitosamente",});
+    closeModal();
+    console.log("Respuesta final:", courseResponse);
+    }
+    catch (error) {
+      if (error instanceof Error) {
+        toast.error({
+          text: "Error al actualizar el curso",
+          description: error.message,
+        });
+      } else {
+        toast.error({
+          text: "Error inesperado",
+          description: "Por favor, intenta nuevamente.",
+        });
+      }
     }
   };
 

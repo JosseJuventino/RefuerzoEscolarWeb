@@ -29,11 +29,11 @@ export const updateCourse = async (
 ): Promise<Course> => {
   const courseToUpdate: {
     encargados?: string[];
-    imagen?: string;
+    backgroundImage?: string;
     nombre?: string;
   } = {};
 
-  courseToUpdate.imagen = course.backgroundImage;
+  courseToUpdate.backgroundImage = course.backgroundImage;
   courseToUpdate.nombre = course.nombre;
 
   if (course.encargados) {
