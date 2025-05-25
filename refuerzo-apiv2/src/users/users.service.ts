@@ -39,6 +39,12 @@ import { SeccionService } from 'src/seccion/service/seccion.service';
 import { Seccion } from 'src/seccion/entities/seccion.entity';
 import { ObjectId } from 'mongodb';
 
+type AlumnoCreatedPayload = {
+  id:               string;
+  email:            string;
+  temporaryPassword:string;
+};
+
 @Injectable()
 export class UsersService {
   private readonly crudHelper: CrudHelper<User>;
@@ -159,9 +165,11 @@ export class UsersService {
       .build();
   }
 
+  
+
   async createAlumno(
     createNewAlumnoDto: CreateNewAlumnoDto,
-  ): Promise<GeneralResponseDto<User>> {
+  ): Promise<GeneralResponseDto<AlumnoCreatedPayload>> {
     const role = await this.roleCrudHelper.findByNameOrId(
       'alumno',
       false,
@@ -199,30 +207,36 @@ export class UsersService {
 
     const savedUser = await this.userRepository.save(newUser);
 
-    const sendEmailDto: SendEmailDto = {
-      to: [createNewAlumnoDto.email],
-      replyTo: ['soporte@refuerzo-mendoza.me'],
-      subject: 'Cuenta de Alumno Creada',
-      from: 'soporte@refuerzo-mendoza.me',
-      text: `Hola ${createNewAlumnoDto.nombre},\n\nTu contraseña temporal es: ${temporaryPassword}\nPor favor inicia sesión y cambia tu contraseña.`,
-      html: alumnoAccountCreatedTemplate(
-        createNewAlumnoDto.nombre,
-        temporaryPassword,
-      ),
-    };
+    /*
+      const sendEmailDto: SendEmailDto = {
+        to: [createNewAlumnoDto.email],
+        replyTo: ['soporte@refuerzo-mendoza.me'],
+        subject: 'Cuenta de Alumno Creada',
+        from: 'soporte@refuerzo-mendoza.me',
+        text: `Hola ${createNewAlumnoDto.nombre},\n\nTu contraseña temporal es: ${temporaryPassword}\nPor favor inicia sesión y cambia tu contraseña.`,
+        html: alumnoAccountCreatedTemplate(
+          createNewAlumnoDto.nombre,
+          temporaryPassword,
+        ),
+      };
+    
 
-    try {
-      await this.emailService.sendEmail(sendEmailDto);
-    } catch (error) {
-      console.error('Error sending email:', error);
-    }
+      try {
+        await this.emailService.sendEmail(sendEmailDto);
+      } catch (error) {
+        console.error('Error sending email:', error);
+      }
+    */
 
-    //
-
-    return new GeneralResponseBuilder<User>()
-      .setStatusCode(201)
-      .setMessage('Alumno created successfully')
-      .build();
+   return new GeneralResponseBuilder<AlumnoCreatedPayload>()
+    .setStatusCode(201)
+    .setMessage('Alumno created successfully')
+    .setData({
+      id:               savedUser._id.toString(),
+      email:            savedUser.email,
+      temporaryPassword,  // la pwd antes de hashear
+    })
+    .build();
   }
 
   async findAll(
@@ -990,7 +1004,7 @@ export class UsersService {
         },
       );
 
-      const resetLink = `https://refuerzo-mendoza.me/reset-password?token=${encodedToken}`;
+      /*const resetLink = `https://refuerzo-mendoza.me/reset-password?token=${encodedToken}`;
 
       const sendEmailDto: SendEmailDto = {
         to: [email],
@@ -1010,6 +1024,7 @@ export class UsersService {
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
+        */
 
       return new GeneralResponseBuilder<void>()
         .setStatusCode(200)
@@ -1018,7 +1033,7 @@ export class UsersService {
         )
         .build();
     } catch (error) {
-      console.error('Error en requestPasswordReset:', error); // Depuración
+      console.error('Error en requestPasswordReset:', error);
       throw new HttpException(
         'Error en la solicitud de recuperación de contraseña',
         HttpStatus.INTERNAL_SERVER_ERROR,
