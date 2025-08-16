@@ -86,12 +86,18 @@ export class PostulanteService {
       grado: createPostulanteDto.grado.toString(), // Asumiendo que el contacto tiene un campo grado
     };
 
-    // Crear el usuario usando UsersService
-    await this.usersService.createAlumno(createNewAlumnoDto);
+    // Crear el usuario usando UsersService y obtener la contraseña temporal
+    const alumnoResult = await this.usersService.createAlumno(createNewAlumnoDto);
+    // alumnoResult.data: { email, temporaryPassword }
 
-    return new GeneralResponseBuilder<Postulante>()
+    return new GeneralResponseBuilder<any>()
       .setStatusCode(201)
       .setMessage('Postulante created successfully')
+      .setData({
+        postulanteId: savedPostulante._id,
+        email: alumnoResult.data?.email,
+        temporaryPassword: alumnoResult.data?.temporaryPassword,
+      })
       .build();
   }
 
@@ -163,11 +169,6 @@ export class PostulanteService {
     //Enriqueces los postulantes con la informacion del recomendador y grado
     const postulantesWithRecomendador = await Promise.all(
       results.map(async (postulante) => {
-        const recomendador = await this.userCrudHelper.findByNameOrId(
-          postulante.recomendador.toString(),
-          false,
-          false,
-        );
 
         const grado = await this.gradoCrudHelper.findByNameOrId(
           postulante.grado.toString(),
@@ -185,12 +186,6 @@ export class PostulanteService {
           email: postulante.email,
           grado: grado.nombre,
           isUser: postulante.isUser,
-          recomendador: {
-            nombreCompleto: recomendador.nombre,
-            email: recomendador.email,
-            image: recomendador.image,
-          },
-
           createdAt: postulante.createdAt,
           updatedAt: postulante.updatedAt,
         };

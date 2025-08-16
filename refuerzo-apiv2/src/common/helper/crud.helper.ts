@@ -81,9 +81,9 @@ export class CrudHelper<T extends BaseEntity> {
     return entity;
   }
 
-  async create(entity: T) {
+  async create(entity: T): Promise<T> {
     try {
-      await this.repository.save(entity);
+      return await this.repository.save(entity);
     } catch (error) {
       console.error(`Error in ${this.getEntityName()} create method:`, error);
       throw new InternalServerErrorException(

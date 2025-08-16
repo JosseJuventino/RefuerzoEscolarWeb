@@ -39,12 +39,6 @@ import { SeccionService } from 'src/seccion/service/seccion.service';
 import { Seccion } from 'src/seccion/entities/seccion.entity';
 import { ObjectId } from 'mongodb';
 
-type AlumnoCreatedPayload = {
-  id:               string;
-  email:            string;
-  temporaryPassword:string;
-};
-
 @Injectable()
 export class UsersService {
   private readonly crudHelper: CrudHelper<User>;
@@ -70,13 +64,17 @@ export class UsersService {
     this.crudHelper = new CrudHelper<User>(this.userRepository, 'Users');
     this.roleCrudHelper = new CrudHelper<Role>(this.roleRepository, 'Roles');
   }
-  async create(
+  
+async create(
     createUserDto: CreateUserDto,
-  ): Promise<GeneralResponseDto<User>> {
+  ): Promise<GeneralResponseDto<{ userId: string; temporaryPassword: string }>> {
+    // 1. Validar role
     const role = await this.roleCrudHelper.findByNameOrId(createUserDto.role);
     if (!role) {
       throw new BadRequestException(`Role ${createUserDto.role} not found`);
     }
+
+    // 2. Validar email único
     const findUser = await this.crudHelper.findByEmailOrId(
       createUserDto.email,
       false,
@@ -87,20 +85,30 @@ export class UsersService {
         `User with email ${createUserDto.email} already exists`,
       );
     }
-    //Paso para encriptar la contraseña
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
 
+    // 3. Generar contraseña temporal y hashearla
+    const temporaryPassword = crypto.randomBytes(8).toString('hex');
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(temporaryPassword, salt);
+
+    // 4. Crear y guardar la entidad
     const newUser = this.userRepository.create({
       ...createUserDto,
       password: hashedPassword,
     });
-    await this.crudHelper.create(newUser);
-    return new GeneralResponseBuilder<User>()
+    const savedUser = await this.crudHelper.create(newUser);
+
+    // 5. Devolver userId + temporaryPassword
+    return new GeneralResponseBuilder<{ userId: string; temporaryPassword: string }>()
       .setStatusCode(201)
       .setMessage('User created successfully')
+      .setData({
+        userId: savedUser._id.toString(),
+        temporaryPassword,
+      })
       .build();
   }
+
 
   async createRecomendador(
     createNewRecomendadorDto: CreateNewRecomendadorDto,
@@ -165,79 +173,54 @@ export class UsersService {
       .build();
   }
 
-  
+ async createAlumno(
+  createNewAlumnoDto: CreateNewAlumnoDto,
+): Promise<GeneralResponseDto<{ email: string; temporaryPassword: string }>> {
+  const role = await this.roleCrudHelper.findByNameOrId('alumno', false, false);
+  if (!role) {
+    throw new BadRequestException(`Role alumno not found`);
+  }
 
-  async createAlumno(
-    createNewAlumnoDto: CreateNewAlumnoDto,
-  ): Promise<GeneralResponseDto<AlumnoCreatedPayload>> {
-    const role = await this.roleCrudHelper.findByNameOrId(
-      'alumno',
-      false,
-      false,
+  const findUser = await this.crudHelper.findByEmailOrId(
+    createNewAlumnoDto.email,
+    false,
+    false,
+  );
+  if (findUser) {
+    throw new ConflictException(
+      `User with email ${createNewAlumnoDto.email} already exists`,
     );
+  }
 
-    if (!role) {
-      throw new BadRequestException(`Role alumno not found`);
-    }
-    const findUser = await this.crudHelper.findByEmailOrId(
-      createNewAlumnoDto.email,
-      false,
-      false,
-    );
-    if (findUser) {
-      throw new ConflictException(
-        `User with email ${createNewAlumnoDto.email} already exists`,
-      );
-    }
+  // Generar y hashear contraseña temporal
+  const temporaryPassword = crypto.randomBytes(8).toString('hex');
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(temporaryPassword, salt);
 
-    const temporaryPassword = crypto.randomBytes(8).toString('hex'); // Generar una contraseña temporal
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(temporaryPassword, salt);
+  // Crear usuario desactivado
+  const newUser = this.userRepository.create({
+    nombre:           createNewAlumnoDto.nombre,
+    email:            createNewAlumnoDto.email,
+    telefono:         createNewAlumnoDto.telefono,
+    image:            createNewAlumnoDto.image,
+    isActive:         false,
+    role:             role._id.toString(),
+    password:         hashedPassword,
+    idDependingRole:  createNewAlumnoDto.idDependingRole,
+  });
 
-    const newUser = this.userRepository.create({
-      nombre: createNewAlumnoDto.nombre,
-      email: createNewAlumnoDto.email,
-      telefono: createNewAlumnoDto.telefono,
-      image: createNewAlumnoDto.image,
-      isActive: false,
-      role: role._id.toString(),
-      password: hashedPassword,
-      idDependingRole: createNewAlumnoDto.idDependingRole,
-    });
+  const savedUser = await this.userRepository.save(newUser);
 
-    const savedUser = await this.userRepository.save(newUser);
-
-    /*
-      const sendEmailDto: SendEmailDto = {
-        to: [createNewAlumnoDto.email],
-        replyTo: ['soporte@refuerzo-mendoza.me'],
-        subject: 'Cuenta de Alumno Creada',
-        from: 'soporte@refuerzo-mendoza.me',
-        text: `Hola ${createNewAlumnoDto.nombre},\n\nTu contraseña temporal es: ${temporaryPassword}\nPor favor inicia sesión y cambia tu contraseña.`,
-        html: alumnoAccountCreatedTemplate(
-          createNewAlumnoDto.nombre,
-          temporaryPassword,
-        ),
-      };
-    
-
-      try {
-        await this.emailService.sendEmail(sendEmailDto);
-      } catch (error) {
-        console.error('Error sending email:', error);
-      }
-    */
-
-   return new GeneralResponseBuilder<AlumnoCreatedPayload>()
+  return new GeneralResponseBuilder<{ email: string; temporaryPassword: string }>()
     .setStatusCode(201)
     .setMessage('Alumno created successfully')
     .setData({
-      id:               savedUser._id.toString(),
-      email:            savedUser.email,
-      temporaryPassword,  // la pwd antes de hashear
+      email: savedUser.email,
+      temporaryPassword,
     })
     .build();
-  }
+}
+
 
   async findAll(
     paginationQuery: PaginationQueryDto,
@@ -1033,7 +1016,7 @@ export class UsersService {
         )
         .build();
     } catch (error) {
-      console.error('Error en requestPasswordReset:', error);
+      console.error('Error en requestPasswordReset:', error); // Depuración
       throw new HttpException(
         'Error en la solicitud de recuperación de contraseña',
         HttpStatus.INTERNAL_SERVER_ERROR,
