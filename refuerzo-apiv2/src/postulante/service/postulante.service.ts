@@ -166,12 +166,52 @@ export class PostulanteService {
       totalPages = 1;
     }
 
+    // Enriquecer los postulantes con la información de grado y recomendador
+    const postulantesWithDetails = await Promise.all(
+      results.map(async (postulante) => {
+        const grado = await this.gradoCrudHelper.findByNameOrId(
+          postulante.grado?.toString?.() ?? '',
+          false,
+          false,
+        );
+        const recomendador = await this.userCrudHelper.findByNameOrId(
+          postulante.recomendador?.toString?.() ?? '',
+          false,
+          false,
+        );
+        return {
+          _id: postulante._id,
+          nombre: postulante.nombre,
+          imagen: postulante.imagen,
+          direccion: postulante.direccion,
+          telefono: postulante.telefono,
+          telefonoEncargado: postulante.telefonoEncargado,
+          email: postulante.email,
+          grado: grado && grado.nombre ? grado.nombre : 'No grado',
+          isUser: postulante.isUser,
+          recomendador: recomendador
+            ? {
+                nombreCompleto: recomendador.nombre,
+                email: recomendador.email,
+                image: recomendador.image,
+              }
+            : {
+                nombreCompleto: 'No recomendador',
+                email: 'No recomendador',
+                image: 'No recomendador',
+              },
+          createdAt: postulante.createdAt,
+          updatedAt: postulante.updatedAt,
+        };
+      })
+    );
+
     // Construir la respuesta paginada
     return new PaginationResponseBuilder()
       .setMessage(
         `Postulantes retrieved successfully. Total pages: ${totalPages}`,
       )
-      .setData(results)
+      .setData(postulantesWithDetails)
       .setSize(total)
       .setTotalPages(totalPages)
       .setPage(applyPagination ? paginationQuery.page : 1)
