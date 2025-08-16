@@ -270,14 +270,19 @@ export class PostulanteService {
           telefono: postulante.telefono,
           telefonoEncargado: postulante.telefonoEncargado,
           email: postulante.email,
-          grado: grado.nombre,
+          grado: grado && grado.nombre ? grado.nombre : 'No grado',
           isUser: postulante.isUser,
-          recomendador: {
-            nombreCompleto: recomendador.nombre,
-            email: recomendador.email,
-            image: recomendador.image,
-          },
-
+          recomendador: recomendador
+            ? {
+                nombreCompleto: recomendador.nombre,
+                email: recomendador.email,
+                image: recomendador.image,
+              }
+            : {
+                nombreCompleto: 'No recomendador',
+                email: 'No recomendador',
+                image: 'No recomendador',
+              },
           createdAt: postulante.createdAt,
           updatedAt: postulante.updatedAt,
         };
