@@ -18,11 +18,13 @@ import { toast } from "@pheralb/toast";
 import { useWarnIfUnsavedChanges } from "@/hooks/useWarnUnsavedChanges";
 import { FormAsistenciaEncargado } from "@/components/Popups/AddEncargadoAsistenciaModal";
 import AsistenciaCard from "@/components/Asistencia/AsistenciaCard";
-import { getLocalTimeZone, today } from "@internationalized/date";
+import {
+  getDiaAsistencia,
+  getTodayLocalDay,
+  toDiaAsistencia,
+} from "@/utils/fecha";
 
 type EstadoAsistencia = "asistió" | "falto" | "permiso";
-
-const getCurrentDateString = today(getLocalTimeZone())
 
 export default function Asistencia() {
   const course = useContext(CourseContext);
@@ -77,18 +79,16 @@ export default function Asistencia() {
 
   useEffect(() => {
     if (asistenciaResponse) {
+      const hoy = getTodayLocalDay();
 
       const todayAsistencias = {
         ...asistenciaResponse,
-        alumnos: asistenciaResponse.alumnos.filter(
-          (alumno: { fecha: string }) =>
-            alumno.fecha.split("T")[0] ==
-            getCurrentDateString.toString()
+        alumnos: (asistenciaResponse.alumnos ?? []).filter(
+          (alumno: { fecha: string }) => getDiaAsistencia(alumno.fecha) === hoy
         ),
-        encargados: asistenciaResponse.encargados.filter(
+        encargados: (asistenciaResponse.encargados ?? []).filter(
           (encargado: { fecha: string }) =>
-            encargado.fecha.split("T")[0] ==
-            getCurrentDateString.toString()
+            getDiaAsistencia(encargado.fecha) === hoy
         ),
       };
 
@@ -111,7 +111,7 @@ export default function Asistencia() {
 
     const payload: AsistenciaEncargado = {
       userId: modalState.selected._id || "",
-      fecha: new Date(formData.fecha).toISOString(),
+      fecha: toDiaAsistencia(formData.fecha),
       estado: formData.estado,
       hora_inicio: new Date(`${formData.fecha}T${formData.hora_inicio}`).toISOString(),
       hora_fin: new Date(`${formData.fecha}T${formData.hora_fin}`).toISOString(),
@@ -157,7 +157,7 @@ export default function Asistencia() {
         );
         const newAsistencia = {
           alumnoId: alumno._id,
-          fecha: new Date().toISOString(),
+          fecha: toDiaAsistencia(new Date()),
           estado,
           nombre: alumno.nombre,
           imagen: alumno.image,

@@ -419,10 +419,13 @@ export class AsistenciaService {
     return asistencia;
   }
 
+  // El rango se calcula en UTC porque los registros se agrupan por su día UTC
+  // (ver normalizeDiaAsistencia). Con medianoche local se quedaban fuera los
+  // registros del día 1 del mes.
   private createMonthRange(month: number, year: number) {
     return {
-      startDate: new Date(year, month - 1, 1),
-      endDate: new Date(year, month, 1),
+      startDate: new Date(Date.UTC(year, month - 1, 1)),
+      endDate: new Date(Date.UTC(year, month, 1)),
     };
   }
 
@@ -706,6 +709,21 @@ export class AsistenciaService {
     return date;
   };
 
+  /** Devuelve el día calendario UTC ("YYYY-MM-DD") de una fecha guardada. */
+  private toDiaKey(fecha: Date | string): string {
+    return new Date(fecha).toISOString().substring(0, 10);
+  }
+
+  /**
+   * Una asistencia representa un DÍA, no un instante. Anclamos la fecha al
+   * mediodía UTC del día recibido para que el día que se guarda sea siempre el
+   * mismo que se agrupa y se muestra, sin que la hora del registro lo corra al
+   * día siguiente (o anterior) por la zona horaria.
+   */
+  private normalizeDiaAsistencia(fecha: Date): Date {
+    return new Date(`${this.toDiaKey(fecha)}T12:00:00.000Z`);
+  }
+
   async addAlumnosToAsistenciaBySeccionId(
     seccionId: string,
     addAlumnosDto: ArrayAsistenciaAddAlumnoDto,
@@ -724,14 +742,14 @@ export class AsistenciaService {
     const processedAlumnos = [];
     const seenKeys = new Set<string>();
 
+    asistencia.alumnos = asistencia.alumnos || [];
+
     for (const alumnoDto of asistenciasToAdd) {
-      const fecha = this.validateDateString(
-        alumnoDto.fecha,
-        'Fecha del alumno',
-        'alumno',
+      const fecha = this.normalizeDiaAsistencia(
+        this.validateDateString(alumnoDto.fecha, 'Fecha del alumno', 'alumno'),
       );
 
-      const key = `${alumnoDto.alumnoId}-${fecha.getTime()}`;
+      const key = `${alumnoDto.alumnoId}-${this.toDiaKey(fecha)}`;
 
       if (seenKeys.has(key)) {
         throw new ConflictException(
@@ -744,8 +762,7 @@ export class AsistenciaService {
       const existingIndex = asistencia.alumnos.findIndex(
         (a) =>
           a.alumnoId === alumnoDto.alumnoId &&
-          a.fecha.toISOString().substring(0, 10) ===
-            fecha.toISOString().substring(0, 10),
+          this.toDiaKey(a.fecha) === this.toDiaKey(fecha),
       );
 
       if (existingIndex !== -1) {
@@ -789,11 +806,15 @@ export class AsistenciaService {
       );
     }
 
+    asistencia.encargados = asistencia.encargados || [];
+
     // Validaciones de fechas
-    const fecha = this.validateDateString(
-      encargadoDto.fecha,
-      'Fecha del encargado',
-      'encargado',
+    const fecha = this.normalizeDiaAsistencia(
+      this.validateDateString(
+        encargadoDto.fecha,
+        'Fecha del encargado',
+        'encargado',
+      ),
     );
     const horaInicio = this.validateDateString(
       encargadoDto.hora_inicio,
@@ -814,14 +835,11 @@ export class AsistenciaService {
     }
 
     // Buscar registro existente por userId y fecha (solo día)
-    const existingIndex = asistencia.encargados.findIndex((e) => {
-      const existingFecha = new Date(e.fecha);
-      return (
+    const existingIndex = asistencia.encargados.findIndex(
+      (e) =>
         e.userId === encargadoDto.userId &&
-        existingFecha.toISOString().substring(0, 10) ===
-          fecha.toISOString().substring(0, 10)
-      );
-    });
+        this.toDiaKey(e.fecha) === this.toDiaKey(fecha),
+    );
 
     // Función para verificar solapamientos
     const checkSolapamiento = (entries: any[]): boolean => {

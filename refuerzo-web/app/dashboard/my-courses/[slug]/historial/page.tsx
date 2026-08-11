@@ -7,6 +7,7 @@ import { CourseContext } from "@/app/contexts/course-context";
 import { Check, TriangleAlert, X } from "lucide-react";
 import { Tooltip as ReactTooltip } from "react-tooltip";
 import HistoryTable from "@/components/Asistencia/HistoryTable";
+import { toLocalDay } from "@/utils/fecha";
 
 export default function HistorialAsistencia() {
   const [mes, setMes] = useState(new Date().getMonth() + 1);
@@ -80,9 +81,10 @@ export default function HistorialAsistencia() {
     [anio, mes, getSabaditosDelMes]
   );
 
-  const formatDate = (date: Date): string => {
-    return date.toISOString().split('T')[0];
-  };
+  // Los sábados se construyen con `new Date(anio, mes, dia)` (medianoche local),
+  // así que hay que leerlos como día local. Usar toISOString() aquí corría la
+  // llave un día en zonas con offset positivo y no cuadraba con la API.
+  const formatDate = (date: Date): string => toLocalDay(date);
 
   const getEstadoAsistencia = (alumnoId: string, fecha: Date): string | null => {
     const fechaKey = formatDate(fecha);
