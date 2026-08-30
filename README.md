@@ -67,15 +67,18 @@ necesita la cadena de conexión de Atlas ni ningún `.env`.**
 # 1. Clonar
 git clone <url-del-repo>
 cd RefuerzoEscolarWeb
+
+# 2. Levantar todo. La primera vez construye las imágenes (unos minutos).
 docker compose up -d
-#Esriti carfa daris reakes
+
+# 3. Cargar los datos reales, que ya vienen en backup/
 docker compose run --rm restore
 docker compose run --rm seed
 ```
 
 Y listo: <http://localhost:3000> con `admin@local.test` / `admin123`.
 
-**Si salteás el paso 2**, el proyecto igual levanta y podés entrar: la base
+**Si salteás el paso 3**, el proyecto igual levanta y podés entrar: la base
 queda vacía pero con el rol `admin` y ese usuario ya creados. Sirve para tocar
 código; no vas a ver alumnos, secciones ni postulantes hasta que restaures un
 dump.
@@ -126,11 +129,8 @@ anterior:
 
 ### Cargar los datos reales
 
-El seed te da una base vacía con un admin. Si querés trabajar con datos de
-verdad, necesitás un **dump**, que se pasa aparte del repo (nunca por git).
-
-Poné el dump en `backup/` — la estructura tiene que quedar
-`backup/RefuerzoEscolar/*.bson.gz` — y corré:
+El seed te da una base vacía con un admin. Los datos reales vienen en el propio
+repo, en `backup/`, como un dump de MongoDB comprimido. Para cargarlos:
 
 ```bash
 docker compose run --rm restore   # restaura el dump en el Mongo local
@@ -161,11 +161,14 @@ usuario cuya contraseña nadie puede saber. Está explicado en
 
 ### Generar un dump nuevo
 
-Esto solo lo puede hacer alguien con la cadena de conexión de Atlas. El dump
-sale a `backup/`, que está en el `.gitignore`:
+Para refrescar el dump con datos más nuevos. Solo lo puede hacer alguien con la
+cadena de conexión de Atlas. Sobrescribe `backup/`, así que después hay que
+commitear el cambio:
 
 ```bash
-docker run --rm --env-file refuerzo-apiv2/.env   -v "$PWD/backup:/dump"   mongo:7 sh -c 'mongodump --uri="$MONGO_URI" --out=/dump --gzip'
+docker run --rm --env-file refuerzo-apiv2/.env \
+  -v "$PWD/backup:/dump" \
+  mongo:7 sh -c 'mongodump --uri="$MONGO_URI" --out=/dump --gzip'
 ```
 
 Se pasa por `--env-file` a propósito: así la contraseña no queda en el historial

@@ -284,7 +284,8 @@ pip install pandas requests openpyxl
 ```
 
 > Los `.xlsx` que producen tienen nombres, correos y contraseñas de estudiantes
-> reales. Están en el `.gitignore` a propósito. No los subas al repo.
+> reales, igual que el dump de `backup/`. Es una de las razones por las que este
+> repositorio tiene que seguir siendo privado.
 
 ## Limpiar los datos de prueba
 
