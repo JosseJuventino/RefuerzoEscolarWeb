@@ -22,6 +22,7 @@ básicamente obligaría a leer las dos mitades para entender una sola cosa.
 | [Cursos y secciones](cursos-y-secciones.md)      | Grados, programas, secciones, quién entra a cada una y el tablón de publicaciones.                       |
 | [Asistencia](asistencia.md)                      | Cómo se registra, por qué una asistencia es un día y no una hora, y cómo funciona el historial.          |
 | [Archivos e imágenes](archivos.md)               | Qué pasa cuando alguien sube una foto o un PDF, y dónde terminan guardados.                              |
+| [Probar el flujo en local](probar-el-flujo.md)   | **Práctico.** Cómo ejecutar el flujo completo vos mismo, con comandos que se copian y pegan.             |
 
 ## Cómo leer esto
 

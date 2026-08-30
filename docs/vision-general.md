@@ -19,8 +19,11 @@ sostener esas tres cosas.
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | [refuerzo-apiv2/](../refuerzo-apiv2/)              | La API. NestJS + TypeORM sobre MongoDB. Acá vive toda la lógica de negocio real y toda la validación que importa. |
 | [refuerzo-web/](../refuerzo-web/)                  | El panel y la web pública. Next.js + NextAuth. Es la única interfaz que se usa en producción.                   |
-| [formulario_postulantes/](../formulario_postulantes/) | Un prototipo estático en Astro. **No se usa.** No envía nada a la API.                                       |
-| [refuerzo-api/](../refuerzo-api/)                  | La API vieja (v1). Quedó como referencia, ya no se toca.                                                        |
+
+Hasta el commit `e08d686` había dos carpetas más: `formulario_postulantes/` (un
+prototipo estático en Astro que nunca envió nada a la API) y `refuerzo-api/` (la
+API v1). Las dos se eliminaron del repo y solo quedan en el historial de git.
+Si te cruzás con referencias a ellas en commits viejos, es eso.
 
 La web nunca habla con Mongo directamente. Todo pasa por HTTP contra la API, con
 axios, desde [lib/api.ts](../refuerzo-web/lib/api.ts).

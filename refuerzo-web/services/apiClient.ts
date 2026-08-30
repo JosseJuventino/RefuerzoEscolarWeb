@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { resolveBaseURL } from '@/lib/api';
 
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: resolveBaseURL(),
   headers: {
     'Content-Type': 'application/json',
   },

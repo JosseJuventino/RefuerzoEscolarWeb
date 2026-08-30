@@ -7,6 +7,10 @@ postulantes.
 Este README es para **levantar el proyecto**. Para entender cómo funciona por
 dentro, eso está en [docs/](docs/).
 
+**¿Solo querés arrancar?** `docker compose up -d` y entrás en
+<http://localhost:3000> con `admin@local.test` / `admin123`. El detalle está en
+[Levantar todo con Docker](#levantar-todo-con-docker-camino-recomendado).
+
 ## Cómo funciona la plataforma
 
 La lógica de negocio está documentada aparte, en la carpeta [docs/](docs/), que
@@ -25,6 +29,7 @@ deciden en la API pero el menú se pinta en la web.
 | [Cursos y secciones](docs/cursos-y-secciones.md)     | Grados, secciones, quién entra a cada una y el tablón.                                |
 | [Asistencia](docs/asistencia.md)                     | Cómo se registra y por qué una asistencia es un día, no una hora.                     |
 | [Archivos e imágenes](docs/archivos.md)              | Qué pasa cuando alguien sube una foto o un PDF.                                       |
+| [Probar el flujo en local](docs/probar-el-flujo.md)  | **Práctico.** Ejecutar el flujo completo con comandos, y qué ve cada rol.              |
 
 ## Componentes
 
@@ -32,8 +37,6 @@ deciden en la API pero el menú se pinta en la web.
 | -------------------------------------------------- | --------------------------- | ---------- | --------------- |
 | [refuerzo-apiv2/](refuerzo-apiv2/)                 | NestJS 10 + TypeORM/MongoDB | `3005`     | Sí — `.env`     |
 | [refuerzo-web/](refuerzo-web/)                     | Next.js 15 + NextAuth v5    | `3000`     | Sí — `.env.local` |
-| [formulario_postulantes/](formulario_postulantes/) | Astro 5 (estático)          | `4321`     | No              |
-| [refuerzo-api/](refuerzo-api/)                     | API v1 (legado)             | —          | Fuera de alcance |
 
 `refuerzo-web` **debe** correr en el puerto `3000`: el CORS de la API está
 hardcodeado en [main.ts:19-27](refuerzo-apiv2/src/main.ts#L19-L27) y solo
@@ -41,6 +44,144 @@ permite `http://localhost:3000`, `http://66.70.189.110` y
 `https://refuerzo-mendoza.me`.
 
 ---
+
+## Levantar todo con Docker (camino recomendado)
+
+Un solo comando deja Mongo, la API y la web corriendo, con un usuario admin ya
+creado y listo para entrar. **No hace falta instalar Node, ni Mongo, ni copiar
+ningún `.env`**: el [docker-compose.yml](docker-compose.yml) trae todas las
+variables con valores de desarrollo.
+
+El único requisito es **Docker Desktop**.
+
+```bash
+docker compose up -d
+```
+
+### Desde cero, paso a paso
+
+Lo que hace alguien que recibe el proyecto y no tiene nada instalado. **No
+necesita la cadena de conexión de Atlas ni ningún `.env`.**
+
+```bash
+# 1. Clonar
+git clone <url-del-repo>
+cd RefuerzoEscolarWeb
+docker compose up -d
+#Esriti carfa daris reakes
+docker compose run --rm restore
+docker compose run --rm seed
+```
+
+Y listo: <http://localhost:3000> con `admin@local.test` / `admin123`.
+
+**Si salteás el paso 2**, el proyecto igual levanta y podés entrar: la base
+queda vacía pero con el rol `admin` y ese usuario ya creados. Sirve para tocar
+código; no vas a ver alumnos, secciones ni postulantes hasta que restaures un
+dump.
+
+**Por qué el paso 4 son dos comandos y no uno:** `restore` corre con `--drop`,
+así que reemplaza las colecciones enteras — incluida `Users`, y ahí se va el
+usuario del seed. El `seed` de después lo recrea sin tocar nada de lo
+restaurado.
+
+---
+
+La primera vez tarda unos minutos porque construye las dos imágenes. Después:
+
+| Servicio | Dónde | Qué es |
+| -------- | ----- | ------ |
+| Web      | <http://localhost:3000>      | El panel. Acá se entra. |
+| API      | <http://localhost:3005>      | Las rutas van en la raíz, sin `/api`. |
+| Swagger  | <http://localhost:3005/docs> | Documentación de la API. |
+| Mongo    | `localhost:27017`            | Base `RefuerzoEscolar`. |
+
+Y entrás en <http://localhost:3000> con:
+
+```
+email:    admin@local.test
+password: admin123
+```
+
+### Qué hace solo, sin que tengas que pedirlo
+
+`docker compose up` encadena cuatro cosas en orden, cada una esperando a la
+anterior:
+
+1. **`mongo`** arranca como replica set `rs0`. No es capricho: el reset de
+   contraseña usa una transacción ([users.service.ts:972](refuerzo-apiv2/src/users/users.service.ts#L972))
+   y las transacciones de Mongo exigen replica set. Con un `mongod` suelto ese
+   endpoint falla.
+2. **`mongo-init`** hace el `rs.initiate()` y espera a que haya PRIMARY. Corre
+   una vez y sale.
+3. **`seed`** crea los cinco roles (`admin`, `recomendador`, `alumno`, `tutor`,
+   `profesor`) con los permisos que tienen en producción, más el usuario de
+   arriba. Esto resuelve el huevo-y-gallina que está explicado más abajo en
+   [Primer rol y primer usuario](#primer-rol-y-primer-usuario-bootstrap):
+   `POST /users` exige que el rol exista, y `POST /roles` está detrás del
+   `AuthGuard`. El script es [scripts/seed.js](refuerzo-apiv2/scripts/seed.js) y
+   es **idempotente**: lo que ya existe no lo pisa.
+4. **`api`** y **`web`** arrancan en modo watch, con el código montado desde tu
+   disco. Si editás un archivo, recompila solo.
+
+### Cargar los datos reales
+
+El seed te da una base vacía con un admin. Si querés trabajar con datos de
+verdad, necesitás un **dump**, que se pasa aparte del repo (nunca por git).
+
+Poné el dump en `backup/` — la estructura tiene que quedar
+`backup/RefuerzoEscolar/*.bson.gz` — y corré:
+
+```bash
+docker compose run --rm restore   # restaura el dump en el Mongo local
+docker compose run --rm seed      # vuelve a crear el admin
+```
+
+**Los dos comandos, en ese orden.** `restore` usa `--drop`, así que reemplaza
+las colecciones enteras y se lleva puesto el usuario del seed. Volver a correr
+`seed` lo recrea sin tocar nada de lo que restauraste.
+
+### Usuarios de prueba de otros roles
+
+El seed también crea usuarios de cualquier rol, con una contraseña que vos
+elegís:
+
+```bash
+SEED_ROLE=tutor SEED_EMAIL=tutor@local.test SEED_PASSWORD=tutor12345   docker compose run --rm seed
+```
+
+`SEED_ROLE` acepta `admin`, `recomendador`, `alumno`, `tutor` o `profesor`, y el
+usuario queda **activo**, sin pasar por el formulario de activación.
+
+Esto no es comodidad: `POST /tutores` y `POST /profesor` mandan la contraseña
+temporal por AWS SES y no la devuelven en la respuesta. En local, sin
+credenciales de AWS, el correo falla, el endpoint igual responde `201` y queda un
+usuario cuya contraseña nadie puede saber. Está explicado en
+[Probar el flujo en local](docs/probar-el-flujo.md#el-problema-de-crear-tutores-y-profesores).
+
+### Generar un dump nuevo
+
+Esto solo lo puede hacer alguien con la cadena de conexión de Atlas. El dump
+sale a `backup/`, que está en el `.gitignore`:
+
+```bash
+docker run --rm --env-file refuerzo-apiv2/.env   -v "$PWD/backup:/dump"   mongo:7 sh -c 'mongodump --uri="$MONGO_URI" --out=/dump --gzip'
+```
+
+Se pasa por `--env-file` a propósito: así la contraseña no queda en el historial
+de la terminal.
+
+> **Un dump de Mongo no es un backup completo.** Las imágenes y los PDFs no
+> están en la base: [images.service.ts:61-79](refuerzo-apiv2/src/images/images.service.ts#L61-L79)
+> los escribe al disco del servidor, y Mongo solo guarda la URL. Un respaldo de
+> verdad es el dump **más** la carpeta `uploads/` del VPS.
+
+
+## Instalación manual (sin Docker)
+
+Todo lo que sigue es el camino a mano. Sirve si no querés usar Docker o si
+necesitás depurar algo puntual, pero para empezar a trabajar el camino de arriba
+es más corto.
 
 ## Requisitos previos
 
@@ -93,11 +234,6 @@ cd refuerzo-apiv2
 npm install --no-package-lock
 ```
 
-> **No corras `npm install` sin `--no-package-lock` aquí.** npm detecta el
-> `yarn.lock` existente y lo reescribe al formato de Yarn 1, rompiendo el
-> `yarn install --frozen-lockfile` que usa [install.sh](install.sh) en el
-> servidor. Si te pasa: `git checkout -- refuerzo-apiv2/yarn.lock`.
-
 ### Variables de entorno
 
 Copia [refuerzo-apiv2/.env.example](refuerzo-apiv2/.env.example) a
@@ -107,7 +243,7 @@ Copia [refuerzo-apiv2/.env.example](refuerzo-apiv2/.env.example) a
 | Variable                | ¿Obligatoria?               | Para qué sirve |
 | ----------------------- | --------------------------- | -------------- |
 | `MONGO_URI`             | **Sí**                      | Cadena de conexión a MongoDB. |
-| `MONGO_DB`              | **Sí**                      | Nombre de la base de datos. |
+| `MONGO_DB`              | **Sí**                      | Nombre de la base. En producción y en los dumps es `RefuerzoEscolar`, en CamelCase. Si acá ponés otro nombre, la app se conecta a una base vacía sin avisar. |
 | `JWT`                   | **Sí**                      | Secreto de firma de los JWT. Se llama `JWT`, **no** `JWT_SECRET`. |
 | `NEXT_PUBLIC_API_URLV2` | Sí, si subes archivos       | Prefijo con el que se guardan en Mongo las URLs de imágenes y documentos. Si falta, quedan como `undefined/uploads/...`. |
 | `PORT`                  | No (default `3005`)         | Puerto de escucha. |
@@ -122,7 +258,7 @@ Ejemplo mínimo para levantar en local:
 
 ```dotenv
 MONGO_URI=mongodb://localhost:27017
-MONGO_DB=refuerzo_escolar
+MONGO_DB=RefuerzoEscolar
 JWT=<pega aquí un secreto aleatorio>
 PORT=3005
 NEXT_PUBLIC_API_URLV2=http://localhost:3005
@@ -133,18 +269,12 @@ Genera el secreto con:
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 ```
-
-> **Las rutas viven en la raíz, sin `/api`.** [main.ts](refuerzo-apiv2/src/main.ts)
-> nunca llama a `app.setGlobalPrefix()`, así que el login local es
-> `http://localhost:3005/auth/login`. El `/apiv2` de producción lo agrega el
-> reverse proxy, no la aplicación.
-
 ### Arranque
 
 ```bash
-npm run start:dev     # watch mode
-npm run start         # una sola pasada
-npm run build && npm run start:prod   # como en producción
+npm run start:dev 
+npm run start a
+npm run build && npm run start:prod
 ```
 
 - API: <http://localhost:3005>
@@ -210,28 +340,10 @@ No cambies el puerto: el CORS de la API solo acepta `http://localhost:3000`.
 
 ---
 
-## 4. formulario_postulantes (Astro)
-
-**No necesita `.env`.** Es un prototipo estático: no hay ninguna referencia a
-`import.meta.env` ni a `process.env`, y el `<form>` de
-[FormBody.astro](formulario_postulantes/src/components/FormBody.astro) no tiene
-`action` ni `fetch` — no envía nada a la API.
-
-El formulario de postulantes **en uso** es el de la web, en
-[refuerzo-web/app/formulario/page.tsx](refuerzo-web/app/formulario/page.tsx)
-(<http://localhost:3000/formulario>).
-
-```bash
-cd formulario_postulantes
-npm ci
-npm run dev     # http://localhost:4321
-```
-
----
-
 ## Levantar todo (resumen)
 
-Tres terminales, en este orden:
+A mano, dos terminales (más Mongo), en este orden. Con Docker esto es un solo
+`docker compose up -d`.
 
 ```bash
 # 0) Mongo
@@ -242,14 +354,16 @@ cd refuerzo-apiv2 && npm run start:dev
 
 # 2) Web  -> http://localhost:3000
 cd refuerzo-web && npm run dev
-
-# 3) Formulario (opcional) -> http://localhost:4321
-cd formulario_postulantes && npm run dev
 ```
 
 ---
 
 ## Primer rol y primer usuario (bootstrap)
+
+> Si levantaste con Docker, **esto ya está hecho**: lo resuelve el servicio
+> `seed`. Lo de acá abajo es el procedimiento a mano, o para entender qué hace
+> el seed por dentro. También podés correr solo el script, contra el Mongo que
+> quieras: `MONGO_URI=... MONGO_DB=... npm run seed` desde `refuerzo-apiv2/`.
 
 Con la base de datos vacía **no puedes entrar**, y hay un problema de
 huevo-y-gallina:
@@ -375,4 +489,22 @@ Con Node v23.11.1 y npm 10.9.2 en Windows 11:
 | ----------------------- | ------------------------------- | ----- |
 | `refuerzo-apiv2`        | `npm install --no-package-lock` | `npm run build` ✅ |
 | `refuerzo-web`          | `npm ci --force`                | `npm run build` ✅ (20 rutas) |
-| `formulario_postulantes`| `npm ci`                        | `npm run build` ✅ (1 página estática) |
+
+### El stack de Docker
+
+Probado el 2026-08-29 con Docker 29.4.1 y Compose v5.1.3 en Windows 11, partiendo
+de `docker compose down -v` (base borrada) para simular una máquina nueva:
+
+| Paso | Resultado |
+| ---- | --------- |
+| `docker compose up -d` desde cero | ✅ 1m13s con las imágenes ya construidas |
+| Lo mismo **sin ningún `.env` en el disco** | ✅ arranca igual; las variables salen del compose |
+| Replica set `rs0` iniciado y con PRIMARY | ✅ automático, vía `mongo-init` |
+| Seed en base vacía | ✅ crea rol `admin` (15 permisos) + usuario activo |
+| API compilando y respondiendo | ✅ `POST /auth/login` → 201 |
+| Login directo contra la API | ✅ 200, devuelve token y `role: admin` |
+| Login vía NextAuth en la web | ✅ 302 → `/dashboard`, sesión con `role: admin` |
+| `GET /dashboard` con sesión | ✅ 200 |
+| `docker compose run --rm restore` | ✅ 1257 documentos, 0 fallidos |
+| Seed después del restore | ✅ respeta el rol restaurado, recrea solo el usuario |
+| Consulta autenticada con datos restaurados | ✅ `GET /grado` devuelve los 5 grados reales |

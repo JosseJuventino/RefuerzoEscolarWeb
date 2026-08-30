@@ -1,0 +1,126 @@
+# Stack de desarrollo. No usar en producción: Mongo va sin autenticación y los
+# secretos son valores fijos. Ver README.md.
+name: refuerzo
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: refuerzo-mongo
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  mongo-init:
+    image: mongo:7
+    container_name: refuerzo-mongo-init
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: "no"
+    entrypoint:
+      - mongosh
+      - --host
+      - mongo:27017
+      - --quiet
+      - --eval
+      - |
+        try {
+          rs.status();
+          print('· replica set rs0 ya estaba iniciado');
+        } catch (e) {
+          rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongo:27017' }] });
+          print('✓ replica set rs0 iniciado');
+        }
+        var intentos = 0;
+        while (!db.hello().isWritablePrimary && intentos < 60) { sleep(500); intentos++; }
+        if (!db.hello().isWritablePrimary) { print('✗ timeout esperando PRIMARY'); quit(1); }
+        print('✓ PRIMARY listo');
+
+  seed:
+    build:
+      context: ./refuerzo-apiv2
+    container_name: refuerzo-seed
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+    restart: "no"
+    environment:
+      MONGO_URI: mongodb://mongo:27017/RefuerzoEscolar?replicaSet=rs0
+      MONGO_DB: RefuerzoEscolar
+      SEED_ROLE: ${SEED_ROLE:-admin}
+      SEED_EMAIL: ${SEED_EMAIL:-admin@local.test}
+      SEED_PASSWORD: ${SEED_PASSWORD:-admin123}
+      SEED_NOMBRE: ${SEED_NOMBRE:-Admin Local}
+    volumes:
+      - ./refuerzo-apiv2:/app
+      - /app/node_modules
+    command: ["npm", "run", "seed"]
+
+  api:
+    build:
+      context: ./refuerzo-apiv2
+    container_name: refuerzo-api
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    ports:
+      - "3005:3005"
+    environment:
+      # Estas ganan sobre el .env del host, que el bind mount también monta.
+      MONGO_URI: mongodb://mongo:27017/RefuerzoEscolar?replicaSet=rs0
+      MONGO_DB: RefuerzoEscolar
+      JWT: ${JWT:-dev-jwt-secret-solo-para-local}
+      PORT: "3005"
+      API_GLOBAL_PREFIX: api
+      SWAGGER_DOC_PATH: docs
+      NEXT_PUBLIC_API_URLV2: http://localhost:3005
+      AWS_REGION: ${AWS_REGION:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY:-}
+    volumes:
+      - ./refuerzo-apiv2:/app
+      - /app/node_modules
+
+  web:
+    build:
+      context: ./refuerzo-web
+    container_name: refuerzo-web
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3005
+      API_URL_INTERNAL: http://api:3005
+      AUTH_SECRET: ${AUTH_SECRET:-dev-auth-secret-solo-para-local}
+      AUTH_TRUST_HOST: "true"
+      NEXT_PUBLIC_SITE_KEY_RECAPTCHA: ${NEXT_PUBLIC_SITE_KEY_RECAPTCHA:-}
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - ./refuerzo-web:/app
+      - /app/node_modules
+      - /app/.next
+
+  restore:
+    image: mongo:7
+    profiles: ["tools"]
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./backup:/backup:ro
+    entrypoint:
+      ["mongorestore", "--host", "mongo:27017", "--gzip", "--drop", "/backup"]
+
+volumes:
+  mongo-data:

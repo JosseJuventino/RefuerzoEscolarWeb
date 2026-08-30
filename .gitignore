@@ -1,0 +1,16 @@
+*.xlsx
+.env
+.env.local
+.env.*.local
+!.env.example
+
+node_modules/
+dist/
+.next/
+*.tsbuildinfo
+
+refuerzo-apiv2/uploads/
+
+.DS_Store
+Thumbs.db
+*.log
