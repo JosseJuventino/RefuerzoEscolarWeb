@@ -27,6 +27,27 @@ import { useQuery } from "@tanstack/react-query";
 import { Course } from "@/types/types";
 import { getMySections } from "@/services/courses.service";
 
+const FALLBACK_AVATAR = "/default-avatar.png";
+
+const UserAvatar = ({ src }: { src?: string | null }) => {
+  const [imgSrc, setImgSrc] = useState(src || FALLBACK_AVATAR);
+
+  useEffect(() => {
+    setImgSrc(src || FALLBACK_AVATAR);
+  }, [src]);
+
+  return (
+    <Image
+      src={imgSrc}
+      alt="User avatar"
+      className="w-8 object-cover h-8 rounded-full"
+      width={32}
+      height={32}
+      onError={() => setImgSrc(FALLBACK_AVATAR)}
+    />
+  );
+};
+
 const Sidenav: React.FC = () => {
   const pathName = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -222,17 +243,7 @@ const Sidenav: React.FC = () => {
         <div className="flex items-center gap-2 mt-4 pt-4 border-t" suppressHydrationWarning>
           <div className="flex items-center gap-2 flex-1">
             {user?.image ? (
-              <Image
-                src={user.image || '/default-avatar.png'}
-                alt="User avatar"
-                className="w-8 object-cover h-8 rounded-full"
-                width={32}
-                height={32}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = '/default-avatar.png';
-                }}
-              />
+              <UserAvatar src={user.image} />
             ) : (
               <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                 <UserCircle className="w-5 h-5 text-gray-400" />
@@ -321,17 +332,7 @@ const Sidenav: React.FC = () => {
             <div className="flex items-center gap-2 mt-4 pt-4 border-t">
               <div className="flex items-center gap-2 flex-1">
                 {user?.image ? (
-                  <Image
-                    src={user.image || '/default-avatar.png'}
-                    alt="User avatar"
-                    className="w-8 object-cover h-8 rounded-full"
-                    width={32}
-                    height={32}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = '/default-avatar.png';
-                    }}
-                  />
+                  <UserAvatar src={user.image} />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                     <UserCircle className="w-5 h-5 text-gray-400" />
